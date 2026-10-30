@@ -1,0 +1,2288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0b0d13">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Estudio de Línea Continua — Coral @algorigraph · Calco Tatuador · Áurea φ · Fractal</title>
+  <style>
+    :root {
+      --bg-dark: #0b0d13;
+      --bg-panel: #141822;
+      --bg-card: #1b2030;
+      --border: #2b334b;
+      --accent: #5fa4f9;
+      --gold: #f59f33;
+      --green: #1fd88a;
+      --danger: #e05252;
+      --text: #f0f2f8;
+      --text-dim: #9aa2b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: var(--bg-dark); color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      display: flex; height: 100vh; height: 100dvh; overflow: hidden;
+    }
+    #sidebar {
+      width: 375px; background: var(--bg-panel); padding: 12px 14px;
+      display: flex; flex-direction: column; gap: 8px;
+      border-right: 1px solid var(--border); z-index: 10;
+      overflow-y: auto; box-shadow: 4px 0 24px rgba(0,0,0,0.45);
+      overscroll-behavior: contain;
+    }
+    #stage {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      background: #07080c; position: relative; overflow: hidden; padding: 8px;
+    }
+    canvas {
+      background: #fff; box-shadow: 0 16px 50px rgba(0,0,0,0.85);
+      max-height: 94vh; max-width: 94%; border-radius: 4px;
+      display: block; object-fit: contain;
+    }
+    h2 { font-size: 15px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 7px; }
+    .subtitle { font-size: 11px; color: var(--text-dim); margin-top: 2px; line-height: 1.3; }
+    
+    .panel-section {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 9px 11px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .panel-title {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.6px; color: var(--accent); display: flex; justify-content: space-between;
+    }
+    label { font-size: 11px; color: var(--text-dim); display: flex; justify-content: space-between; align-items: center; }
+    label span { color: var(--text); font-weight: 600; font-family: monospace; }
+    input[type="range"] {
+      width: 100%; accent-color: var(--accent); height: 6px;
+      background: #2b334d; border-radius: 4px; outline: none; margin-top: 3px;
+      cursor: pointer;
+    }
+    select {
+      background: #242b40; color: #fff; border: 1px solid var(--border);
+      padding: 7px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;
+      outline: none; width: 100%; cursor: pointer;
+    }
+    select:focus { border-color: var(--accent); }
+    button, .file-btn {
+      background: #252c42; color: #fff; border: 1px solid var(--border);
+      padding: 8px 9px; border-radius: 6px; cursor: pointer;
+      font-weight: 600; text-align: center; font-size: 11.5px;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      user-select: none;
+    }
+    button:hover, .file-btn:hover { background: #323b59; border-color: var(--accent); }
+    button:active, .file-btn:active { transform: scale(0.98); }
+    .file-btn { background: #1f3b60; border-color: var(--accent); font-size: 13px; padding: 9px; }
+    .file-btn:hover { background: #264a78; }
+    button.primary { background: #1e5236; border-color: var(--green); }
+    button.primary:hover { background: #286b47; }
+    button.gold { background: #5a3c14; border-color: var(--gold); }
+    button.gold:hover { background: #754e1a; }
+    button.warn { background: #4a2328; border-color: var(--danger); }
+    button.warn:hover { background: #632d34; }
+    button.recording { background: #8e1c1c; border-color: #f87171; animation: pulseRec 1.2s infinite; }
+    @keyframes pulseRec { 0%,100% { opacity: 1; } 50% { opacity: 0.65; } }
+    
+    .row-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .mode-badge {
+      font-size: 10.5px; padding: 5px 7px; border-radius: 4px;
+      background: rgba(95, 164, 249, 0.12); color: #b9d7ff;
+      border: 1px solid rgba(95, 164, 249, 0.25); line-height: 1.35;
+    }
+    .stats {
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 11px; color: var(--text-dim);
+      background: #0e111a; padding: 7px 9px; border-radius: 6px;
+      border: 1px solid var(--border); line-height: 1.4; margin-top: auto;
+    }
+
+    /* Diseño Responsivo para Teléfono Móvil y Tablet */
+    @media (max-width: 860px) {
+      body {
+        flex-direction: column-reverse;
+      }
+      #sidebar {
+        width: 100%;
+        height: 54dvh;
+        border-right: none;
+        border-top: 1px solid var(--border);
+        padding: 10px 12px 18px 12px;
+      }
+      #stage {
+        width: 100%;
+        height: 46dvh;
+        flex: none;
+        padding: 6px;
+      }
+      canvas {
+        max-height: 43dvh;
+        max-width: 96vw;
+      }
+      input[type="range"] {
+        height: 8px;
+      }
+      button, .file-btn, select {
+        padding: 9px 10px;
+        font-size: 12.5px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="sidebar">
+    <div>
+      <h2>✒️ Estudio de Línea Continua</h2>
+      <div class="subtitle">6 Modos Completos · Motor Ultra-Optimizado (PC y Móvil)</div>
+    </div>
+    
+    <label class="file-btn">
+      📁 Subir / Tomar Foto (Retrato o Cuerpo)
+      <input type="file" id="imgInput" accept="image/*" style="display:none">
+    </label>
+
+    <!-- Selector de Algoritmo / Estilo de Línea Continua (TODOS CONSERVADOS) -->
+    <div class="panel-section">
+      <div class="panel-title"><span>Modo / Algoritmo de Línea</span> <span>⚡</span></div>
+      <select id="engineMode">
+        <option value="coral">🌊 1. Coral Orgánico (@algorigraph · Silueta Limpia + Pliegues U)</option>
+        <option value="stencil_clean">✏️ 2. Calco a Lápiz Tatuador Sin Cruces (Fiel a Rasgos · 2-Opt)</option>
+        <option value="stencil_cross">✍️ 3. Calco a Lápiz CON CRUCES (Boceto de Trazos Cruzados)</option>
+        <option value="live_growth">🌱 4. Crecimiento en Vivo CON CRUCES (1ª Versión Original)</option>
+        <option value="golden">🌻 5. Proporción Áurea φ = 1.618 (Filotaxis 137.508°)</option>
+        <option value="fractal">❄️ 6. Curva Fractal Adaptativa (Hilbert Multiescala 2ⁿ)</option>
+      </select>
+      <div id="modeDesc" class="mode-badge">
+        🌊 Coral @algorigraph: Silueta exterior 100% blanca sin huecos y pliegues redondeados en U con alto contraste entre sombras y luz.
+      </div>
+    </div>
+
+    <!-- Vista del Lienzo -->
+    <div class="panel-section">
+      <div class="panel-title"><span>Vista del Lienzo</span> <span>👁️</span></div>
+      <select id="viewMode">
+        <option value="line">✒️ Solo Línea Continua (Resultado Final)</option>
+        <option value="both">👁️ Línea Continua + Calco a Lápiz Debajo</option>
+        <option value="stencil">✏️ Ver Solo el Calco a Lápiz / Silueta</option>
+        <option value="photo">🖼️ Ver Foto Original</option>
+      </select>
+    </div>
+
+    <!-- PASO 1: Calco a Lápiz de Tatuador y Limpieza de Silueta -->
+    <div class="panel-section">
+      <div class="panel-title"><span>Paso 1: Calco a Lápiz y Silueta</span> <span>✏️</span></div>
+      <div>
+        <label>Fuerza del Lápiz (Ojos y Rasgos) <span id="vPencil">8.5</span></label>
+        <input type="range" id="pencilStr" min="2.0" max="14.0" step="0.5" value="8.5">
+      </div>
+      <div>
+        <label>Grosor de Trazo del Calco <span id="vBlur">2.0</span></label>
+        <input type="range" id="pencilBlur" min="1.0" max="5.0" step="0.5" value="2.0">
+      </div>
+      <div>
+        <label>Relleno de Sombras / Pelo <span id="vShade">0.45</span></label>
+        <input type="range" id="shadeWeight" min="0.00" max="0.85" step="0.05" value="0.45">
+      </div>
+      <div>
+        <label>Limpieza de Fondo (Silueta) <span id="vClean">0.140</span></label>
+        <input type="range" id="bgClean" min="0.000" max="0.280" step="0.002" value="0.140">
+      </div>
+    </div>
+
+    <!-- PASO 2: Parámetros de Línea Continua -->
+    <div class="panel-section">
+      <div class="panel-title"><span>Paso 2: Línea Continua</span> <span>〰️</span></div>
+      <div>
+        <label>Cantidad de Nodos (Detalle) <span id="vNodes">26000</span></label>
+        <input type="range" id="maxN" min="6000" max="45000" step="2000" value="26000">
+      </div>
+      <div>
+        <label>Separación Mínima (Ojos/Pelo) <span id="vMin">1.5</span></label>
+        <input type="range" id="minR" min="0.8" max="3.5" step="0.1" value="1.5">
+      </div>
+      <div>
+        <label>Separación Máxima (Piel/Luz) <span id="vMax">8.5</span></label>
+        <input type="range" id="maxR" min="3.5" max="15.0" step="0.5" value="8.5">
+      </div>
+      <div>
+        <label>Redondeo Coral (Pliegues en U) <span id="vChaikin">2</span></label>
+        <input type="range" id="chaikinPasses" min="0" max="2" step="1" value="2">
+      </div>
+      <div>
+        <label>Grosor de la Línea <span id="vWidth">1.0</span></label>
+        <input type="range" id="lineW" min="0.4" max="2.8" step="0.1" value="1.0">
+      </div>
+    </div>
+
+    <!-- Botones de Acción (TODOS CONSERVADOS + LIMPIAR / RESETEAR) -->
+    <div class="row-buttons">
+      <button id="btnRebuild" class="primary">🔄 Reiniciar / Recalcular</button>
+      <button id="btnAnimate" class="gold">🎬 Animar Dibujo</button>
+    </div>
+
+    <div class="row-buttons">
+      <button id="btnClear" class="warn">🧹 Limpiar Lienzo</button>
+      <button id="btnResetDefaults">↺ Valores por Defecto</button>
+    </div>
+    
+    <div class="row-buttons">
+      <button id="btnSvg">✒️ Descargar .SVG</button>
+      <button id="btnRecord">⏺ Grabar Vídeo .WEBM</button>
+    </div>
+
+    <div class="stats" id="stats">Listo | Motor cargado (0% CPU en reposo)</div>
+  </div>
+
+  <div id="stage">
+    <canvas id="canvas" width="720" height="880"></canvas>
+  </div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+
+const isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth <= 860;
+
+let W = canvas.width, H = canvas.height;
+let rCh = null, gCh = null, bCh = null, rawGray = null;
+
+// Buffers reutilizables pre-asignados (Cero presión de Garbage Collector)
+let allocSize = 0;
+let silhouetteMask = null;
+let smoothSilMap = null;
+let step232Stencil = null;
+let coralToneMap = null;
+let scratchIsBg = null;
+let scratchExtBg = null;
+let scratchQueue = null;
+let scratchRawSubj = null;
+let blurTempBuf = null;
+const lumHist = new Uint32Array(256);
+
+// Cachés de desenfoque para respuesta en < 2ms al mover sliders
+let cachedRBlur = null, cachedGBlur = null, cachedBBlur = null;
+let cachedCleanGray = null, cachedGradMag = null, cachedLocalTex = null;
+let cachedBlurRadius = -1, cachedBlurFine = null, cachedBlurMed = null, cachedBlurBroad = null;
+let cachedStep232EdgeAct = null;
+
+// Lienzos en caché en memoria GPU
+const photoCanvas = document.createElement('canvas');
+const stencilCanvas = document.createElement('canvas');
+const lineCacheCanvas = document.createElement('canvas');
+const animAccumCanvas = document.createElement('canvas');
+let cachedPath2D = null;
+let lineCacheDirty = true;
+
+// Parámetros activos
+let ENGINE_MODE = 'coral';
+let VIEW_MODE = 'line';
+let PENCIL_STR = 8.5;
+let PENCIL_BLUR = 2.0;
+let SHADE_WEIGHT = 0.45;
+let BG_CLEAN = 0.140;
+
+let TARGET_NODES = isMobileDevice ? 22000 : 26000;
+let MIN_R = 1.5;
+let MAX_R = 8.5;
+let CHAIKIN_PASSES = 2;
+let LINE_W = 1.0;
+
+let ptsX = new Float32Array(0);
+let ptsY = new Float32Array(0);
+let statusPhase = 'Iniciando...';
+
+// Estado de Animación O(1)
+let isAnimatingDraw = false;
+let drawProgressCount = 0;
+let lastAnimatedIndex = 1;
+let animRafId = null;
+
+// Estado del Modo 4 Original (Crecimiento Diferencial en Vivo con Cruces)
+let liveGrowthRafId = null;
+let liveNodesX = null;
+let liveNodesY = null;
+let liveNodeCount = 0;
+
+const MODE_DESCRIPTIONS = {
+  coral: '🌊 Coral Orgánico (@algorigraph): Recorta la silueta exterior limpia sin huecos y rellena el retrato con pliegues redondeados en U tipo coral cerebral sin cruces.',
+  stencil_clean: '✏️ Calco a Lápiz Tatuador Sin Cruces (Paso 232): Algoritmo exacto de calco a lápiz por inversión de capa + línea continua 100% libre de cruces (2-Opt).',
+  stencil_cross: '✍️ Calco a Lápiz CON CRUCES: Mantiene el calco a lápiz del tatuador pero enlaza los trazos permitiendo cruces y sombreado cruzado rápido.',
+  live_growth: '🌱 Crecimiento Diferencial en Vivo CON CRUCES (1ª Versión): El trazo nace en el centro del rostro y teje en vivo sobre los rasgos cruzando líneas.',
+  golden: '🌻 Proporción Áurea (φ = 1.61803): Distribuye los nodos en espiral de Fermat con el ángulo áureo exacto (137.50776°) y brazos espirales de Fibonacci (55/89).',
+  fractal: '❄️ Curva Fractal Adaptativa (Hilbert 2ⁿ): Subdivide recursivamente el retrato en una curva fractal autosemejante más densa en ojos y sombras, con 0 cruces.'
+};
+
+const MODE_PRESETS = {
+  coral:         { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.140, minR: 1.5, maxR: 8.5, chaikin: 2 },
+  stencil_clean: { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.20, bgClean: 0.022, minR: 1.1, maxR: 9.0, chaikin: 0 },
+  stencil_cross: { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.20, bgClean: 0.022, minR: 1.1, maxR: 9.0, chaikin: 0 },
+  live_growth:   { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.22, bgClean: 0.022, minR: 1.3, maxR: 8.5, chaikin: 0 },
+  golden:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.42, bgClean: 0.140, minR: 1.4, maxR: 8.0, chaikin: 1 },
+  fractal:       { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.140, minR: 1.4, maxR: 8.0, chaikin: 1 }
+};
+
+function syncSlidersFromState() {
+  const setSlider = (id, labelId, val, decimals = null) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+    const lbl = document.getElementById(labelId);
+    if (lbl) lbl.textContent = decimals !== null ? val.toFixed(decimals) : val;
+  };
+  setSlider('pencilStr', 'vPencil', PENCIL_STR, 1);
+  setSlider('pencilBlur', 'vBlur', PENCIL_BLUR, 1);
+  setSlider('shadeWeight', 'vShade', SHADE_WEIGHT, 2);
+  setSlider('bgClean', 'vClean', BG_CLEAN, 3);
+  setSlider('maxN', 'vNodes', TARGET_NODES);
+  setSlider('minR', 'vMin', MIN_R, 1);
+  setSlider('maxR', 'vMax', MAX_R, 1);
+  setSlider('chaikinPasses', 'vChaikin', CHAIKIN_PASSES);
+  setSlider('lineW', 'vWidth', LINE_W, 1);
+}
+syncSlidersFromState();
+
+// =========================================================
+// 1. DESENFOQUE GAUSSIANO O(1) CON BUFFER REUTILIZABLE
+// =========================================================
+function ensureScratchBuffers(N) {
+  if (allocSize !== N) {
+    allocSize = N;
+    silhouetteMask = new Uint8Array(N);
+    smoothSilMap = new Float32Array(N);
+    step232Stencil = new Float32Array(N);
+    coralToneMap = new Float32Array(N);
+    scratchIsBg = new Uint8Array(N);
+    scratchExtBg = new Uint8Array(N);
+    scratchQueue = new Int32Array(N);
+    scratchRawSubj = new Float32Array(N);
+    blurTempBuf = new Float32Array(N);
+  }
+}
+
+function gaussianBlur(src, width, height, radius, outBuf = null) {
+  const N = width * height;
+  const curr = outBuf ? outBuf : new Float32Array(N);
+  curr.set(src);
+  if (!blurTempBuf || blurTempBuf.length < N) blurTempBuf = new Float32Array(N);
+  const temp = blurTempBuf;
+  const r = Math.max(1, Math.round(radius));
+  const invCount = 1.0 / (2 * r + 1);
+
+  for (let pass = 0; pass < 2; pass++) {
+    for (let y = 0; y < height; y++) {
+      const row = y * width;
+      let sum = curr[row] * (r + 1);
+      for (let x = 1; x <= r; x++) sum += curr[row + (x < width ? x : width - 1)];
+      for (let x = 0; x < width; x++) {
+        temp[row + x] = sum * invCount;
+        const right = x + r + 1 < width ? x + r + 1 : width - 1;
+        const left = x - r > 0 ? x - r : 0;
+        sum += curr[row + right] - curr[row + left];
+      }
+    }
+    for (let x = 0; x < width; x++) {
+      let sum = temp[x] * (r + 1);
+      for (let y = 1; y <= r; y++) sum += temp[(y < height ? y : height - 1) * width + x];
+      for (let y = 0; y < height; y++) {
+        curr[y * width + x] = sum * invCount;
+        const bottom = y + r + 1 < height ? y + r + 1 : height - 1;
+        const top = y - r > 0 ? y - r : 0;
+        sum += temp[bottom * width + x] - temp[top * width + x];
+      }
+    }
+  }
+  return curr;
+}
+
+function ensureBaseCaches() {
+  if (!rawGray) return;
+  const N = W * H;
+  ensureScratchBuffers(N);
+
+  if (!cachedCleanGray) {
+    cachedRBlur = gaussianBlur(rCh, W, H, 2);
+    cachedGBlur = gaussianBlur(gCh, W, H, 2);
+    cachedBBlur = gaussianBlur(bCh, W, H, 2);
+    cachedCleanGray = gaussianBlur(rawGray, W, H, 1);
+
+    cachedGradMag = new Float32Array(N);
+    for (let y = 1; y < H - 1; y++) {
+      const row = y * W;
+      for (let x = 1; x < W - 1; x++) {
+        const i = row + x;
+        const gxR = cachedRBlur[i + 1] - cachedRBlur[i - 1], gyR = cachedRBlur[i + W] - cachedRBlur[i - W];
+        const gxG = cachedGBlur[i + 1] - cachedGBlur[i - 1], gyG = cachedGBlur[i + W] - cachedGBlur[i - W];
+        const gxB = cachedBBlur[i + 1] - cachedBBlur[i - 1], gyB = cachedBBlur[i + W] - cachedBBlur[i - W];
+        cachedGradMag[i] = Math.sqrt(gxR * gxR + gyR * gyR + gxG * gxG + gyG * gyG + gxB * gxB + gyB * gyB);
+      }
+    }
+    cachedLocalTex = gaussianBlur(cachedGradMag, W, H, 5);
+  }
+
+  if (cachedBlurRadius !== PENCIL_BLUR || !cachedBlurFine) {
+    cachedBlurRadius = PENCIL_BLUR;
+    cachedBlurFine = gaussianBlur(cachedCleanGray, W, H, PENCIL_BLUR);
+    cachedBlurMed = gaussianBlur(cachedCleanGray, W, H, Math.round(PENCIL_BLUR * 3.5));
+    cachedBlurBroad = gaussianBlur(cachedCleanGray, W, H, Math.round(PENCIL_BLUR * 11));
+
+    for (let i = 0; i < N; i++) {
+      const g = cachedCleanGray[i];
+      const df = cachedBlurFine[i] > g ? cachedBlurFine[i] - g : 0;
+      const dm = cachedBlurMed[i] > g ? cachedBlurMed[i] - g : 0;
+      scratchRawSubj[i] = df * 2.5 + dm;
+    }
+    cachedStep232EdgeAct = gaussianBlur(scratchRawSubj, W, H, 28);
+  }
+}
+
+function buildAllStencilsAndSilhouettes() {
+  if (!rawGray) return;
+  ensureBaseCaches();
+
+  const N = W * H;
+  silhouetteMask.fill(1);
+  smoothSilMap.fill(1.0);
+
+  const pFine = PENCIL_STR;
+  const pMed = PENCIL_STR * 0.55;
+  const pBroad = PENCIL_STR * 0.35;
+
+  if (BG_CLEAN > 0.003) {
+    const tol = Math.max(0.05, BG_CLEAN);
+    const bgR = [], bgG = [], bgB = [];
+    for (let x = 0; x < W; x += 6) {
+      const idx = 2 * W + x;
+      if (cachedGradMag[idx] < 0.085) {
+        bgR.push(cachedRBlur[idx]); bgG.push(cachedGBlur[idx]); bgB.push(cachedBBlur[idx]);
+      }
+    }
+    const maxSampleY = Math.floor(H * 0.58);
+    for (let y = 0; y < maxSampleY; y += 6) {
+      const iL = y * W + 2, iR = y * W + W - 3;
+      if (cachedGradMag[iL] < 0.085) { bgR.push(cachedRBlur[iL]); bgG.push(cachedGBlur[iL]); bgB.push(cachedBBlur[iL]); }
+      if (cachedGradMag[iR] < 0.085) { bgR.push(cachedRBlur[iR]); bgG.push(cachedGBlur[iR]); bgB.push(cachedBBlur[iR]); }
+    }
+    const nSamples = bgR.length;
+
+    const distToBgPalette = (idx) => {
+      if (nSamples === 0) return 999;
+      const r = cachedRBlur[idx], g = cachedGBlur[idx], b = cachedBBlur[idx];
+      const rg = r - g, rb = r - b;
+      let minD = 999;
+      for (let k = 0; k < nSamples; k++) {
+        const sr = bgR[k], sg = bgG[k], sb = bgB[k];
+        const dr = r - sr, dg = g - sg, db = b - sb;
+        const dChroma = Math.abs(rg - (sr - sg)) + Math.abs(rb - (sr - sb));
+        const d = Math.sqrt(dr * dr + dg * dg + db * db) + dChroma * 0.85;
+        if (d < minD) minD = d;
+      }
+      return minD;
+    };
+
+    scratchIsBg.fill(0);
+    let qHead = 0, qTail = 0;
+    const paletteTol = tol;
+    const stepTolSq = (0.018 + tol * 0.08) * (0.018 + tol * 0.08);
+    const gradTol = 0.042 + tol * 0.12;
+    const texTol = gradTol * 0.78;
+
+    const trySeed = (x, y) => {
+      const idx = y * W + x;
+      if (!scratchIsBg[idx] && cachedGradMag[idx] < gradTol * 1.4 && distToBgPalette(idx) < paletteTol * 1.15) {
+        scratchIsBg[idx] = 1;
+        scratchQueue[qTail++] = idx;
+      }
+    };
+
+    for (let x = 0; x < W; x++) { trySeed(x, 0); trySeed(x, 1); }
+    const seedMaxY = Math.floor(H * 0.74);
+    for (let y = 0; y < seedMaxY; y++) {
+      trySeed(0, y); trySeed(1, y);
+      trySeed(W - 1, y); trySeed(W - 2, y);
+    }
+
+    const dirs = [-1, 1, -W, W];
+    while (qHead < qTail) {
+      const curr = scratchQueue[qHead++];
+      const cx = curr % W;
+      const cr = cachedRBlur[curr], cg = cachedGBlur[curr], cb = cachedBBlur[curr];
+      for (let d = 0; d < 4; d++) {
+        const nxt = curr + dirs[d];
+        if (nxt < 0 || nxt >= N || scratchIsBg[nxt]) continue;
+        if (Math.abs((nxt % W) - cx) > 1) continue;
+
+        const dr = cachedRBlur[nxt] - cr;
+        const dg = cachedGBlur[nxt] - cg;
+        const db = cachedBBlur[nxt] - cb;
+        if (dr * dr + dg * dg + db * db < stepTolSq &&
+            cachedGradMag[nxt] < gradTol &&
+            cachedLocalTex[nxt] < texTol &&
+            distToBgPalette(nxt) < paletteTol) {
+          scratchIsBg[nxt] = 1;
+          scratchQueue[qTail++] = nxt;
+        }
+      }
+    }
+
+    for (let i = 0; i < N; i++) scratchRawSubj[i] = scratchIsBg[i] ? 0.0 : 1.0;
+
+    gaussianBlur(scratchRawSubj, W, H, 6, smoothSilMap);
+    for (let i = 0; i < N; i++) smoothSilMap[i] = smoothSilMap[i] > 0.28 ? 1.0 : 0.0;
+
+    scratchExtBg.fill(0);
+    qHead = 0; qTail = 0;
+    for (let x = 0; x < W; x++) {
+      if (smoothSilMap[x] === 0 && !scratchExtBg[x]) { scratchExtBg[x] = 1; scratchQueue[qTail++] = x; }
+    }
+    const extMaxY = Math.floor(H * 0.76);
+    for (let y = 0; y < extMaxY; y++) {
+      const l = y * W, r = y * W + W - 1;
+      if (smoothSilMap[l] === 0 && !scratchExtBg[l]) { scratchExtBg[l] = 1; scratchQueue[qTail++] = l; }
+      if (smoothSilMap[r] === 0 && !scratchExtBg[r]) { scratchExtBg[r] = 1; scratchQueue[qTail++] = r; }
+    }
+    while (qHead < qTail) {
+      const curr = scratchQueue[qHead++];
+      const cx = curr % W;
+      for (let d = 0; d < 4; d++) {
+        const nxt = curr + dirs[d];
+        if (nxt < 0 || nxt >= N || scratchExtBg[nxt] || smoothSilMap[nxt] > 0.5) continue;
+        if (Math.abs((nxt % W) - cx) > 1) continue;
+        scratchExtBg[nxt] = 1;
+        scratchQueue[qTail++] = nxt;
+      }
+    }
+
+    for (let i = 0; i < N; i++) scratchRawSubj[i] = scratchExtBg[i] ? 0.0 : 1.0;
+    gaussianBlur(scratchRawSubj, W, H, 3, smoothSilMap);
+    for (let i = 0; i < N; i++) silhouetteMask[i] = smoothSilMap[i] > 0.48 ? 1 : 0;
+  }
+
+  lumHist.fill(0);
+  let subjCount = 0;
+  for (let i = 0; i < N; i += 4) {
+    if (silhouetteMask[i]) {
+      const bin = Math.min(255, Math.max(0, (cachedCleanGray[i] * 255) | 0));
+      lumHist[bin]++;
+      subjCount++;
+    }
+  }
+  let p05 = 0.05, p95 = 0.95;
+  if (subjCount > 20) {
+    const t05 = subjCount * 0.05, t95 = subjCount * 0.95;
+    let acc = 0, found05 = false;
+    for (let b = 0; b < 256; b++) {
+      acc += lumHist[b];
+      if (!found05 && acc >= t05) { p05 = b / 255; found05 = true; }
+      if (acc >= t95) { p95 = b / 255; break; }
+    }
+  }
+  const invLumSpan = 1.0 / Math.max(0.20, p95 - p05);
+
+  if (stencilCanvas.width !== W || stencilCanvas.height !== H) {
+    stencilCanvas.width = W;
+    stencilCanvas.height = H;
+  }
+  const sCtx = stencilCanvas.getContext('2d', { alpha: false });
+  const imgData = sCtx.createImageData(W, H);
+  const data = imgData.data;
+
+  const isClassicStencilMode = (ENGINE_MODE === 'stencil_clean' || ENGINE_MODE === 'stencil_cross' || ENGINE_MODE === 'live_growth');
+  const invBgClean14 = BG_CLEAN > 0.001 ? 1.0 / (BG_CLEAN * 1.4) : 0;
+  const bgClean04 = BG_CLEAN * 0.4;
+
+  for (let i = 0; i < N; i++) {
+    const g = cachedCleanGray[i];
+    const dodgeFine = Math.min(1.0, (g + 0.018) / (cachedBlurFine[i] + 0.018));
+    const dodgeMed = Math.min(1.0, (g + 0.022) / (cachedBlurMed[i] + 0.022));
+    const dodgeBroad = Math.min(1.0, (g + 0.028) / (cachedBlurBroad[i] + 0.028));
+
+    const sketch = Math.pow(dodgeFine, pFine) * 0.65 + Math.pow(dodgeMed, pMed) * 0.25 + Math.pow(dodgeBroad, pBroad) * 0.10;
+    const darkFeature = g < 0.32 ? ((1.0 - SHADE_WEIGHT) + SHADE_WEIGHT * (g / 0.32)) : 1.0;
+    const pencilVal = sketch * darkFeature;
+
+    const sil232 = BG_CLEAN <= 0.001 ? 1.0 : Math.min(1.0, Math.max(0.0, (cachedStep232EdgeAct[i] - bgClean04) * invBgClean14));
+    const s232 = Math.max(0.0, Math.min(1.0, 1.0 - (1.0 - pencilVal) * sil232));
+    step232Stencil[i] = s232;
+
+    let cTone = 1.0;
+    if (silhouetteMask[i]) {
+      const normLum = Math.max(0.0, Math.min(1.0, (g - p05) * invLumSpan));
+      const combined = sketch * (1.0 - SHADE_WEIGHT) + normLum * SHADE_WEIGHT;
+      cTone = Math.max(0.0, Math.min(1.0, Math.min(sketch * 0.90, combined)));
+    }
+    coralToneMap[i] = cTone;
+
+    const showVal = isClassicStencilMode ? s232 : cTone;
+    const pxVal = (showVal * 255 + 0.5) | 0;
+    const p = i << 2;
+    data[p] = pxVal; data[p + 1] = pxVal; data[p + 2] = pxVal; data[p + 3] = 255;
+  }
+
+  sCtx.putImageData(imgData, 0, 0);
+}
+
+// =========================================================
+// 2. MODO 4 ORIGINAL: CRECIMIENTO DIFERENCIAL EN VIVO CON CRUCES
+// =========================================================
+function stopLiveGrowth() {
+  if (liveGrowthRafId) {
+    cancelAnimationFrame(liveGrowthRafId);
+    liveGrowthRafId = null;
+  }
+}
+
+function startLiveDifferentialGrowthMode() {
+  stopLiveGrowth();
+  stopAnimation();
+
+  const maxNodes = TARGET_NODES;
+  const cap = maxNodes + 4000;
+  if (!liveNodesX || liveNodesX.length < cap) {
+    liveNodesX = new Float32Array(cap);
+    liveNodesY = new Float32Array(cap);
+  }
+  liveNodeCount = 0;
+
+  // 1. Extraer exactamente TARGET_NODES puntos de rasgo por difusión de masa sobre el Calco a Lápiz (step232Stencil)
+  const len = W * H;
+  const err = new Float32Array(len);
+  let totalMass = 0;
+  for (let i = 0; i < len; i++) {
+    const dark = Math.max(0, 1.0 - step232Stencil[i]);
+    const w = dark < 0.08 ? 0 : Math.pow(dark, 1.45);
+    err[i] = w;
+    totalMass += w;
+  }
+
+  const featX = new Float32Array(cap);
+  const featY = new Float32Array(cap);
+  let fCount = 0;
+
+  if (totalMass > 10) {
+    const unitMass = totalMass / (maxNodes * 0.65);
+    const halfUnit = unitMass * 0.5;
+    for (let y = 5; y < H - 5; y++) {
+      const l2r = (y & 1) === 0;
+      for (let s = 5; s < W - 5; s++) {
+        const x = l2r ? s : (W - 1 - s);
+        const idx = y * W + x;
+        const val = err[idx];
+        let quantErr = val;
+        if (val >= halfUnit && step232Stencil[idx] < 0.90 && fCount < cap - 10) {
+          featX[fCount] = x + (Math.random() - 0.5) * 0.8;
+          featY[fCount] = y + (Math.random() - 0.5) * 0.8;
+          fCount++;
+          quantErr = val - unitMass;
+        }
+        const dir = l2r ? 1 : -1;
+        err[idx + dir] += quantErr * 0.4375;
+        err[(y + 1) * W + (x - dir)] += quantErr * 0.1875;
+        err[(y + 1) * W + x] += quantErr * 0.3125;
+        err[(y + 1) * W + (x + dir)] += quantErr * 0.0625;
+      }
+    }
+  }
+
+  if (fCount < 100) {
+    for (let i = 0; i < 1200; i++) {
+      const a = i * 0.15;
+      const r = 8 + i * 0.25;
+      featX[fCount] = W * 0.5 + Math.cos(a) * r;
+      featY[fCount] = H * 0.5 + Math.sin(a) * r;
+      fCount++;
+    }
+  }
+
+  // 2. Indexar los puntos de rasgo en una rejilla espacial para que el trazo crezca en vivo desde el centro tejiendo y cruzando
+  const fUsed = new Uint8Array(fCount);
+  const fCell = 14;
+  const fCols = Math.ceil(W / fCell) + 1;
+  const fRows = Math.ceil(H / fCell) + 1;
+  const fHead = new Int32Array(fCols * fRows).fill(-1);
+  const fNext = new Int32Array(fCount).fill(-1);
+
+  let startFeat = 0;
+  let bestCenterDist = Infinity;
+  for (let i = 0; i < fCount; i++) {
+    const cx = Math.max(0, Math.min(fCols - 1, (featX[i] / fCell) | 0));
+    const cy = Math.max(0, Math.min(fRows - 1, (featY[i] / fCell) | 0));
+    const cIdx = cy * fCols + cx;
+    fNext[i] = fHead[cIdx];
+    fHead[cIdx] = i;
+
+    const dCenter = Math.hypot(featX[i] - W * 0.5, featY[i] - H * 0.42);
+    if (dCenter < bestCenterDist) {
+      bestCenterDist = dCenter;
+      startFeat = i;
+    }
+  }
+
+  fUsed[startFeat] = 1;
+  let headX = featX[startFeat];
+  let headY = featY[startFeat];
+  let headAngle = 0;
+  liveNodesX[liveNodeCount] = headX;
+  liveNodesY[liveNodeCount] = headY;
+  liveNodeCount++;
+
+  const cellSize = 12;
+  const cols = Math.ceil(W / cellSize) + 1;
+  const gRows = Math.ceil(H / cellSize) + 1;
+  const head = new Int32Array(cols * gRows);
+  const nextInCell = new Int32Array(cap);
+
+  function stepLiveGrowth() {
+    if (ENGINE_MODE !== 'live_growth') return;
+    if (document.hidden) {
+      liveGrowthRafId = requestAnimationFrame(stepLiveGrowth);
+      return;
+    }
+
+    const nodesPerFrame = Math.max(220, Math.round(maxNodes / 95));
+    let addedThisFrame = 0;
+
+    while (liveNodeCount < maxNodes && addedThisFrame < nodesPerFrame) {
+      const cx = (headX / fCell) | 0;
+      const cy = (headY / fCell) | 0;
+      let chosen = -1;
+      let bestScore = Infinity;
+
+      for (let rad = 1; rad <= 32; rad++) {
+        const minDy = Math.max(-cy, -rad), maxDy = Math.min(fRows - 1 - cy, rad);
+        const minDx = Math.max(-cx, -rad), maxDx = Math.min(fCols - 1 - cx, rad);
+        for (let dy = minDy; dy <= maxDy; dy++) {
+          const rowOff = (cy + dy) * fCols;
+          for (let dx = minDx; dx <= maxDx; dx++) {
+            if (rad > 2 && Math.abs(dx) < rad && Math.abs(dy) < rad) continue;
+            let j = fHead[rowOff + (cx + dx)];
+            while (j !== -1) {
+              if (!fUsed[j]) {
+                const ddx = featX[j] - headX, ddy = featY[j] - headY;
+                const dSq = ddx * ddx + ddy * ddy;
+                // Preferir saltos de 3.5px a 28px que cruzan suavemente sobre los rasgos
+                if (dSq > 10 && dSq < bestScore) {
+                  bestScore = dSq;
+                  chosen = j;
+                }
+              }
+              j = fNext[j];
+            }
+          }
+        }
+        if (chosen !== -1 && bestScore < (rad * fCell + 10) * (rad * fCell + 10)) break;
+      }
+
+      if (chosen === -1) {
+        for (let tries = 0; tries < 90; tries++) {
+          const rnd = (Math.random() * fCount) | 0;
+          if (!fUsed[rnd]) { chosen = rnd; break; }
+        }
+      }
+
+      let tx, ty;
+      if (chosen !== -1) {
+        fUsed[chosen] = 1;
+        tx = featX[chosen];
+        ty = featY[chosen];
+      } else {
+        const rnd = (Math.random() * fCount) | 0;
+        headAngle += 2.39996;
+        tx = featX[rnd] + Math.cos(headAngle) * (MIN_R * 2.0);
+        ty = featY[rnd] + Math.sin(headAngle) * (MIN_R * 2.0);
+      }
+
+      const mx = (headX + tx) * 0.5;
+      const my = (headY + ty) * 0.5;
+      const dist = Math.hypot(tx - headX, ty - headY);
+      if (dist > 3.2 && liveNodeCount < maxNodes - 1) {
+        const nx = -(ty - headY) / dist;
+        const ny = (tx - headX) / dist;
+        const buckle = ((liveNodeCount & 1) ? 1 : -1) * Math.min(4.8, dist * 0.24);
+        liveNodesX[liveNodeCount] = Math.max(5, Math.min(W - 5, mx + nx * buckle));
+        liveNodesY[liveNodeCount] = Math.max(5, Math.min(H - 5, my + ny * buckle));
+        liveNodeCount++;
+        addedThisFrame++;
+      }
+
+      liveNodesX[liveNodeCount] = Math.max(5, Math.min(W - 5, tx));
+      liveNodesY[liveNodeCount] = Math.max(5, Math.min(H - 5, ty));
+      liveNodeCount++;
+      addedThisFrame++;
+      headX = tx;
+      headY = ty;
+    }
+
+    // Relajación diferencial en vivo sobre la cola activa
+    const activeStart = Math.max(1, liveNodeCount - 3200);
+    head.fill(-1);
+    for (let i = activeStart; i < liveNodeCount; i++) {
+      const cx = Math.max(0, Math.min(cols - 1, (liveNodesX[i] / cellSize) | 0));
+      const cy = Math.max(0, Math.min(gRows - 1, (liveNodesY[i] / cellSize) | 0));
+      const cIdx = cy * cols + cx;
+      nextInCell[i] = head[cIdx];
+      head[cIdx] = i;
+    }
+
+    for (let i = activeStart; i < liveNodeCount - 1; i++) {
+      const px = liveNodesX[i], py = liveNodesY[i];
+      const ix = Math.min(W - 2, Math.max(1, px | 0));
+      const iy = Math.min(H - 2, Math.max(1, py | 0));
+      const idx = iy * W + ix;
+      const st = step232Stencil[idx];
+      const rLocal = MIN_R + (MAX_R - MIN_R) * Math.pow(st, 1.35);
+
+      const gx = step232Stencil[idx + 1] - step232Stencil[idx - 1];
+      const gy = step232Stencil[idx + W] - step232Stencil[idx - W];
+      let fx = -gx * 4.5 + ((liveNodesX[i - 1] + liveNodesX[i + 1]) * 0.5 - px) * 0.12;
+      let fy = -gy * 4.5 + ((liveNodesY[i - 1] + liveNodesY[i + 1]) * 0.5 - py) * 0.12;
+
+      const cx = (px / cellSize) | 0, cy = (py / cellSize) | 0;
+      const rSq = rLocal * rLocal;
+      for (let dy = -1; dy <= 1; dy++) {
+        const ny = cy + dy;
+        if (ny < 0 || ny >= gRows) continue;
+        const rowOff = ny * cols;
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = cx + dx;
+          if (nx < 0 || nx >= cols) continue;
+          let j = head[rowOff + nx];
+          while (j !== -1) {
+            if (Math.abs(j - i) > 4) {
+              const ddx = px - liveNodesX[j], ddy = py - liveNodesY[j];
+              const dSq = ddx * ddx + ddy * ddy;
+              if (dSq < rSq && dSq > 1e-4) {
+                const d = Math.sqrt(dSq);
+                const f = ((rLocal - d) / d) * 0.22;
+                fx += ddx * f;
+                fy += ddy * f;
+              }
+            }
+            j = nextInCell[j];
+          }
+        }
+      }
+
+      liveNodesX[i] = Math.max(5, Math.min(W - 5, px + Math.max(-1.8, Math.min(1.8, fx))));
+      liveNodesY[i] = Math.max(5, Math.min(H - 5, py + Math.max(-1.8, Math.min(1.8, fy))));
+    }
+
+    ptsX = liveNodesX.subarray(0, liveNodeCount);
+    ptsY = liveNodesY.subarray(0, liveNodeCount);
+    lineCacheDirty = true;
+    statusPhase = liveNodeCount < maxNodes
+      ? `🌱 Tejiendo en vivo con cruces (${liveNodeCount.toLocaleString()} / ${maxNodes.toLocaleString()})`
+      : `✓ Crecimiento con cruces completado (0% CPU en reposo)`;
+    updateStatsText();
+    render();
+
+    if (liveNodeCount < maxNodes) {
+      liveGrowthRafId = requestAnimationFrame(stepLiveGrowth);
+    }
+  }
+
+  liveGrowthRafId = requestAnimationFrame(stepLiveGrowth);
+}
+
+// =========================================================
+// 3. WEB WORKER ULTRA-OPTIMIZADO CON CANCELACIÓN INSTANTÁNEA (0 COLAS)
+// =========================================================
+const workerCode = `
+function segmentsIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
+  const ccw = (p1x, p1y, p2x, p2y, p3x, p3y) =>
+    (p3y - p1y) * (p2x - p1x) > (p2y - p1y) * (p3x - p1x);
+  return (
+    ccw(ax, ay, cx, cy, dx, dy) !== ccw(bx, by, cx, cy, dx, dy) &&
+    ccw(ax, ay, bx, by, cx, cy) !== ccw(ax, ay, bx, by, dx, dy)
+  );
+}
+
+function chaikinSmoothOpenTour(inX, inY, passes = 2) {
+  const n = inX.length;
+  if (n < 3 || passes <= 0) return { ptsX: inX, ptsY: inY };
+
+  let srcX = inX, srcY = inY;
+  if (passes >= 2) {
+    srcX = new Float32Array(n);
+    srcY = new Float32Array(n);
+    srcX[0] = inX[0]; srcY[0] = inY[0];
+    for (let i = 1; i < n - 1; i++) {
+      srcX[i] = 0.20 * inX[i - 1] + 0.60 * inX[i] + 0.20 * inX[i + 1];
+      srcY[i] = 0.20 * inY[i - 1] + 0.60 * inY[i] + 0.20 * inY[i + 1];
+    }
+    srcX[n - 1] = inX[n - 1]; srcY[n - 1] = inY[n - 1];
+  }
+
+  const outLen = (n - 1) * 2 + 2;
+  const nextX = new Float32Array(outLen);
+  const nextY = new Float32Array(outLen);
+  let k = 0;
+  nextX[k] = srcX[0]; nextY[k] = srcY[0]; k++;
+  for (let i = 0; i < n - 1; i++) {
+    const ax = srcX[i], ay = srcY[i];
+    const bx = srcX[i + 1], by = srcY[i + 1];
+    nextX[k] = 0.75 * ax + 0.25 * bx;
+    nextY[k] = 0.75 * ay + 0.25 * by;
+    k++;
+    nextX[k] = 0.25 * ax + 0.75 * bx;
+    nextY[k] = 0.25 * ay + 0.75 * by;
+    k++;
+  }
+  nextX[k] = srcX[n - 1]; nextY[k] = srcY[n - 1]; k++;
+  return { ptsX: nextX.subarray(0, k), ptsY: nextY.subarray(0, k) };
+}
+
+function segmentCrossesOutsideSilhouette(ax, ay, bx, by, silhouetteMask, W, H) {
+  const dx = bx - ax, dy = by - ay;
+  if (dx * dx + dy * dy < 196) return false;
+  const mx = ((ax + bx) * 0.5) | 0;
+  const my = ((ay + by) * 0.5) | 0;
+  if (mx >= 0 && mx < W && my >= 0 && my < H && !silhouetteMask[my * W + mx]) return true;
+  const q1x = (ax * 0.75 + bx * 0.25) | 0;
+  const q1y = (ay * 0.75 + by * 0.25) | 0;
+  if (q1x >= 0 && q1x < W && q1y >= 0 && q1y < H && !silhouetteMask[q1y * W + q1x]) return true;
+  const q3x = (ax * 0.25 + bx * 0.75) | 0;
+  const q3y = (ay * 0.25 + by * 0.75) | 0;
+  if (q3x >= 0 && q3x < W && q3y >= 0 && q3y < H && !silhouetteMask[q3y * W + q3x]) return true;
+  return false;
+}
+
+function buildPlanarContinuousTour(rawX, rawY, W, H, maxLocalStep = 22, silhouetteMask = null) {
+  const N = rawX.length;
+  if (N < 3) return { ptsX: rawX, ptsY: rawY };
+
+  const visited = new Uint8Array(N);
+  const nextNode = new Int32Array(N).fill(-1);
+  const prevNode = new Int32Array(N).fill(-1);
+
+  const cSize = 12;
+  const cols = Math.ceil(W / cSize) + 1;
+  const rows = Math.ceil(H / cSize) + 1;
+  const head = new Int32Array(cols * rows).fill(-1);
+  const nextInCell = new Int32Array(N).fill(-1);
+
+  for (let i = 0; i < N; i++) {
+    const cx = Math.max(0, Math.min(cols - 1, (rawX[i] / cSize) | 0));
+    const cy = Math.max(0, Math.min(rows - 1, (rawY[i] / cSize) | 0));
+    const cIdx = cy * cols + cx;
+    nextInCell[i] = head[cIdx];
+    head[cIdx] = i;
+  }
+
+  let curr = 0;
+  visited[curr] = 1;
+  const tourOrder = new Int32Array(N);
+  let tourLen = 0;
+  tourOrder[tourLen++] = curr;
+  const maxStepSq = maxLocalStep * maxLocalStep;
+
+  for (let step = 1; step < N; step++) {
+    const px = rawX[curr], py = rawY[curr];
+    const cx = (px / cSize) | 0, cy = (py / cSize) | 0;
+    let bestNode = -1, bestDistSq = maxStepSq;
+
+    for (let rad = 0; rad <= 2; rad++) {
+      const minDy = Math.max(-cy, -rad), maxDy = Math.min(rows - 1 - cy, rad);
+      const minDx = Math.max(-cx, -rad), maxDx = Math.min(cols - 1 - cx, rad);
+      for (let dy = minDy; dy <= maxDy; dy++) {
+        const rowOff = (cy + dy) * cols;
+        for (let dx = minDx; dx <= maxDx; dx++) {
+          let j = head[rowOff + (cx + dx)];
+          while (j !== -1) {
+            if (!visited[j]) {
+              const ddx = rawX[j] - px, ddy = rawY[j] - py;
+              const dSq = ddx * ddx + ddy * ddy;
+              if (dSq < bestDistSq) {
+                bestDistSq = dSq;
+                bestNode = j;
+              }
+            }
+            j = nextInCell[j];
+          }
+        }
+      }
+      if (bestNode !== -1) break;
+    }
+    if (bestNode !== -1) {
+      visited[bestNode] = 1;
+      tourOrder[tourLen++] = bestNode;
+      curr = bestNode;
+    } else break;
+  }
+
+  for (let i = 0; i < tourLen - 1; i++) {
+    nextNode[tourOrder[i]] = tourOrder[i + 1];
+    prevNode[tourOrder[i + 1]] = tourOrder[i];
+  }
+  let tourHead = tourOrder[0];
+
+  const vHead = new Int32Array(cols * rows).fill(-1);
+  const vNext = new Int32Array(N).fill(-1);
+  for (let i = 0; i < tourLen; i++) {
+    const u = tourOrder[i];
+    const cx = Math.max(0, Math.min(cols - 1, (rawX[u] / cSize) | 0));
+    const cy = Math.max(0, Math.min(rows - 1, (rawY[u] / cSize) | 0));
+    const cIdx = cy * cols + cx;
+    vNext[u] = vHead[cIdx];
+    vHead[cIdx] = u;
+  }
+
+  let remBufA = new Int32Array(N);
+  let remBufB = new Int32Array(N);
+  let remLen = 0;
+  for (let i = 0; i < N; i++) if (!visited[i]) remBufA[remLen++] = i;
+
+  for (let pass = 0; pass < 32 && remLen > 0; pass++) {
+    const maxRad = pass < 10 ? 2 : (pass < 22 ? 6 : Math.max(cols, rows));
+    let nextRemLen = 0;
+
+    for (let idx = 0; idx < remLen; idx++) {
+      const p = remBufA[idx];
+      const px = rawX[p], py = rawY[p];
+      const cx = (px / cSize) | 0, cy = (py / cSize) | 0;
+      let bestU = -1, bestCost = Infinity;
+
+      for (let rad = 0; rad <= maxRad; rad++) {
+        const minDy = Math.max(-cy, -rad), maxDy = Math.min(rows - 1 - cy, rad);
+        const minDx = Math.max(-cx, -rad), maxDx = Math.min(cols - 1 - cx, rad);
+        for (let dy = minDy; dy <= maxDy; dy++) {
+          const rowOff = (cy + dy) * cols;
+          for (let dx = minDx; dx <= maxDx; dx++) {
+            if (rad > 0 && Math.abs(dx) < rad && Math.abs(dy) < rad) continue;
+            let u = vHead[rowOff + (cx + dx)];
+            while (u !== -1) {
+              const ddx = rawX[u] - px, ddy = rawY[u] - py;
+              let dSq = ddx * ddx + ddy * ddy;
+              if (silhouetteMask && segmentCrossesOutsideSilhouette(px, py, rawX[u], rawY[u], silhouetteMask, W, H)) {
+                dSq *= 25.0;
+              }
+              if (dSq < bestCost) {
+                bestCost = dSq;
+                bestU = u;
+              }
+              u = vNext[u];
+            }
+          }
+        }
+        if (bestU !== -1 && bestCost <= (rad * cSize) * (rad * cSize)) break;
+      }
+
+      if (bestU !== -1) {
+        const un = nextNode[bestU], up = prevNode[bestU];
+        let insertAfter = true;
+        if (un !== -1 && up !== -1) {
+          const dUp = (rawX[up] - px) * (rawX[up] - px) + (rawY[up] - py) * (rawY[up] - py);
+          const dUn = (rawX[un] - px) * (rawX[un] - px) + (rawY[un] - py) * (rawY[un] - py);
+          if (dUp < dUn) insertAfter = false;
+        } else if (un === -1) insertAfter = true;
+        else insertAfter = false;
+
+        if (insertAfter) {
+          const nxt = nextNode[bestU];
+          nextNode[bestU] = p; prevNode[p] = bestU; nextNode[p] = nxt;
+          if (nxt !== -1) prevNode[nxt] = p;
+        } else {
+          const prv = prevNode[bestU];
+          prevNode[bestU] = p; nextNode[p] = bestU; prevNode[p] = prv;
+          if (prv !== -1) nextNode[prv] = p;
+          else tourHead = p;
+        }
+        visited[p] = 1;
+        const cIdx = cy * cols + cx;
+        vNext[p] = vHead[cIdx];
+        vHead[cIdx] = p;
+      } else {
+        remBufB[nextRemLen++] = p;
+      }
+    }
+    const tmp = remBufA; remBufA = remBufB; remBufB = tmp;
+    remLen = nextRemLen;
+  }
+
+  const ptsX = new Float32Array(N);
+  const ptsY = new Float32Array(N);
+  let k = 0, node = tourHead;
+  while (node !== -1 && k < N) {
+    ptsX[k] = rawX[node];
+    ptsY[k] = rawY[node];
+    node = nextNode[node];
+    k++;
+  }
+  return { ptsX: ptsX.subarray(0, k), ptsY: ptsY.subarray(0, k) };
+}
+
+function runFast2OptPass(ptsX, ptsY, oHead, oNext, segLen, oCols, oRows, optCell, silhouetteMask, W, H) {
+  const k = ptsX.length;
+  oHead.fill(-1);
+
+  for (let i = 0; i < k - 1; i++) {
+    const ax = ptsX[i], ay = ptsY[i];
+    const bx = ptsX[i + 1], by = ptsY[i + 1];
+    segLen[i] = Math.hypot(bx - ax, by - ay);
+    const cx = Math.max(0, Math.min(oCols - 1, (((ax + bx) * 0.5) / optCell) | 0));
+    const cy = Math.max(0, Math.min(oRows - 1, (((ay + by) * 0.5) / optCell) | 0));
+    const cIdx = cy * oCols + cx;
+    oNext[i] = oHead[cIdx];
+    oHead[cIdx] = i;
+  }
+
+  let swaps = 0;
+  for (let i = 0; i < k - 2; i++) {
+    const ax = ptsX[i], ay = ptsY[i];
+    const bx = ptsX[i + 1], by = ptsY[i + 1];
+    const dAB = segLen[i];
+    const minX1 = ax < bx ? ax : bx, maxX1 = ax > bx ? ax : bx;
+    const minY1 = ay < by ? ay : by, maxY1 = ay > by ? ay : by;
+
+    const minCx = Math.max(0, Math.min(oCols - 1, (minX1 / optCell - 1) | 0));
+    const maxCx = Math.max(0, Math.min(oCols - 1, (maxX1 / optCell + 1) | 0));
+    const minCy = Math.max(0, Math.min(oRows - 1, (minY1 / optCell - 1) | 0));
+    const maxCy = Math.max(0, Math.min(oRows - 1, (maxY1 / optCell + 1) | 0));
+
+    let swapped = false;
+    for (let ny = minCy; ny <= maxCy && !swapped; ny++) {
+      const rowOff = ny * oCols;
+      for (let nx = minCx; nx <= maxCx && !swapped; nx++) {
+        let j = oHead[rowOff + nx];
+        while (j !== -1) {
+          if (j > i + 1 && j < k - 1) {
+            const cx2 = ptsX[j], cy2 = ptsY[j];
+            const dx2 = ptsX[j + 1], dy2 = ptsY[j + 1];
+            const dCD = segLen[j];
+
+            const mAC = Math.abs(cx2 - ax) + Math.abs(cy2 - ay);
+            if (mAC < (dAB + dCD) * 1.42) {
+              const dAC = Math.hypot(cx2 - ax, cy2 - ay);
+              const dBD = Math.hypot(dx2 - bx, dy2 - by);
+              const shorter = (dAC + dBD + 0.02 < dAB + dCD);
+              const crosses = !shorter && segmentsIntersect(ax, ay, bx, by, cx2, cy2, dx2, dy2);
+
+              if (shorter || crosses) {
+                if (!crosses && silhouetteMask && (
+                  segmentCrossesOutsideSilhouette(ax, ay, cx2, cy2, silhouetteMask, W, H) ||
+                  segmentCrossesOutsideSilhouette(bx, by, dx2, dy2, silhouetteMask, W, H)
+                )) {
+                  j = oNext[j];
+                  continue;
+                }
+                let l = i + 1, r = j;
+                while (l < r) {
+                  const tx = ptsX[l], ty = ptsY[l];
+                  ptsX[l] = ptsX[r]; ptsY[l] = ptsY[r];
+                  ptsX[r] = tx; ptsY[r] = ty;
+                  l++; r--;
+                }
+                segLen[i] = dAC;
+                segLen[j] = dBD;
+                swaps++;
+                swapped = true;
+                break;
+              }
+            }
+          }
+          j = oNext[j];
+        }
+      }
+    }
+  }
+  return swaps;
+}
+
+function buildCrossedSketchTour(rawX, rawY, W, H) {
+  const N = rawX.length;
+  if (N < 3) return { ptsX: rawX, ptsY: rawY };
+
+  const outX = new Float32Array(N);
+  const outY = new Float32Array(N);
+  let k = 0;
+
+  for (let l = 0; l < 3; l++) {
+    const count = Math.ceil((N - l) / 3);
+    if (count <= 0) continue;
+    const subX = new Float32Array(count);
+    const subY = new Float32Array(count);
+    let idx = 0;
+    for (let i = l; i < N; i += 3) {
+      subX[idx] = rawX[i];
+      subY[idx] = rawY[i];
+      idx++;
+    }
+    const { ptsX: pX, ptsY: pY } = buildPlanarContinuousTour(subX.subarray(0, idx), subY.subarray(0, idx), W, H, 38, null);
+    outX.set(pX, k);
+    outY.set(pY, k);
+    k += pX.length;
+  }
+  return { ptsX: outX.subarray(0, k), ptsY: outY.subarray(0, k) };
+}
+
+function generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TARGET_NODES, MIN_R, MAX_R) {
+  const len = W * H;
+  const rMap = new Float32Array(len);
+  for (let i = 0; i < len; i++) {
+    if (!silhouetteMask[i]) {
+      rMap[i] = MAX_R * 2.5;
+    } else {
+      const t = coralToneMap[i];
+      const sCurve = t < 0.5
+        ? 0.5 * Math.pow(2.0 * t, 2.2)
+        : 1.0 - 0.5 * Math.pow(2.0 * (1.0 - t), 1.8);
+      rMap[i] = MIN_R + (MAX_R - MIN_R) * sCurve;
+    }
+  }
+
+  const maxCap = Math.min(60000, Math.round(TARGET_NODES * 1.45) + 4000);
+  const rx = new Float32Array(maxCap);
+  const ry = new Float32Array(maxCap);
+  const rr = new Float32Array(maxCap);
+  const pNext = new Int32Array(maxCap).fill(-1);
+  let count = 0;
+
+  const cellSize = 4;
+  const gCols = Math.ceil(W / cellSize) + 1;
+  const gRows = Math.ceil(H / cellSize) + 1;
+  const pHead = new Int32Array(gCols * gRows).fill(-1);
+
+  const canPlace = (x, y, rReq) => {
+    const cx = (x / cellSize) | 0;
+    const cy = (y / cellSize) | 0;
+    const rad = Math.ceil((rReq + 1.5) / cellSize);
+    for (let dy = -rad; dy <= rad; dy++) {
+      const ny = cy + dy;
+      if (ny < 0 || ny >= gRows) continue;
+      const rowOff = ny * gCols;
+      for (let dx = -rad; dx <= rad; dx++) {
+        const nx = cx + dx;
+        if (nx < 0 || nx >= gCols) continue;
+        let j = pHead[rowOff + nx];
+        while (j !== -1) {
+          const ddx = x - rx[j], ddy = y - ry[j];
+          const minSep = (rReq + rr[j]) * 0.44;
+          if (ddx * ddx + ddy * ddy < minSep * minSep) return false;
+          j = pNext[j];
+        }
+      }
+    }
+    return true;
+  };
+
+  const addNode = (x, y, rReq) => {
+    if (count >= maxCap) return;
+    const idx = count++;
+    rx[idx] = x; ry[idx] = y; rr[idx] = rReq;
+    const cx = Math.max(0, Math.min(gCols - 1, (x / cellSize) | 0));
+    const cy = Math.max(0, Math.min(gRows - 1, (y / cellSize) | 0));
+    const cIdx = cy * gCols + cx;
+    pNext[idx] = pHead[cIdx];
+    pHead[cIdx] = idx;
+  };
+
+  for (let y = 5; y < H - 5; y += 2) {
+    for (let x = 5; x < W - 5; x += 2) {
+      const i = y * W + x;
+      if (silhouetteMask[i] && smoothSilMap[i] >= 0.48 && smoothSilMap[i] <= 0.80) {
+        const rHere = Math.min(MAX_R * 0.60, Math.max(MIN_R * 1.15, rMap[i] * 0.80));
+        if (canPlace(x, y, rHere)) addNode(x, y, rHere);
+      }
+    }
+  }
+
+  const err = new Float32Array(len);
+  let totalWeight = 0;
+  for (let i = 0; i < len; i++) {
+    if (silhouetteMask[i]) {
+      const r = rMap[i];
+      const w = 1.0 / (r * r);
+      err[i] = w;
+      totalWeight += w;
+    }
+  }
+
+  const thresh = Math.max(0.18, totalWeight / (TARGET_NODES * 1.15));
+  for (let y = 5; y < H - 5; y++) {
+    const l2r = (y & 1) === 0;
+    for (let s = 5; s < W - 5; s++) {
+      const x = l2r ? s : (W - 1 - s);
+      const idx = y * W + x;
+      if (!silhouetteMask[idx]) continue;
+
+      const val = err[idx];
+      let quantErr = val;
+      if (val >= thresh) {
+        const rHere = rMap[idx];
+        const jx = x + (Math.random() - 0.5) * 0.7;
+        const jy = y + (Math.random() - 0.5) * 0.7;
+        if (canPlace(jx, jy, rHere)) {
+          addNode(jx, jy, rHere);
+          quantErr = val - thresh;
+        } else {
+          quantErr = 0;
+        }
+      }
+      const dir = l2r ? 1 : -1;
+      err[idx + dir] += quantErr * 0.4375;
+      err[(y + 1) * W + (x - dir)] += quantErr * 0.1875;
+      err[(y + 1) * W + x] += quantErr * 0.3125;
+      err[(y + 1) * W + (x + dir)] += quantErr * 0.0625;
+    }
+  }
+
+  const N = count;
+  const rCell = 9;
+  const rCols = Math.ceil(W / rCell) + 1;
+  const rRows = Math.ceil(H / rCell) + 1;
+  const rHead = new Int32Array(rCols * rRows);
+  const rNext = new Int32Array(N);
+
+  for (let iter = 0; iter < 8; iter++) {
+    rHead.fill(-1);
+    for (let i = 0; i < N; i++) {
+      const cx = Math.max(0, Math.min(rCols - 1, (rx[i] / rCell) | 0));
+      const cy = Math.max(0, Math.min(rRows - 1, (ry[i] / rCell) | 0));
+      const cIdx = cy * rCols + cx;
+      rNext[i] = rHead[cIdx];
+      rHead[cIdx] = i;
+    }
+
+    for (let i = 0; i < N; i++) {
+      const px = rx[i], py = ry[i];
+      const ri = rMap[Math.min(H - 1, Math.max(0, py | 0)) * W + Math.min(W - 1, Math.max(0, px | 0))];
+      rr[i] = ri;
+      let fx = 0, fy = 0;
+
+      const cx = (px / rCell) | 0, cy = (py / rCell) | 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        const ny = cy + dy;
+        if (ny < 0 || ny >= rRows) continue;
+        const rowOff = ny * rCols;
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = cx + dx;
+          if (nx < 0 || nx >= rCols) continue;
+          let j = rHead[rowOff + nx];
+          while (j !== -1) {
+            if (j !== i) {
+              const ddx = px - rx[j], ddy = py - ry[j];
+              const dSq = ddx * ddx + ddy * ddy;
+              const targetD = (ri + rr[j]) * 0.58;
+              if (dSq < targetD * targetD && dSq > 1e-4) {
+                const d = Math.sqrt(dSq);
+                const f = ((targetD - d) / d) * 0.36;
+                fx += ddx * f;
+                fy += ddy * f;
+              }
+            }
+            j = rNext[j];
+          }
+        }
+      }
+
+      const nx = Math.max(5, Math.min(W - 5, px + Math.max(-1.6, Math.min(1.6, fx))));
+      const ny = Math.max(5, Math.min(H - 5, py + Math.max(-1.6, Math.min(1.6, fy))));
+      if (silhouetteMask[(ny | 0) * W + (nx | 0)]) {
+        rx[i] = nx;
+        ry[i] = ny;
+      }
+    }
+  }
+
+  return { rawX: rx.subarray(0, N), rawY: ry.subarray(0, N) };
+}
+
+function generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, MAX_R) {
+  const len = W * H;
+  const err = new Float32Array(len);
+  let totalMass = 0;
+
+  for (let i = 0; i < len; i++) {
+    const dark = Math.max(0, 1.0 - step232Stencil[i]);
+    const w = dark < 0.08 ? 0 : Math.pow(dark, 1.45);
+    err[i] = w;
+    totalMass += w;
+  }
+
+  if (totalMass < 10) return { rawX: new Float32Array(0), rawY: new Float32Array(0) };
+
+  const unitMass = totalMass / TARGET_NODES;
+  const halfUnit = unitMass * 0.5;
+  const maxCap = Math.min(60000, Math.round(TARGET_NODES * 1.35) + 2000);
+  const rx = new Float32Array(maxCap);
+  const ry = new Float32Array(maxCap);
+  let count = 0;
+
+  for (let y = 4; y < H - 4; y++) {
+    const leftToRight = (y & 1) === 0;
+    for (let step = 4; step < W - 4; step++) {
+      const x = leftToRight ? step : (W - 1 - step);
+      const idx = y * W + x;
+      const val = err[idx];
+      let quantErr = val;
+
+      if (val >= halfUnit && step232Stencil[idx] < 0.90 && count < maxCap) {
+        rx[count] = x + (Math.random() - 0.5) * 0.6;
+        ry[count] = y + (Math.random() - 0.5) * 0.6;
+        count++;
+        quantErr = val - unitMass;
+      }
+
+      const dir = leftToRight ? 1 : -1;
+      err[idx + dir] += quantErr * 0.4375;
+      err[(y + 1) * W + (x - dir)] += quantErr * 0.1875;
+      err[(y + 1) * W + x] += quantErr * 0.3125;
+      err[(y + 1) * W + (x + dir)] += quantErr * 0.0625;
+    }
+  }
+
+  const cellSize = 8;
+  const cols = Math.ceil(W / cellSize) + 1;
+  const rows = Math.ceil(H / cellSize) + 1;
+  const head = new Int32Array(cols * rows);
+  const next = new Int32Array(count);
+
+  for (let iter = 0; iter < 3; iter++) {
+    head.fill(-1);
+    for (let i = 0; i < count; i++) {
+      const cx = Math.max(0, Math.min(cols - 1, (rx[i] / cellSize) | 0));
+      const cy = Math.max(0, Math.min(rows - 1, (ry[i] / cellSize) | 0));
+      const cIdx = cy * cols + cx;
+      next[i] = head[cIdx];
+      head[cIdx] = i;
+    }
+
+    for (let i = 0; i < count; i++) {
+      const px = rx[i], py = ry[i];
+      const s = step232Stencil[Math.min(H - 1, Math.max(0, py | 0)) * W + Math.min(W - 1, Math.max(0, px | 0))];
+      const rTarget = MIN_R + (MAX_R - MIN_R) * Math.pow(s, 1.3);
+      const rSq = rTarget * rTarget;
+      let fx = 0, fy = 0;
+
+      const cx = (px / cellSize) | 0, cy = (py / cellSize) | 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        const ny = cy + dy;
+        if (ny < 0 || ny >= rows) continue;
+        const rowOff = ny * cols;
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = cx + dx;
+          if (nx < 0 || nx >= cols) continue;
+          let j = head[rowOff + nx];
+          while (j !== -1) {
+            if (j !== i) {
+              const ddx = px - rx[j], ddy = py - ry[j];
+              const dSq = ddx * ddx + ddy * ddy;
+              if (dSq < rSq && dSq > 1e-4) {
+                const d = Math.sqrt(dSq);
+                const f = ((rTarget - d) / d) * 0.24;
+                fx += ddx * f;
+                fy += ddy * f;
+              }
+            }
+            j = next[j];
+          }
+        }
+      }
+      rx[i] = Math.max(4, Math.min(W - 4, px + Math.max(-1.4, Math.min(1.4, fx))));
+      ry[i] = Math.max(4, Math.min(H - 4, py + Math.max(-1.4, Math.min(1.4, fy))));
+    }
+  }
+
+  return { rawX: rx.subarray(0, count), rawY: ry.subarray(0, count) };
+}
+
+/**
+ * MODO 5: PROPORCIÓN ÁUREA φ = 1.61803398875 (FILOTAXIS DE FIBONACCI 137.507764° + BRAZOS ESPIRALES 55/89)
+ * Cubre el 100% de la silueta desde el centro áureo del rostro hasta los hombros con exactamente TARGET_NODES nodos.
+ */
+function generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES) {
+  const PHI = 1.618033988749895;
+  const GOLDEN_ANGLE = Math.PI * (3.0 - Math.sqrt(5.0)); // 137.507764°
+
+  let minX = W, maxX = 0, minY = H, maxY = 0;
+  let sumX = 0, sumY = 0, sumW = 0;
+  for (let y = 5; y < H - 5; y += 2) {
+    for (let x = 5; x < W - 5; x += 2) {
+      const idx = y * W + x;
+      if (silhouetteMask[idx]) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+        const d = Math.pow(1.0 - coralToneMap[idx], 1.5);
+        sumX += x * (0.15 + d);
+        sumY += y * (0.15 + d);
+        sumW += (0.15 + d);
+      }
+    }
+  }
+
+  const cx = sumW > 0 ? sumX / sumW : W * 0.5;
+  const goldenEyeY = minY < maxY ? minY + (maxY - minY) * (1.0 - 1.0 / PHI) : H * 0.40;
+  const cy = sumW > 0 ? (sumY / sumW) * 0.45 + goldenEyeY * 0.55 : H * 0.42;
+  const maxRadius = Math.hypot(Math.max(cx - minX, maxX - cx), Math.max(cy - minY, maxY - cy)) + 6;
+
+  const evalGoldenWeight = (x, y, r, theta) => {
+    const ix = x | 0, iy = y | 0;
+    if (ix < 5 || ix >= W - 5 || iy < 5 || iy >= H - 5) return 0;
+    const idx = iy * W + ix;
+    if (!silhouetteMask[idx]) return 0;
+
+    const tone = coralToneMap[idx];
+    const darkness = 1.0 - tone;
+
+    // Parásticas de Fibonacci: 55 espirales horarias y 89 antihorarias (89/55 = 1.61818 ≈ φ)
+    const rRatio = r / maxRadius;
+    const spiral55 = Math.cos(55.0 * theta - rRatio * 55.0 * PHI * Math.PI);
+    const spiral89 = Math.cos(89.0 * theta + rRatio * 89.0 * Math.PI);
+    const fibWave = 0.5 + 0.5 * (spiral55 * 0.65 + spiral89 * 0.35);
+
+    const baseDark = Math.pow(darkness, 1.35);
+    const spiralBoost = (0.04 + 0.38 * darkness) * Math.pow(fibWave, 1.6);
+    return Math.min(1.0, baseDark * 0.85 + spiralBoost);
+  };
+
+  // Pre-muestreo rápido de 4000 puntos en la espiral de Fermat para calibrar el total de candidatos M
+  const probeN = 4000;
+  let probeSum = 0;
+  for (let k = 1; k <= probeN; k++) {
+    const r = Math.sqrt(k / probeN) * maxRadius;
+    const theta = k * GOLDEN_ANGLE;
+    probeSum += evalGoldenWeight(cx + r * Math.cos(theta), cy + r * Math.sin(theta), r, theta);
+  }
+  const avgWeight = Math.max(0.015, probeSum / probeN);
+  const totalCandidates = Math.min(900000, Math.round(TARGET_NODES / avgWeight));
+
+  const rx = new Float32Array(TARGET_NODES + 4000);
+  const ry = new Float32Array(TARGET_NODES + 4000);
+  let count = 0;
+  let acc = 0;
+
+  for (let k = 1; k <= totalCandidates; k++) {
+    const r = Math.sqrt(k / totalCandidates) * maxRadius;
+    const theta = k * GOLDEN_ANGLE;
+    const x = cx + r * Math.cos(theta);
+    const y = cy + r * Math.sin(theta);
+
+    const w = evalGoldenWeight(x, y, r, theta);
+    if (w <= 0) continue;
+
+    acc += w;
+    if (acc >= 1.0 && count < rx.length) {
+      acc -= 1.0;
+      const ix = x | 0, iy = y | 0;
+      const idx = iy * W + ix;
+      const darkness = 1.0 - coralToneMap[idx];
+      const gx = coralToneMap[idx + 1] - coralToneMap[idx - 1];
+      const gy = coralToneMap[idx + W] - coralToneMap[idx - W];
+      rx[count] = Math.max(5, Math.min(W - 5, x - gx * darkness * 1.8));
+      ry[count] = Math.max(5, Math.min(H - 5, y - gy * darkness * 1.8));
+      count++;
+    }
+  }
+
+  return { rawX: rx.subarray(0, count), rawY: ry.subarray(0, count) };
+}
+
+function generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES) {
+  const maxSide = Math.max(W, H);
+  const maxDepth = TARGET_NODES > 30000 ? 9 : 8;
+  const minDepth = 3;
+
+  const outX = [];
+  const outY = [];
+
+  function sampleRegion(x0, y0, size) {
+    const x1 = Math.min(W - 1, Math.ceil(x0 + size));
+    const y1 = Math.min(H - 1, Math.ceil(y0 + size));
+    const sx0 = Math.max(0, x0 | 0);
+    const sy0 = Math.max(0, y0 | 0);
+    if (sx0 >= W || sy0 >= H || x1 <= sx0 || y1 <= sy0) {
+      return { inside: false, darkness: 0 };
+    }
+
+    const step = Math.max(1, (size / 6) | 0);
+    let sumDark = 0, maxDark = 0, insideCnt = 0;
+
+    for (let y = sy0; y <= y1; y += step) {
+      const row = y * W;
+      for (let x = sx0; x <= x1; x += step) {
+        if (silhouetteMask[row + x]) {
+          insideCnt++;
+          const d = 1.0 - coralToneMap[row + x];
+          sumDark += d;
+          if (d > maxDark) maxDark = d;
+        }
+      }
+    }
+
+    if (insideCnt === 0) return { inside: false, darkness: 0 };
+    const avgDark = sumDark / insideCnt;
+    return {
+      inside: true,
+      darkness: avgDark * 0.58 + maxDark * 0.42
+    };
+  }
+
+  function hilbertRecurse(x, y, ax, ay, bx, by, depth) {
+    const size = Math.hypot(ax, ay);
+    const cx = x + (ax + bx) * 0.5;
+    const cy = y + (ay + by) * 0.5;
+
+    const minX = Math.min(x, x + ax, x + bx, x + ax + bx);
+    const minY = Math.min(y, y + ay, y + by, y + ay + by);
+    const info = sampleRegion(minX, minY, size);
+
+    if (!info.inside && depth >= minDepth) return;
+
+    const normDepth = (depth - minDepth) / (maxDepth - minDepth);
+    const neededDarkness = Math.pow(normDepth, 1.28) * 0.86;
+
+    if (depth < minDepth || (depth < maxDepth && info.darkness > neededDarkness)) {
+      const ax2 = ax * 0.5, ay2 = ay * 0.5;
+      const bx2 = bx * 0.5, by2 = by * 0.5;
+      hilbertRecurse(x, y, bx2, by2, ax2, ay2, depth + 1);
+      hilbertRecurse(x + bx2, y + by2, ax2, ay2, bx2, by2, depth + 1);
+      hilbertRecurse(x + ax2 + bx2, y + ay2 + by2, ax2, ay2, bx2, by2, depth + 1);
+      hilbertRecurse(x + ax2 + ax2 + bx2, y + ay2 + ay2 + by2, -bx2, -by2, -ax2, -ay2, depth + 1);
+    } else if (info.inside && cx >= 4 && cx < W - 4 && cy >= 4 && cy < H - 4) {
+      outX.push(cx);
+      outY.push(cy);
+    }
+  }
+
+  hilbertRecurse(0, 0, maxSide, 0, 0, maxSide, 0);
+
+  return {
+    ptsX: new Float32Array(outX),
+    ptsY: new Float32Array(outY)
+  };
+}
+
+self.onmessage = function(e) {
+  const {
+    jobId, engineMode, step232Stencil, coralToneMap, silhouetteMask, smoothSilMap,
+    W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, maxTimeMs
+  } = e.data;
+
+  const tStart = performance.now();
+
+  if (engineMode === 'fractal') {
+    let { ptsX, ptsY } = generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES);
+    if (CHAIKIN_PASSES > 0) {
+      ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+    }
+    const outX = new Float32Array(ptsX);
+    const outY = new Float32Array(ptsY);
+    self.postMessage({ jobId, ptsX: outX, ptsY: outY, pass: 1, totalPasses: 1, done: true }, [outX.buffer, outY.buffer]);
+    return;
+  }
+
+  if (engineMode === 'stencil_cross') {
+    const { rawX, rawY } = generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, MAX_R);
+    let { ptsX, ptsY } = buildCrossedSketchTour(rawX, rawY, W, H);
+    if (CHAIKIN_PASSES > 0) {
+      ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+    }
+    const outX = new Float32Array(ptsX);
+    const outY = new Float32Array(ptsY);
+    self.postMessage({ jobId, ptsX: outX, ptsY: outY, pass: 1, totalPasses: 1, done: true }, [outX.buffer, outY.buffer]);
+    return;
+  }
+
+  let rawX, rawY;
+  let useSilPenalty = null;
+  if (engineMode === 'coral') {
+    ({ rawX, rawY } = generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TARGET_NODES, MIN_R, MAX_R));
+    useSilPenalty = silhouetteMask;
+  } else if (engineMode === 'golden') {
+    ({ rawX, rawY } = generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES));
+    useSilPenalty = silhouetteMask;
+  } else {
+    ({ rawX, rawY } = generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, MAX_R));
+  }
+
+  let { ptsX, ptsY } = buildPlanarContinuousTour(rawX, rawY, W, H, engineMode === 'coral' ? 20 : 24, useSilPenalty);
+
+  const k = ptsX.length;
+  const optCell = 18;
+  const oCols = Math.ceil(W / optCell) + 1;
+  const oRows = Math.ceil(H / optCell) + 1;
+  const oHead = new Int32Array(oCols * oRows);
+  const oNext = new Int32Array(k);
+  const segLen = new Float32Array(k);
+
+  const totalPasses = 16;
+  for (let p = 1; p <= totalPasses; p++) {
+    const swaps = runFast2OptPass(ptsX, ptsY, oHead, oNext, segLen, oCols, oRows, optCell, useSilPenalty, W, H);
+    const elapsed = performance.now() - tStart;
+    const done = (p === totalPasses || swaps < 4 || elapsed > maxTimeMs);
+
+    if (p === 4 || done) {
+      let sendX = ptsX, sendY = ptsY;
+      if (done && CHAIKIN_PASSES > 0) {
+        ({ ptsX: sendX, ptsY: sendY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+      }
+      const copyX = new Float32Array(sendX);
+      const copyY = new Float32Array(sendY);
+      self.postMessage({
+        jobId,
+        ptsX: copyX,
+        ptsY: copyY,
+        pass: p,
+        totalPasses,
+        done
+      }, [copyX.buffer, copyY.buffer]);
+    }
+    if (done) break;
+  }
+};
+`;
+
+const workerBlobUrl = URL.createObjectURL(new Blob([workerCode], { type: 'application/javascript' }));
+let solverWorker = null;
+let workerBusy = false;
+let currentJobId = 0;
+
+function attachWorkerHandler(worker) {
+  worker.onmessage = (e) => {
+    const { jobId, ptsX: newX, ptsY: newY, pass, totalPasses, done } = e.data;
+    if (jobId !== currentJobId) return;
+
+    if (done) workerBusy = false;
+    ptsX = newX;
+    ptsY = newY;
+    lineCacheDirty = true;
+
+    if (ENGINE_MODE === 'stencil_cross') {
+      statusPhase = '✓ Boceto con Cruces (0% CPU en reposo)';
+    } else {
+      statusPhase = done
+        ? '✓ Completado (0% CPU en reposo)'
+        : `Optimizando trazo (${pass}/${totalPasses})...`;
+    }
+
+    updateStatsText();
+    if (!isAnimatingDraw) {
+      render();
+    }
+  };
+}
+
+function getFreshOrIdleWorker() {
+  if (solverWorker && workerBusy) {
+    solverWorker.terminate();
+    solverWorker = null;
+    workerBusy = false;
+  }
+  if (!solverWorker) {
+    solverWorker = new Worker(workerBlobUrl);
+    attachWorkerHandler(solverWorker);
+  }
+  return solverWorker;
+}
+
+function rebuildPortrait(skipStencilRebuild = false) {
+  if (!rawGray) return;
+  stopAnimation();
+  stopLiveGrowth();
+
+  if (!skipStencilRebuild) {
+    buildAllStencilsAndSilhouettes();
+  }
+
+  currentJobId++;
+
+  if (ENGINE_MODE === 'live_growth') {
+    if (solverWorker && workerBusy) {
+      solverWorker.terminate();
+      solverWorker = null;
+      workerBusy = false;
+    }
+    startLiveDifferentialGrowthMode();
+    return;
+  }
+
+  statusPhase = 'Calculando en 2º plano...';
+  updateStatsText();
+  if (VIEW_MODE !== 'line') {
+    render();
+  }
+
+  const worker = getFreshOrIdleWorker();
+  workerBusy = true;
+
+  const s232Copy = new Float32Array(step232Stencil);
+  const coralCopy = new Float32Array(coralToneMap);
+  const silCopy = new Uint8Array(silhouetteMask);
+  const smSilCopy = new Float32Array(smoothSilMap);
+
+  worker.postMessage({
+    jobId: currentJobId,
+    engineMode: ENGINE_MODE,
+    step232Stencil: s232Copy,
+    coralToneMap: coralCopy,
+    silhouetteMask: silCopy,
+    smoothSilMap: smSilCopy,
+    W,
+    H,
+    TARGET_NODES,
+    MIN_R,
+    MAX_R,
+    CHAIKIN_PASSES,
+    maxTimeMs: isMobileDevice ? 650 : 1100
+  }, [s232Copy.buffer, coralCopy.buffer, silCopy.buffer, smSilCopy.buffer]);
+}
+
+// =========================================================
+// 4. RENDERIZADO CON CACHÉ GPU (Path2D) + ANIMACIÓN INCREMENTAL O(1)
+// =========================================================
+function rebuildLineCache() {
+  if (lineCacheCanvas.width !== W || lineCacheCanvas.height !== H) {
+    lineCacheCanvas.width = W;
+    lineCacheCanvas.height = H;
+  }
+  const lCtx = lineCacheCanvas.getContext('2d');
+  lCtx.clearRect(0, 0, W, H);
+
+  const totalLen = ptsX.length;
+  if (totalLen < 3) {
+    lineCacheDirty = false;
+    return;
+  }
+
+  cachedPath2D = new Path2D();
+  const mx0 = (ptsX[0] + ptsX[1]) * 0.5;
+  const my0 = (ptsY[0] + ptsY[1]) * 0.5;
+  cachedPath2D.moveTo(mx0, my0);
+
+  for (let i = 1; i < totalLen - 1; i++) {
+    const mx1 = (ptsX[i] + ptsX[i + 1]) * 0.5;
+    const my1 = (ptsY[i] + ptsY[i + 1]) * 0.5;
+    cachedPath2D.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
+  }
+
+  lCtx.strokeStyle = '#0e1118';
+  lCtx.lineWidth = LINE_W;
+  lCtx.lineCap = 'round';
+  lCtx.lineJoin = 'round';
+  lCtx.stroke(cachedPath2D);
+
+  lineCacheDirty = false;
+}
+
+function render() {
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  if (VIEW_MODE === 'photo') {
+    ctx.drawImage(photoCanvas, 0, 0);
+    return;
+  }
+
+  if (VIEW_MODE === 'stencil') {
+    ctx.drawImage(stencilCanvas, 0, 0);
+    return;
+  }
+
+  if (VIEW_MODE === 'both') {
+    ctx.globalAlpha = 0.28;
+    ctx.drawImage(stencilCanvas, 0, 0);
+    ctx.globalAlpha = 1.0;
+  }
+
+  if (ptsX.length < 3) return;
+
+  if (isAnimatingDraw) {
+    ctx.drawImage(animAccumCanvas, 0, 0);
+    const limit = Math.min(ptsX.length - 1, drawProgressCount);
+    if (limit < ptsX.length - 1) {
+      ctx.fillStyle = '#f59f33';
+      ctx.beginPath();
+      ctx.arc(ptsX[limit], ptsY[limit], 3.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    return;
+  }
+
+  if (lineCacheDirty) {
+    rebuildLineCache();
+  }
+  ctx.drawImage(lineCacheCanvas, 0, 0);
+}
+
+function updateStatsText() {
+  const text = isAnimatingDraw
+    ? `Dibujando trazo (${Math.round((drawProgressCount / Math.max(1, ptsX.length)) * 100)}%)`
+    : statusPhase;
+  document.getElementById('stats').textContent =
+    `Puntos: ${ptsX.length.toLocaleString()} | ${text}`;
+}
+
+function startAnimation() {
+  if (ptsX.length < 4) return;
+  stopLiveGrowth();
+  isAnimatingDraw = true;
+  drawProgressCount = 2;
+  lastAnimatedIndex = 1;
+
+  animAccumCanvas.width = W;
+  animAccumCanvas.height = H;
+  const aCtx = animAccumCanvas.getContext('2d');
+  aCtx.clearRect(0, 0, W, H);
+
+  document.getElementById('btnAnimate').textContent = '⏹ Mostrar Completo';
+
+  function stepAnim() {
+    if (!isAnimatingDraw) return;
+    if (document.hidden) {
+      animRafId = requestAnimationFrame(stepAnim);
+      return;
+    }
+
+    const totalLen = ptsX.length;
+    const speed = Math.max(40, Math.round(totalLen / 240));
+    const nextLimit = Math.min(totalLen - 1, drawProgressCount + speed);
+
+    const aCtx = animAccumCanvas.getContext('2d');
+    aCtx.strokeStyle = '#0e1118';
+    aCtx.lineWidth = LINE_W;
+    aCtx.lineCap = 'round';
+    aCtx.lineJoin = 'round';
+    aCtx.beginPath();
+
+    const startIdx = Math.max(1, lastAnimatedIndex);
+    const mxStart = (ptsX[startIdx - 1] + ptsX[startIdx]) * 0.5;
+    const myStart = (ptsY[startIdx - 1] + ptsY[startIdx]) * 0.5;
+    aCtx.moveTo(mxStart, myStart);
+
+    for (let i = startIdx; i < nextLimit; i++) {
+      const mx1 = (ptsX[i] + ptsX[i + 1]) * 0.5;
+      const my1 = (ptsY[i] + ptsY[i + 1]) * 0.5;
+      aCtx.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
+    }
+    aCtx.stroke();
+
+    lastAnimatedIndex = nextLimit;
+    drawProgressCount = nextLimit;
+
+    render();
+    updateStatsText();
+
+    if (drawProgressCount >= totalLen - 1) {
+      stopAnimation();
+      render();
+      updateStatsText();
+    } else {
+      animRafId = requestAnimationFrame(stepAnim);
+    }
+  }
+
+  animRafId = requestAnimationFrame(stepAnim);
+}
+
+function stopAnimation() {
+  isAnimatingDraw = false;
+  if (animRafId) {
+    cancelAnimationFrame(animRafId);
+    animRafId = null;
+  }
+  document.getElementById('btnAnimate').textContent = '🎬 Animar Dibujo';
+}
+
+// =========================================================
+// 5. CARGA DE IMAGEN Y RETRATO DEMO INICIAL
+// =========================================================
+function loadFromImageElement(img) {
+  const maxDim = isMobileDevice ? 640 : 740;
+  const scale = Math.min(maxDim / img.width, maxDim / img.height);
+  W = canvas.width = Math.round(img.width * scale);
+  H = canvas.height = Math.round(img.height * scale);
+
+  photoCanvas.width = W;
+  photoCanvas.height = H;
+  const pCtx = photoCanvas.getContext('2d');
+  pCtx.fillStyle = '#ffffff';
+  pCtx.fillRect(0, 0, W, H);
+  pCtx.drawImage(img, 0, 0, W, H);
+
+  const data = pCtx.getImageData(0, 0, W, H).data;
+  const N = W * H;
+  rCh = new Float32Array(N);
+  gCh = new Float32Array(N);
+  bCh = new Float32Array(N);
+  rawGray = new Float32Array(N);
+
+  for (let i = 0; i < N; i++) {
+    const r = data[i * 4] / 255;
+    const g = data[i * 4 + 1] / 255;
+    const b = data[i * 4 + 2] / 255;
+    rCh[i] = r; gCh[i] = g; bCh[i] = b;
+    rawGray[i] = 0.299 * r + 0.587 * g + 0.114 * b;
+  }
+
+  cachedCleanGray = null;
+  cachedBlurRadius = -1;
+  cachedBlurFine = null;
+
+  rebuildPortrait(false);
+}
+
+function initDemoPortrait() {
+  const dCanvas = document.createElement('canvas');
+  dCanvas.width = 680; dCanvas.height = 820;
+  const dCtx = dCanvas.getContext('2d');
+
+  dCtx.fillStyle = '#ffffff';
+  dCtx.fillRect(0, 0, 680, 820);
+
+  const cx = 340, cy = 390;
+
+  dCtx.fillStyle = '#181818';
+  dCtx.beginPath();
+  dCtx.ellipse(cx, cy - 30, 155, 200, 0, 0, Math.PI * 2);
+  dCtx.fill();
+
+  dCtx.fillStyle = '#202020';
+  dCtx.beginPath();
+  dCtx.ellipse(cx, cy + 270, 210, 130, 0, Math.PI, Math.PI * 2);
+  dCtx.fill();
+
+  const faceGrad = dCtx.createLinearGradient(cx - 110, cy - 40, cx + 115, cy + 60);
+  faceGrad.addColorStop(0, '#f2f2f2');
+  faceGrad.addColorStop(0.55, '#c4c4c4');
+  faceGrad.addColorStop(1, '#363636');
+  dCtx.fillStyle = faceGrad;
+  dCtx.beginPath();
+  dCtx.ellipse(cx, cy + 5, 112, 145, 0, 0, Math.PI * 2);
+  dCtx.fill();
+
+  dCtx.strokeStyle = '#161616';
+  dCtx.lineWidth = 7;
+  dCtx.lineCap = 'round';
+  dCtx.beginPath();
+  dCtx.moveTo(cx - 75, cy - 28);
+  dCtx.quadraticCurveTo(cx - 48, cy - 42, cx - 20, cy - 30);
+  dCtx.moveTo(cx + 20, cy - 30);
+  dCtx.quadraticCurveTo(cx + 48, cy - 42, cx + 75, cy - 28);
+  dCtx.stroke();
+
+  for (const dir of [-1, 1]) {
+    const ex = cx + dir * 46, ey = cy - 8;
+    dCtx.strokeStyle = '#141414';
+    dCtx.lineWidth = 3.5;
+    dCtx.beginPath();
+    dCtx.ellipse(ex, ey, 22, 11, 0, 0, Math.PI * 2);
+    dCtx.stroke();
+
+    dCtx.fillStyle = '#101010';
+    dCtx.beginPath();
+    dCtx.arc(ex, ey, 8, 0, Math.PI * 2);
+    dCtx.fill();
+
+    dCtx.fillStyle = '#ffffff';
+    dCtx.beginPath();
+    dCtx.arc(ex - 3, ey - 3, 2.5, 0, Math.PI * 2);
+    dCtx.fill();
+  }
+
+  dCtx.strokeStyle = '#2b2b2b';
+  dCtx.lineWidth = 3.2;
+  dCtx.beginPath();
+  dCtx.moveTo(cx - 4, cy - 10);
+  dCtx.lineTo(cx - 8, cy + 42);
+  dCtx.quadraticCurveTo(cx, cy + 52, cx + 14, cy + 42);
+  dCtx.stroke();
+
+  dCtx.strokeStyle = '#202020';
+  dCtx.lineWidth = 4;
+  dCtx.beginPath();
+  dCtx.moveTo(cx - 38, cy + 82);
+  dCtx.quadraticCurveTo(cx, cy + 74, cx + 38, cy + 82);
+  dCtx.quadraticCurveTo(cx, cy + 100, cx - 38, cy + 82);
+  dCtx.stroke();
+
+  const img = new Image();
+  img.onload = () => loadFromImageElement(img);
+  img.src = dCanvas.toDataURL();
+}
+
+// =========================================================
+// 6. EVENTOS DE INTERFAZ Y BOTONES (CONSERVADOS Y CON DEBOUNCE)
+// =========================================================
+document.getElementById('imgInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => loadFromImageElement(img);
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+function applyModePreset(mode) {
+  const p = MODE_PRESETS[mode];
+  if (!p) return;
+  PENCIL_STR = p.pencilStr;
+  PENCIL_BLUR = p.pencilBlur;
+  SHADE_WEIGHT = p.shadeWeight;
+  BG_CLEAN = p.bgClean;
+  MIN_R = p.minR;
+  MAX_R = p.maxR;
+  CHAIKIN_PASSES = p.chaikin;
+  syncSlidersFromState();
+}
+
+document.getElementById('engineMode').addEventListener('change', (e) => {
+  ENGINE_MODE = e.target.value;
+  document.getElementById('modeDesc').textContent = MODE_DESCRIPTIONS[ENGINE_MODE] || '';
+  applyModePreset(ENGINE_MODE);
+  rebuildPortrait(false);
+});
+
+document.getElementById('viewMode').addEventListener('change', (e) => {
+  VIEW_MODE = e.target.value;
+  render();
+});
+
+let stencilRafPending = false;
+const bindParam = (id, labelId, setter, isStencilParam = false, decimals = null) => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', (e) => {
+    const v = parseFloat(e.target.value);
+    document.getElementById(labelId).textContent = decimals !== null ? v.toFixed(decimals) : v;
+    setter(v);
+    if (isStencilParam && !stencilRafPending) {
+      stencilRafPending = true;
+      requestAnimationFrame(() => {
+        stencilRafPending = false;
+        buildAllStencilsAndSilhouettes();
+        if (VIEW_MODE !== 'line') render();
+      });
+    }
+  });
+  el.addEventListener('change', () => {
+    rebuildPortrait(isStencilParam);
+  });
+};
+
+bindParam('pencilStr', 'vPencil', v => PENCIL_STR = v, true, 1);
+bindParam('pencilBlur', 'vBlur', v => PENCIL_BLUR = v, true, 1);
+bindParam('shadeWeight', 'vShade', v => SHADE_WEIGHT = v, true, 2);
+bindParam('bgClean', 'vClean', v => BG_CLEAN = v, true, 3);
+bindParam('maxN', 'vNodes', v => TARGET_NODES = v, false, null);
+bindParam('minR', 'vMin', v => MIN_R = v, false, 1);
+bindParam('maxR', 'vMax', v => MAX_R = v, false, 1);
+bindParam('chaikinPasses', 'vChaikin', v => CHAIKIN_PASSES = v, false, null);
+
+document.getElementById('lineW').addEventListener('input', (e) => {
+  LINE_W = parseFloat(e.target.value);
+  document.getElementById('vWidth').textContent = LINE_W.toFixed(1);
+  if (cachedPath2D && !isAnimatingDraw) {
+    const lCtx = lineCacheCanvas.getContext('2d');
+    lCtx.clearRect(0, 0, W, H);
+    lCtx.strokeStyle = '#0e1118';
+    lCtx.lineWidth = LINE_W;
+    lCtx.lineCap = 'round';
+    lCtx.lineJoin = 'round';
+    lCtx.stroke(cachedPath2D);
+    render();
+  }
+});
+
+document.getElementById('btnRebuild').onclick = () => rebuildPortrait(false);
+
+document.getElementById('btnClear').onclick = () => {
+  stopAnimation();
+  stopLiveGrowth();
+  if (solverWorker && workerBusy) {
+    solverWorker.terminate();
+    solverWorker = null;
+    workerBusy = false;
+  }
+  currentJobId++;
+  ptsX = new Float32Array(0);
+  ptsY = new Float32Array(0);
+  lineCacheDirty = true;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+  statusPhase = 'Lienzo limpio (pulsa Reiniciar / Recalcular)';
+  updateStatsText();
+};
+
+document.getElementById('btnResetDefaults').onclick = () => {
+  TARGET_NODES = isMobileDevice ? 22000 : 26000;
+  LINE_W = 1.0;
+  applyModePreset(ENGINE_MODE);
+  rebuildPortrait(false);
+};
+
+document.getElementById('btnAnimate').onclick = () => {
+  if (isAnimatingDraw) {
+    stopAnimation();
+    render();
+    updateStatsText();
+  } else {
+    startAnimation();
+  }
+};
+
+document.getElementById('btnSvg').onclick = () => {
+  const len = ptsX.length;
+  if (len < 3) return;
+
+  const mx0 = (ptsX[0] + ptsX[1]) * 0.5;
+  const my0 = (ptsY[0] + ptsY[1]) * 0.5;
+  const parts = [`M ${mx0.toFixed(1)} ${my0.toFixed(1)}`];
+
+  for (let i = 1; i < len - 1; i++) {
+    const mx1 = (ptsX[i] + ptsX[i + 1]) * 0.5;
+    const my1 = (ptsY[i] + ptsY[i + 1]) * 0.5;
+    parts.push(`Q ${ptsX[i].toFixed(1)} ${ptsY[i].toFixed(1)} ${mx1.toFixed(1)} ${my1.toFixed(1)}`);
+  }
+
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
+  <rect width="100%" height="100%" fill="white"/>
+  <path d="${parts.join(' ')}" fill="none" stroke="#0e1118" stroke-width="${LINE_W}" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+  a.download = `retrato_${ENGINE_MODE}.svg`;
+  a.click();
+};
+
+let recorder = null, chunks = [];
+const btnRec = document.getElementById('btnRecord');
+btnRec.onclick = () => {
+  if (typeof MediaRecorder === 'undefined' || !canvas.captureStream) {
+    alert('La grabación de vídeo WebM no está soportada en este navegador móvil. Puedes usar Exportar .SVG.');
+    return;
+  }
+  if (!recorder || recorder.state === 'inactive') {
+    chunks = [];
+    const stream = canvas.captureStream(30);
+    const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
+    recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8000000 });
+    recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+    recorder.onstop = () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }));
+      a.download = `retrato_${ENGINE_MODE}.webm`;
+      a.click();
+    };
+    recorder.start();
+    startAnimation();
+    btnRec.textContent = '⏹ Guardar Vídeo';
+    btnRec.classList.add('recording');
+  } else {
+    recorder.stop();
+    btnRec.textContent = '⏺ Grabar Vídeo .WEBM';
+    btnRec.classList.remove('recording');
+  }
+};
+
+initDemoPortrait();
+</script>
+</body>
+</html>
