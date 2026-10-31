@@ -265,7 +265,7 @@
         </div>
         <div>
           <label>Limpieza Fondo <span id="vClean">0.000</span></label>
-          <input type="range" id="bgClean" min="0.000" max="0.280" step="0.002" value="0.000" title="0.000 preserva el 100% de las líneas del retrato">
+          <input type="range" id="bgClean" min="0.000" max="0.280" step="0.002" value="0.000" title="0.000 preserva el lienzo completo. Aumenta con cuidado para aislar fondos claros sin tocar al sujeto.">
         </div>
       </div>
     </div>
@@ -501,9 +501,9 @@ const MODE_PRESETS = {
   live_growth:    { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.22, bgClean: 0.000, minR: 1.3, maxR: 8.5, chaikin: 1 },
   golden:         { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.42, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1 },
   fractal:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1 },
-  hex_spiral:     { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.50, bgClean: 0.000, minR: 1.4, maxR: 6.5, chaikin: 0 },
-  iso_diamond:    { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.50, bgClean: 0.000, minR: 1.4, maxR: 6.5, chaikin: 0 },
-  pursuit_vortex: { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.50, bgClean: 0.000, minR: 1.4, maxR: 6.5, chaikin: 0 }
+  hex_spiral:     { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1 },
+  iso_diamond:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0 },
+  pursuit_vortex: { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1 }
 };
 
 function syncSlidersFromState() {
@@ -646,113 +646,148 @@ function buildAllStencilsAndSilhouettes() {
   const pBroad = PENCIL_STR * 0.35;
 
   if (BG_CLEAN > 0.003) {
-    const tol = Math.max(0.05, BG_CLEAN);
+    const tol = BG_CLEAN;
     const bgR = [], bgG = [], bgB = [];
-    for (let x = 0; x < W; x += 6) {
-      const idx = 2 * W + x;
-      if (cachedGradMag[idx] < 0.085) {
-        bgR.push(cachedRBlur[idx]); bgG.push(cachedGBlur[idx]); bgB.push(cachedBBlur[idx]);
+
+    // Muestreo exclusivo en las 4 esquinas exteriores (NUNCA en el centro donde está la cabeza/pelo)
+    const cornerW = Math.max(12, Math.min(36, Math.floor(W * 0.12)));
+    const cornerH = Math.max(12, Math.min(36, Math.floor(H * 0.10)));
+
+    const sampleRect = (x0, x1, y0, y1) => {
+      for (let y = y0; y <= y1; y += 3) {
+        const row = y * W;
+        for (let x = x0; x <= x1; x += 3) {
+          const idx = row + x;
+          const gMag = cachedSharpGrad ? Math.max(cachedGradMag[idx], cachedSharpGrad[idx]) : cachedGradMag[idx];
+          if (gMag < 0.045) {
+            bgR.push(cachedRBlur[idx]);
+            bgG.push(cachedGBlur[idx]);
+            bgB.push(cachedBBlur[idx]);
+          }
+        }
       }
-    }
-    const maxSampleY = Math.floor(H * 0.58);
-    for (let y = 0; y < maxSampleY; y += 6) {
-      const iL = y * W + 2, iR = y * W + W - 3;
-      if (cachedGradMag[iL] < 0.085) { bgR.push(cachedRBlur[iL]); bgG.push(cachedGBlur[iL]); bgB.push(cachedBBlur[iL]); }
-      if (cachedGradMag[iR] < 0.085) { bgR.push(cachedRBlur[iR]); bgG.push(cachedGBlur[iR]); bgB.push(cachedBBlur[iR]); }
-    }
+    };
+
+    // Esquinas superiores
+    sampleRect(2, cornerW, 2, cornerH);
+    sampleRect(W - 1 - cornerW, W - 3, 2, cornerH);
+    // Esquinas inferiores
+    sampleRect(2, Math.floor(cornerW * 0.7), H - 1 - Math.floor(cornerH * 0.7), H - 3);
+    sampleRect(W - 1 - Math.floor(cornerW * 0.7), W - 3, H - 1 - Math.floor(cornerH * 0.7), H - 3);
+
     const nSamples = bgR.length;
-
-    const distToBgPalette = (idx) => {
-      if (nSamples === 0) return 999;
-      const r = cachedRBlur[idx], g = cachedGBlur[idx], b = cachedBBlur[idx];
-      const rg = r - g, rb = r - b;
-      let minD = 999;
+    if (nSamples > 8) {
+      let sumR = 0, sumG = 0, sumB = 0;
       for (let k = 0; k < nSamples; k++) {
-        const sr = bgR[k], sg = bgG[k], sb = bgB[k];
-        const dr = r - sr, dg = g - sg, db = b - sb;
-        const dChroma = Math.abs(rg - (sr - sg)) + Math.abs(rb - (sr - sb));
-        const d = Math.sqrt(dr * dr + dg * dg + db * db) + dChroma * 0.85;
-        if (d < minD) minD = d;
+        sumR += bgR[k]; sumG += bgG[k]; sumB += bgB[k];
       }
-      return minD;
-    };
+      const meanR = sumR / nSamples;
+      const meanG = sumG / nSamples;
+      const meanB = sumB / nSamples;
 
-    scratchIsBg.fill(0);
-    let qHead = 0, qTail = 0;
-    const paletteTol = tol;
-    const stepTolSq = (0.018 + tol * 0.08) * (0.018 + tol * 0.08);
-    const gradTol = 0.042 + tol * 0.12;
-    const texTol = gradTol * 0.78;
+      const distToBgPalette = (idx) => {
+        const r = cachedRBlur[idx], g = cachedGBlur[idx], b = cachedBBlur[idx];
+        const dr = r - meanR, dg = g - meanG, db = b - meanB;
+        const dChroma = Math.abs((r - g) - (meanR - meanG)) + Math.abs((r - b) - (meanR - meanB));
+        return Math.sqrt(dr * dr + dg * dg + db * db) + dChroma * 0.75;
+      };
 
-    const trySeed = (x, y) => {
-      const idx = y * W + x;
-      if (!scratchIsBg[idx] && cachedGradMag[idx] < gradTol * 1.4 && distToBgPalette(idx) < paletteTol * 1.15) {
-        scratchIsBg[idx] = 1;
-        scratchQueue[qTail++] = idx;
+      scratchIsBg.fill(0);
+      let qHead = 0, qTail = 0;
+
+      const paletteTol = tol * 1.05;
+      const stepTolSq = (0.015 + tol * 0.05) * (0.015 + tol * 0.05);
+      const gradTol = 0.038 + tol * 0.10;
+      const texTol = 0.032 + tol * 0.08;
+
+      const trySeed = (x, y) => {
+        const idx = y * W + x;
+        const gMag = cachedSharpGrad ? Math.max(cachedGradMag[idx], cachedSharpGrad[idx]) : cachedGradMag[idx];
+        if (!scratchIsBg[idx] && gMag < gradTol * 0.85 && distToBgPalette(idx) < paletteTol * 0.90) {
+          scratchIsBg[idx] = 1;
+          scratchQueue[qTail++] = idx;
+        }
+      };
+
+      // Semillas ÚNICAMENTE en las esquinas más exteriores (NUNCA cruzar la zona central de la cabeza)
+      for (let x = 0; x < 6; x++) {
+        for (let y = 0; y < 6; y++) {
+          trySeed(x, y);
+          trySeed(W - 1 - x, y);
+        }
       }
-    };
 
-    for (let x = 0; x < W; x++) { trySeed(x, 0); trySeed(x, 1); }
-    const seedMaxY = Math.floor(H * 0.74);
-    for (let y = 0; y < seedMaxY; y++) {
-      trySeed(0, y); trySeed(1, y);
-      trySeed(W - 1, y); trySeed(W - 2, y);
-    }
+      // Zona de protección del núcleo del sujeto (rostro / cuerpo)
+      const cxCore = W * 0.5;
+      const cyCore = H * 0.48;
+      const rxCore = W * 0.36;
+      const ryCore = H * 0.44;
 
-    const dirs = [-1, 1, -W, W];
-    while (qHead < qTail) {
-      const curr = scratchQueue[qHead++];
-      const cx = curr % W;
-      const cr = cachedRBlur[curr], cg = cachedGBlur[curr], cb = cachedBBlur[curr];
-      for (let d = 0; d < 4; d++) {
-        const nxt = curr + dirs[d];
-        if (nxt < 0 || nxt >= N || scratchIsBg[nxt]) continue;
-        if (Math.abs((nxt % W) - cx) > 1) continue;
+      const dirs = [-1, 1, -W, W];
+      while (qHead < qTail) {
+        const curr = scratchQueue[qHead++];
+        const cx = curr % W;
+        const cy = (curr / W) | 0;
+        const cr = cachedRBlur[curr], cg = cachedGBlur[curr], cb = cachedBBlur[curr];
 
-        const dr = cachedRBlur[nxt] - cr;
-        const dg = cachedGBlur[nxt] - cg;
-        const db = cachedBBlur[nxt] - cb;
-        if (dr * dr + dg * dg + db * db < stepTolSq &&
-            cachedGradMag[nxt] < gradTol &&
-            cachedLocalTex[nxt] < texTol &&
-            distToBgPalette(nxt) < paletteTol) {
-          scratchIsBg[nxt] = 1;
+        for (let d = 0; d < 4; d++) {
+          const nxt = curr + dirs[d];
+          if (nxt < 0 || nxt >= N || scratchIsBg[nxt]) continue;
+          if (Math.abs((nxt % W) - cx) > 1) continue;
+
+          const nx = nxt % W;
+          const ny = (nxt / W) | 0;
+
+          // Protección reforzada en el núcleo central del sujeto
+          const normDx = (nx - cxCore) / rxCore;
+          const normDy = (ny - cyCore) / ryCore;
+          const inCore = (normDx * normDx + normDy * normDy) < 1.0;
+
+          const gMag = cachedSharpGrad ? Math.max(cachedGradMag[nxt], cachedSharpGrad[nxt]) : cachedGradMag[nxt];
+          const edgeAct = cachedStep232EdgeAct ? cachedStep232EdgeAct[nxt] : gMag;
+          if (gMag > gradTol || (inCore && edgeAct > 0.038)) continue;
+
+          const dr = cachedRBlur[nxt] - cr;
+          const dg = cachedGBlur[nxt] - cg;
+          const db = cachedBBlur[nxt] - cb;
+          if (dr * dr + dg * dg + db * db < stepTolSq &&
+              cachedLocalTex[nxt] < texTol &&
+              distToBgPalette(nxt) < (inCore ? paletteTol * 0.65 : paletteTol)) {
+            scratchIsBg[nxt] = 1;
+            scratchQueue[qTail++] = nxt;
+          }
+        }
+      }
+
+      for (let i = 0; i < N; i++) scratchRawSubj[i] = scratchIsBg[i] ? 0.0 : 1.0;
+
+      // Suavizado y cierre morfológico para que no queden huecos dentro del sujeto
+      gaussianBlur(scratchRawSubj, W, H, 4, smoothSilMap);
+      for (let i = 0; i < N; i++) smoothSilMap[i] = smoothSilMap[i] > 0.42 ? 1.0 : 0.0;
+
+      scratchExtBg.fill(0);
+      qHead = 0; qTail = 0;
+      for (let x = 0; x < 8; x++) {
+        if (smoothSilMap[x] === 0 && !scratchExtBg[x]) { scratchExtBg[x] = 1; scratchQueue[qTail++] = x; }
+        const rx = W - 1 - x;
+        if (smoothSilMap[rx] === 0 && !scratchExtBg[rx]) { scratchExtBg[rx] = 1; scratchQueue[qTail++] = rx; }
+      }
+      while (qHead < qTail) {
+        const curr = scratchQueue[qHead++];
+        const cx = curr % W;
+        for (let d = 0; d < 4; d++) {
+          const nxt = curr + dirs[d];
+          if (nxt < 0 || nxt >= N || scratchExtBg[nxt] || smoothSilMap[nxt] > 0.5) continue;
+          if (Math.abs((nxt % W) - cx) > 1) continue;
+          scratchExtBg[nxt] = 1;
           scratchQueue[qTail++] = nxt;
         }
       }
-    }
 
-    for (let i = 0; i < N; i++) scratchRawSubj[i] = scratchIsBg[i] ? 0.0 : 1.0;
-
-    gaussianBlur(scratchRawSubj, W, H, 5, smoothSilMap);
-    for (let i = 0; i < N; i++) smoothSilMap[i] = smoothSilMap[i] > 0.45 ? 1.0 : 0.0;
-
-    scratchExtBg.fill(0);
-    qHead = 0; qTail = 0;
-    for (let x = 0; x < W; x++) {
-      if (smoothSilMap[x] === 0 && !scratchExtBg[x]) { scratchExtBg[x] = 1; scratchQueue[qTail++] = x; }
+      for (let i = 0; i < N; i++) scratchRawSubj[i] = scratchExtBg[i] ? 0.0 : 1.0;
+      gaussianBlur(scratchRawSubj, W, H, 3, smoothSilMap);
+      for (let i = 0; i < N; i++) silhouetteMask[i] = smoothSilMap[i] > 0.50 ? 1 : 0;
     }
-    const extMaxY = Math.floor(H * 0.76);
-    for (let y = 0; y < extMaxY; y++) {
-      const l = y * W, r = y * W + W - 1;
-      if (smoothSilMap[l] === 0 && !scratchExtBg[l]) { scratchExtBg[l] = 1; scratchQueue[qTail++] = l; }
-      if (smoothSilMap[r] === 0 && !scratchExtBg[r]) { scratchExtBg[r] = 1; scratchQueue[qTail++] = r; }
-    }
-    while (qHead < qTail) {
-      const curr = scratchQueue[qHead++];
-      const cx = curr % W;
-      for (let d = 0; d < 4; d++) {
-        const nxt = curr + dirs[d];
-        if (nxt < 0 || nxt >= N || scratchExtBg[nxt] || smoothSilMap[nxt] > 0.5) continue;
-        if (Math.abs((nxt % W) - cx) > 1) continue;
-        scratchExtBg[nxt] = 1;
-        scratchQueue[qTail++] = nxt;
-      }
-    }
-
-    for (let i = 0; i < N; i++) scratchRawSubj[i] = scratchExtBg[i] ? 0.0 : 1.0;
-    gaussianBlur(scratchRawSubj, W, H, 3, smoothSilMap);
-    for (let i = 0; i < N; i++) silhouetteMask[i] = smoothSilMap[i] > 0.50 ? 1 : 0;
   }
 
   lumHist.fill(0);
@@ -1997,12 +2032,12 @@ function generateDendriticCoralPortrait(toneMap, silhouetteMask, smoothSilMap, W
 }
 
 /**
- * MODO 7: MOSAICO HEX-ESPIRAL GEOMÉTRICO (@fabian.jimenez):
- * Teje una red continua de celdas hexagonales/isométricas en espiral donde la cantidad de vueltas
- * y separación de cada celda esculpen las luces y sombras del retrato.
+ * MODO 8: MOSAICO HEX-ESPIRAL GEOMÉTRICO (@fabian.jimenez):
+ * Teje una red continua de celdas hexagonales/isométricas donde la densidad de espirales concéntricas
+ * y el anclaje a las crestas de contraste esculpen los rasgos faciales con alta nitidez y fidelidad.
  */
-function generateHexSpiralPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MAX_R) {
-  const cellR = Math.max(10, Math.min(22, Math.round(MAX_R * 2.4)));
+function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R) {
+  const cellR = Math.max(4.6, Math.min(7.5, MIN_R * 3.6));
   const dxHex = cellR * Math.sqrt(3);
   const dyHex = cellR * 1.5;
 
@@ -2017,40 +2052,65 @@ function generateHexSpiralPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MA
     for (let s = 1; s < cols - 1; s++) {
       const c = l2r ? s : (cols - 1 - s);
       const cx = c * dxHex + ((r & 1) ? dxHex * 0.5 : 0);
-      if (cx < 8 || cx >= W - 8 || cy < 8 || cy >= H - 8) continue;
+      if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
 
       const idx = (cy | 0) * W + (cx | 0);
       if (!silhouetteMask[idx]) continue;
 
-      // Muestrear oscuridad media de la celda hexagonal
-      let sumDark = 0, cnt = 0;
-      for (let oy = -4; oy <= 4; oy += 4) {
-        for (let ox = -4; ox <= 4; ox += 4) {
-          const ii = Math.min(H - 1, Math.max(0, (cy + oy) | 0)) * W + Math.min(W - 1, Math.max(0, (cx + ox) | 0));
-          sumDark += (1.0 - coralToneMap[ii]);
-          cnt++;
-        }
+      const tone = coralToneMap ? coralToneMap[idx] : 0.5;
+      const s232 = step232Stencil ? step232Stencil[idx] : 1.0;
+      const dark = Math.max(0, 1.0 - tone);
+      const lineDark = Math.max(0, 1.0 - s232);
+      const effDark = Math.min(1.0, dark * 0.65 + lineDark * 0.95);
+
+      // Ridge-locking: alineación de vértices con contornos faciales (ojos, nariz, labios, cejas)
+      let px = cx, py = cy;
+      if (effDark > 0.09 && idx > W && idx < W * (H - 1) - 1) {
+        const gx = (coralToneMap[idx + 1] - coralToneMap[idx - 1]) * 0.5 + (step232Stencil[idx + 1] - step232Stencil[idx - 1]) * 0.5;
+        const gy = (coralToneMap[idx + W] - coralToneMap[idx - W]) * 0.5 + (step232Stencil[idx + W] - step232Stencil[idx - W]) * 0.5;
+        const pull = Math.min(2.2, effDark * 1.8);
+        px = Math.max(5, Math.min(W - 5, px - gx * pull));
+        py = Math.max(5, Math.min(H - 5, py - gy * pull));
       }
-      const dark = sumDark / cnt;
-      const turns = Math.max(1, Math.min(7, Math.round(1.2 + Math.pow(dark, 1.15) * 5.8)));
+
+      const enterAng = l2r ? Math.PI : 0;
+      const exitAng = l2r ? 0 : Math.PI;
+
+      if (effDark < 0.08) {
+        // Preservar zonas de luz / brillo limpio sin saturar con líneas
+        outX.push(px + Math.cos(enterAng) * (cellR * 0.88));
+        outY.push(py + Math.sin(enterAng) * (cellR * 0.88));
+        outX.push(px + Math.cos(exitAng) * (cellR * 0.88));
+        outY.push(py + Math.sin(exitAng) * (cellR * 0.88));
+        continue;
+      }
+
+      const turns = Math.min(6, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.25) * 5.2)));
       const totalCorners = turns * 6;
 
-      // Espiral hexagonal hacia el centro de la celda
+      outX.push(px + Math.cos(enterAng) * (cellR * 0.92));
+      outY.push(py + Math.sin(enterAng) * (cellR * 0.92));
+
+      // Espiral hexagonal hacia el núcleo de la celda
       for (let k = 0; k <= totalCorners; k++) {
         const u = k / totalCorners;
-        const rad = cellR * 0.90 * (1.0 - u * 0.84);
-        const ang = (k % 6) * (Math.PI / 3) + Math.PI / 6;
-        outX.push(cx + Math.cos(ang) * rad);
-        outY.push(cy + Math.sin(ang) * rad);
+        const rad = cellR * 0.92 * (1.0 - u * 0.82);
+        const ang = enterAng + k * (Math.PI / 3);
+        outX.push(px + Math.cos(ang) * rad);
+        outY.push(py + Math.sin(ang) * rad);
       }
-      // Salida suave de regreso al borde para enlazar con la siguiente celda sin cortar
-      for (let k = totalCorners - 1; k >= 0; k -= 3) {
-        const u = k / totalCorners;
-        const rad = cellR * 0.90 * (1.0 - u * 0.84) * 0.92;
-        const ang = (k % 6) * (Math.PI / 3) + Math.PI / 6 + 0.18;
-        outX.push(cx + Math.cos(ang) * rad);
-        outY.push(cy + Math.sin(ang) * rad);
+
+      // Desenlace fluido hacia el punto de enlace con el siguiente hexágono vecino
+      const unwindSteps = Math.max(3, Math.round(totalCorners * 0.45));
+      for (let k = 1; k <= unwindSteps; k++) {
+        const u = k / unwindSteps;
+        const rad = cellR * (0.18 + u * 0.74);
+        const ang = enterAng + totalCorners * (Math.PI / 3) + u * (exitAng - (enterAng + totalCorners * (Math.PI / 3)));
+        outX.push(px + Math.cos(ang) * rad);
+        outY.push(py + Math.sin(ang) * rad);
       }
+      outX.push(px + Math.cos(exitAng) * (cellR * 0.92));
+      outY.push(py + Math.sin(exitAng) * (cellR * 0.92));
     }
   }
 
@@ -2350,11 +2410,11 @@ function generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TA
 
 /**
  * MODO 9: MOSAICO DE ROMBOS ISOMÉTRICOS 3D (@fabian.jimenez):
- * Red continua de celdas isométricas (rombos 60°/120°) con pliegues concéntricos
- * cuya densidad de vueltas esculpe las sombras del retrato.
+ * Red continua de facetas isométricas (rombos 60°/120°) con pliegues concéntricos
+ * adaptados a los rasgos y claroscuros del retrato.
  */
-function generateIsoDiamondPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MAX_R) {
-  const dW = Math.max(12, Math.min(26, Math.round(MAX_R * 2.6)));
+function generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R) {
+  const dW = Math.max(7.5, Math.min(12.5, MIN_R * 4.6));
   const dH = dW * 0.57735; // tg(30°) = 1/sqrt(3)
 
   const outX = [];
@@ -2373,27 +2433,52 @@ function generateIsoDiamondPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, M
       const idx = (cy | 0) * W + (cx | 0);
       if (!silhouetteMask[idx]) continue;
 
-      let sumDark = 0, cnt = 0;
-      for (let oy = -3; oy <= 3; oy += 3) {
-        for (let ox = -3; ox <= 3; ox += 3) {
-          const ii = Math.min(H - 1, Math.max(0, (cy + oy) | 0)) * W + Math.min(W - 1, Math.max(0, (cx + ox) | 0));
-          sumDark += (1.0 - coralToneMap[ii]);
-          cnt++;
+      const tone = coralToneMap ? coralToneMap[idx] : 0.5;
+      const s232 = step232Stencil ? step232Stencil[idx] : 1.0;
+      const dark = Math.max(0, 1.0 - tone);
+      const lineDark = Math.max(0, 1.0 - s232);
+      const effDark = Math.min(1.0, dark * 0.65 + lineDark * 0.95);
+
+      let px = cx, py = cy;
+      if (effDark > 0.09 && idx > W && idx < W * (H - 1) - 1) {
+        const gx = (coralToneMap[idx + 1] - coralToneMap[idx - 1]) * 0.5 + (step232Stencil[idx + 1] - step232Stencil[idx - 1]) * 0.5;
+        const gy = (coralToneMap[idx + W] - coralToneMap[idx - W]) * 0.5 + (step232Stencil[idx + W] - step232Stencil[idx - W]) * 0.5;
+        const pull = Math.min(2.0, effDark * 1.6);
+        px = Math.max(5, Math.min(W - 5, px - gx * pull));
+        py = Math.max(5, Math.min(H - 5, py - gy * pull));
+      }
+
+      const enterX = l2r ? px - dW * 0.48 : px + dW * 0.48;
+      const exitX = l2r ? px + dW * 0.48 : px - dW * 0.48;
+
+      if (effDark < 0.08) {
+        // Zona de luz: conector limpio de diamante sin oscurecer
+        outX.push(enterX, px, exitX);
+        outY.push(py, py - dH * 0.35, py);
+        continue;
+      }
+
+      const folds = Math.min(5, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.25) * 4.2)));
+
+      outX.push(enterX);
+      outY.push(py);
+
+      for (let f = 0; f <= folds; f++) {
+        const u = f / Math.max(1, folds);
+        const s = 0.92 * (1.0 - u * 0.82);
+        const rx = (dW * 0.5) * s;
+        const ry = dH * s;
+        if (l2r) {
+          outX.push(px, px + rx, px, px - rx);
+          outY.push(py - ry, py, py + ry, py);
+        } else {
+          outX.push(px, px - rx, px, px + rx);
+          outY.push(py - ry, py, py + ry, py);
         }
       }
-      const dark = sumDark / cnt;
-      const turns = Math.max(1, Math.min(7, Math.round(1.2 + Math.pow(dark, 1.15) * 5.8)));
 
-      for (let t = 0; t <= turns; t++) {
-        const u = t / turns;
-        const scale = 0.90 * (1.0 - u * 0.82);
-        const rx = dW * 0.5 * scale;
-        const ry = dH * 0.5 * scale;
-        outX.push(cx, cx + rx, cx, cx - rx);
-        outY.push(cy - ry, cy, cy + ry, cy);
-      }
-      outX.push(cx, cx + dW * 0.45);
-      outY.push(cy - dH * 0.45, cy);
+      outX.push(px, exitX);
+      outY.push(py + dH * 0.30, py);
     }
   }
 
@@ -2405,13 +2490,13 @@ function generateIsoDiamondPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, M
 
 /**
  * MODO 10: VÓRTICE GEOMÉTRICO EN ESPIRAL (@fabian.jimenez):
- * Celdas poligonales en espiral con curvas de persecución que convergen en vórtices
- * modulados por la sombra y profundidad facial.
+ * Celdas poligonales con curvas de persecución que convergen en vórtices
+ * modulados por los rasgos, pupilas y claroscuros del retrato.
  */
-function generatePursuitVortexPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MAX_R) {
-  const cellR = Math.max(12, Math.min(26, Math.round(MAX_R * 2.5)));
-  const dx = cellR * 1.6;
-  const dy = cellR * 1.4;
+function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R) {
+  const cellR = Math.max(5.5, Math.min(9.0, MIN_R * 3.6));
+  const dx = cellR * 1.62;
+  const dy = cellR * 1.38;
 
   const outX = [];
   const outY = [];
@@ -2424,36 +2509,56 @@ function generatePursuitVortexPortrait(coralToneMap, silhouetteMask, W, H, MIN_R
     for (let s = 1; s < cols - 1; s++) {
       const c = l2r ? s : (cols - 1 - s);
       const cx = c * dx + ((r & 1) ? dx * 0.5 : 0);
-      if (cx < 8 || cx >= W - 8 || cy < 8 || cy >= H - 8) continue;
+      if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
 
       const idx = (cy | 0) * W + (cx | 0);
       if (!silhouetteMask[idx]) continue;
 
-      let sumDark = 0, cnt = 0;
-      for (let oy = -4; oy <= 4; oy += 4) {
-        for (let ox = -4; ox <= 4; ox += 4) {
-          const ii = Math.min(H - 1, Math.max(0, (cy + oy) | 0)) * W + Math.min(W - 1, Math.max(0, (cx + ox) | 0));
-          sumDark += (1.0 - coralToneMap[ii]);
-          cnt++;
-        }
+      const tone = coralToneMap ? coralToneMap[idx] : 0.5;
+      const s232 = step232Stencil ? step232Stencil[idx] : 1.0;
+      const dark = Math.max(0, 1.0 - tone);
+      const lineDark = Math.max(0, 1.0 - s232);
+      const effDark = Math.min(1.0, dark * 0.65 + lineDark * 0.95);
+
+      let px = cx, py = cy;
+      if (effDark > 0.09 && idx > W && idx < W * (H - 1) - 1) {
+        const gx = (coralToneMap[idx + 1] - coralToneMap[idx - 1]) * 0.5 + (step232Stencil[idx + 1] - step232Stencil[idx - 1]) * 0.5;
+        const gy = (coralToneMap[idx + W] - coralToneMap[idx - W]) * 0.5 + (step232Stencil[idx + W] - step232Stencil[idx - W]) * 0.5;
+        const pull = Math.min(2.4, effDark * 2.0);
+        px = Math.max(5, Math.min(W - 5, px - gx * pull));
+        py = Math.max(5, Math.min(H - 5, py - gy * pull));
       }
-      const dark = sumDark / cnt;
-      const numCorners = 5;
+
+      const enterAng = l2r ? Math.PI : 0;
+      const exitAng = l2r ? 0 : Math.PI;
+
+      if (effDark < 0.08) {
+        outX.push(px + Math.cos(enterAng) * (cellR * 0.88));
+        outY.push(py + Math.sin(enterAng) * (cellR * 0.88));
+        outX.push(px + Math.cos(exitAng) * (cellR * 0.88));
+        outY.push(py + Math.sin(exitAng) * (cellR * 0.88));
+        continue;
+      }
+
+      const numCorners = 6;
       const polyX = new Float32Array(numCorners);
       const polyY = new Float32Array(numCorners);
-      const rad = cellR * 0.90;
-      const rot0 = (r * 0.35 + c * 0.25);
+      const rad = cellR * 0.92;
+      const rot0 = (r & 1) ? 0 : (Math.PI / 6);
+
+      outX.push(px + Math.cos(enterAng) * rad);
+      outY.push(py + Math.sin(enterAng) * rad);
 
       for (let k = 0; k < numCorners; k++) {
         const ang = rot0 + (k * 2 * Math.PI) / numCorners;
-        polyX[k] = cx + Math.cos(ang) * rad;
-        polyY[k] = cy + Math.sin(ang) * rad;
+        polyX[k] = px + Math.cos(ang) * rad;
+        polyY[k] = py + Math.sin(ang) * rad;
       }
 
-      const totalSteps = Math.max(6, Math.min(36, Math.round(8 + Math.pow(dark, 1.1) * 28)));
-      const alpha = 0.09 + dark * 0.08;
+      const totalSteps = Math.min(32, Math.max(6, Math.round(6 + Math.pow(effDark, 1.25) * 26)));
+      const alpha = 0.08 + effDark * 0.10;
 
-      let pIdx = 0;
+      let pIdx = l2r ? 0 : 3;
       for (let step = 0; step < totalSteps; step++) {
         const nextIdx = (pIdx + 1) % numCorners;
         outX.push(polyX[pIdx]);
@@ -2463,8 +2568,8 @@ function generatePursuitVortexPortrait(coralToneMap, silhouetteMask, W, H, MIN_R
         pIdx = nextIdx;
       }
 
-      outX.push(cx + Math.cos(rot0) * rad);
-      outY.push(cy + Math.sin(rot0) * rad);
+      outX.push(px + Math.cos(exitAng) * rad);
+      outY.push(py + Math.sin(exitAng) * rad);
     }
   }
 
@@ -2656,7 +2761,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'hex_spiral') {
-    let { ptsX, ptsY } = generateHexSpiralPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MAX_R);
+    let { ptsX, ptsY } = generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -2667,7 +2772,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'iso_diamond') {
-    let { ptsX, ptsY } = generateIsoDiamondPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MAX_R);
+    let { ptsX, ptsY } = generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -2678,7 +2783,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'pursuit_vortex') {
-    let { ptsX, ptsY } = generatePursuitVortexPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MAX_R);
+    let { ptsX, ptsY } = generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
