@@ -177,14 +177,15 @@
       </div>
     </div>
 
-    <!-- Motor de Color Orgánico y Mezcla de Colores en las Líneas -->
+    <!-- Motor de Teoría del Color, Armonías y Mezcla Orgánica -->
     <div class="panel-section">
-      <div class="panel-title"><span>Color Orgánico y Mezcla</span> <span>🎨</span></div>
+      <div class="panel-title"><span>Teoría del Color & Mezcla</span> <span>🎨</span></div>
       <div class="grid-2col">
         <div>
           <label>Modo de Color</label>
           <select id="colorMode">
             <option value="mono">⚫ Monocromo</option>
+            <option value="photo_exact">📸 Color Exacto de la Foto</option>
             <option value="organic_flow">🌊 Flujo Orgánico</option>
             <option value="organic_spatial">🌀 Ondas 2D</option>
             <option value="tonal_blend">🌡️ Fusión Tonal</option>
@@ -192,23 +193,40 @@
           </select>
         </div>
         <div>
-          <label>Paleta Cromática</label>
+          <label>Armonía Cromática</label>
           <select id="colorPalette">
-            <option value="iris">🌈 Iris Orgánico</option>
-            <option value="fabian">✨ Plata/Cian/Ámbar</option>
-            <option value="sunset">🌅 Atardecer</option>
-            <option value="ocean">🌊 Bioluminiscencia</option>
-            <option value="forest">🍃 Bosque Boreal</option>
-            <option value="custom">🎛️ Personalizada</option>
+            <optgroup label="📐 Teoría del Color">
+              <option value="triad">📐 Triádica (120° Balance)</option>
+              <option value="analogous">🌿 Análoga (Adyacentes 35°)</option>
+              <option value="split">🔀 Split-Complementaria</option>
+              <option value="complementary">⚡ Complementaria (180°)</option>
+              <option value="warm_cool">🌡️ Claroscuro Frío-Cálido</option>
+              <option value="monochrome">🌓 Monocromía de Valor</option>
+            </optgroup>
+            <optgroup label="🌈 Paletas de Autor">
+              <option value="iris" selected>🌈 Iris Orgánico</option>
+              <option value="fabian">✨ Plata/Cian/Ámbar</option>
+              <option value="sunset">🌅 Atardecer</option>
+              <option value="ocean">🌊 Bioluminiscencia</option>
+              <option value="forest">🍃 Bosque Boreal</option>
+            </optgroup>
+            <option value="custom">🎛️ Personalizada Manual</option>
           </select>
         </div>
       </div>
+
+      <!-- Rueda Cromática de Matiz Base para Teoría del Color -->
+      <div style="margin-top:1px;">
+        <label>Matiz / Rueda Cromática <span id="vColHue">205°</span></label>
+        <input type="range" id="colorHue" min="0" max="360" step="1" value="205" style="background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%); height: 6px;">
+      </div>
+
       <div class="grid-2col" style="align-items:center; margin-top:2px;">
         <div style="display:flex; gap:5px; align-items:center;">
-          <label style="margin:0; font-size:10px;">3 Colores:</label>
-          <input type="color" id="colPick1" value="#ff4d6d" title="Color Orgánico 1" style="width:26px; height:21px; border:none; border-radius:4px; background:none; cursor:pointer;">
-          <input type="color" id="colPick2" value="#00d2ff" title="Color Orgánico 2" style="width:26px; height:21px; border:none; border-radius:4px; background:none; cursor:pointer;">
-          <input type="color" id="colPick3" value="#9b5de5" title="Color Orgánico 3" style="width:26px; height:21px; border:none; border-radius:4px; background:none; cursor:pointer;">
+          <label style="margin:0; font-size:10px;">3 Tonos:</label>
+          <input type="color" id="colPick1" value="#ff4d6d" title="Tono 1 (Sombras / Fase A)" style="width:26px; height:21px; border:none; border-radius:4px; background:none; cursor:pointer;">
+          <input type="color" id="colPick2" value="#00d2ff" title="Tono 2 (Medios / Fase B)" style="width:26px; height:21px; border:none; border-radius:4px; background:none; cursor:pointer;">
+          <input type="color" id="colPick3" value="#9b5de5" title="Tono 3 (Luces / Fase C)" style="width:26px; height:21px; border:none; border-radius:4px; background:none; cursor:pointer;">
         </div>
         <div>
           <select id="bgTheme" title="Fondo del Lienzo">
@@ -246,8 +264,8 @@
           <input type="range" id="shadeWeight" min="0.00" max="0.90" step="0.05" value="0.55">
         </div>
         <div>
-          <label>Limpieza Fondo <span id="vClean">0.140</span></label>
-          <input type="range" id="bgClean" min="0.000" max="0.280" step="0.002" value="0.140">
+          <label>Limpieza Fondo <span id="vClean">0.000</span></label>
+          <input type="range" id="bgClean" min="0.000" max="0.280" step="0.002" value="0.000" title="0.000 preserva el 100% de las líneas del retrato">
         </div>
       </div>
     </div>
@@ -348,7 +366,7 @@ let VIEW_MODE = 'line';
 let PENCIL_STR = 8.5;
 let PENCIL_BLUR = 2.0;
 let SHADE_WEIGHT = 0.55;
-let BG_CLEAN = 0.140;
+let BG_CLEAN = 0.000;
 
 let TARGET_NODES = isMobileDevice ? 22000 : 26000;
 let MIN_R = 1.5;
@@ -359,6 +377,7 @@ let LINE_W = 1.0;
 // Estado del Motor de Color Orgánico y Mezcla
 let COLOR_MODE = 'mono';
 let COLOR_PALETTE = 'iris';
+let COLOR_HUE = 205;
 let COLOR_SCALE = 3.5;
 let BG_THEME = 'white';
 let customColorsRGB = [
@@ -369,6 +388,67 @@ let customColorsRGB = [
 let colorPhase = 0.0;
 let isColorFlowing = false;
 let colorFlowRafId = null;
+
+function hslToHex(h, s, l) {
+  h = ((h % 360) + 360) % 360;
+  s = Math.max(0, Math.min(100, s)) / 100;
+  l = Math.max(0, Math.min(100, l)) / 100;
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  let r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; b = 0; }
+  else if (h < 120) { r = x; g = c; b = 0; }
+  else if (h < 180) { r = 0; g = c; b = x; }
+  else if (h < 240) { r = 0; g = x; b = c; }
+  else if (h < 300) { r = x; g = 0; b = c; }
+  else { r = c; g = 0; b = x; }
+  const toHex = n => Math.round((n + m) * 255).toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function computeHarmonyColors(harmony, baseHue) {
+  switch (harmony) {
+    case 'triad':
+      return [
+        hslToHex(baseHue, 85, 45),
+        hslToHex(baseHue + 120, 80, 55),
+        hslToHex(baseHue + 240, 75, 65)
+      ];
+    case 'analogous':
+      return [
+        hslToHex(baseHue - 35, 80, 42),
+        hslToHex(baseHue, 85, 52),
+        hslToHex(baseHue + 35, 78, 62)
+      ];
+    case 'split':
+      return [
+        hslToHex(baseHue, 85, 45),
+        hslToHex(baseHue + 150, 80, 55),
+        hslToHex(baseHue + 210, 80, 60)
+      ];
+    case 'complementary':
+      return [
+        hslToHex(baseHue, 88, 38),
+        hslToHex(baseHue, 70, 60),
+        hslToHex(baseHue + 180, 88, 55)
+      ];
+    case 'warm_cool':
+      return [
+        hslToHex(220, 75, 32),
+        hslToHex(185, 65, 48),
+        hslToHex(38, 92, 60)
+      ];
+    case 'monochrome':
+      return [
+        hslToHex(baseHue, 75, 26),
+        hslToHex(baseHue, 80, 52),
+        hslToHex(baseHue, 60, 76)
+      ];
+    default:
+      return null;
+  }
+}
 
 const PALETTE_PRESETS = {
   iris:   ['#ff4d6d', '#00d2ff', '#9b5de5'],
@@ -405,7 +485,7 @@ const MODE_DESCRIPTIONS = {
   coral_tsp: '🌊 Coral Orgánico TSP (Versión Anterior): Stippling adaptativo por tono + repulsión + ruta continua 2-Opt libre de cruces + curvas Chaikin.',
   stencil_clean: '✏️ Calco a Lápiz Tatuador Sin Cruces (Paso 232): Algoritmo exacto de calco a lápiz por inversión de capa + línea continua 100% libre de cruces (2-Opt).',
   stencil_cross: '✍️ Calco a Lápiz CON CRUCES: Mantiene el calco a lápiz del tatuador pero enlaza los trazos permitiendo cruces y sombreado cruzado rápido.',
-  live_growth: '🌱 Crecimiento Diferencial en Vivo CON CRUCES (1ª Versión): El trazo nace en el centro del rostro y teje en vivo sobre los rasgos cruzando líneas.',
+  live_growth: '🌱 Crecimiento Diferencial en Vivo CON CRUCES: El trazo nace en el centro del rostro y teje en vivo sobre los rasgos cruzando líneas con alta calidad.',
   golden: '🌻 Proporción Áurea (φ = 1.61803): Distribuye los nodos en espiral de Fermat con el ángulo áureo exacto (137.50776°) y brazos espirales de Fibonacci (55/89).',
   fractal: '❄️ Curva Fractal Adaptativa (Hilbert 2ⁿ): Subdivide recursivamente el retrato en una curva fractal autosemejante más densa en ojos y sombras, con 0 cruces.',
   hex_spiral: '🌀 Mosaico Hex-Espiral (@fabian.jimenez): Teje una red continua de espirales hexagonales e isométricas cuya densidad de vueltas esculpe las sombras del retrato.',
@@ -414,16 +494,16 @@ const MODE_DESCRIPTIONS = {
 };
 
 const MODE_PRESETS = {
-  coral:          { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.140, minR: 1.5, maxR: 4.8, chaikin: 2 },
-  coral_tsp:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.140, minR: 1.4, maxR: 6.5, chaikin: 2 },
-  stencil_clean:  { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.20, bgClean: 0.022, minR: 1.1, maxR: 9.0, chaikin: 0 },
-  stencil_cross:  { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.20, bgClean: 0.022, minR: 1.1, maxR: 9.0, chaikin: 0 },
-  live_growth:    { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.22, bgClean: 0.022, minR: 1.3, maxR: 8.5, chaikin: 0 },
-  golden:         { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.42, bgClean: 0.140, minR: 1.4, maxR: 8.0, chaikin: 1 },
-  fractal:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.140, minR: 1.4, maxR: 8.0, chaikin: 1 },
-  hex_spiral:     { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.50, bgClean: 0.140, minR: 1.4, maxR: 6.5, chaikin: 0 },
-  iso_diamond:    { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.50, bgClean: 0.140, minR: 1.4, maxR: 6.5, chaikin: 0 },
-  pursuit_vortex: { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.50, bgClean: 0.140, minR: 1.4, maxR: 6.5, chaikin: 0 }
+  coral:          { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 4.8, chaikin: 2 },
+  coral_tsp:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 6.5, chaikin: 2 },
+  stencil_clean:  { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.20, bgClean: 0.000, minR: 1.1, maxR: 9.0, chaikin: 0 },
+  stencil_cross:  { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.20, bgClean: 0.000, minR: 1.1, maxR: 9.0, chaikin: 0 },
+  live_growth:    { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.22, bgClean: 0.000, minR: 1.3, maxR: 8.5, chaikin: 1 },
+  golden:         { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.42, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1 },
+  fractal:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1 },
+  hex_spiral:     { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.50, bgClean: 0.000, minR: 1.4, maxR: 6.5, chaikin: 0 },
+  iso_diamond:    { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.50, bgClean: 0.000, minR: 1.4, maxR: 6.5, chaikin: 0 },
+  pursuit_vortex: { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.50, bgClean: 0.000, minR: 1.4, maxR: 6.5, chaikin: 0 }
 };
 
 function syncSlidersFromState() {
@@ -736,12 +816,14 @@ function buildAllStencilsAndSilhouettes() {
     const darkFeature = toneVal < 0.38 ? ((1.0 - SHADE_WEIGHT) + SHADE_WEIGHT * (toneVal / 0.38)) : 1.0;
     const pencilVal = masterLine * darkFeature;
 
-    const sil232 = BG_CLEAN <= 0.001 ? 1.0 : (silhouetteMask[i] ? 1.0 : Math.min(1.0, Math.max(0.0, (cachedStep232EdgeAct[i] - bgClean04) * invBgClean14)));
+    // Protección absoluta: las líneas del retrato NUNCA se borran por limpieza de fondo
+    const isLineFeature = (1.0 - masterLine) > 0.05 || edgeMag > 0.035;
+    const sil232 = (BG_CLEAN <= 0.002 || isLineFeature) ? 1.0 : (silhouetteMask[i] ? 1.0 : Math.min(1.0, Math.max(0.0, (cachedStep232EdgeAct[i] - bgClean04) * invBgClean14)));
     const s232 = Math.max(0.0, Math.min(1.0, 1.0 - (1.0 - pencilVal) * sil232));
     step232Stencil[i] = s232;
 
     let cTone = 1.0;
-    if (silhouetteMask[i]) {
+    if (silhouetteMask[i] || isLineFeature || BG_CLEAN <= 0.002) {
       let normLum = Math.max(0.0, Math.min(1.0, (toneVal - p05) * invLumSpan));
       normLum = normLum * normLum * (3.0 - 2.0 * normLum);
       const combined = masterLine * (1.0 - SHADE_WEIGHT) + normLum * SHADE_WEIGHT;
@@ -768,105 +850,281 @@ function stopLiveGrowth() {
   }
 }
 
+function chaikinSmoothMain(inX, inY, passes = 1) {
+  const n = inX.length;
+  if (n < 3 || passes <= 0) return { ptsX: inX, ptsY: inY };
+  let curX = inX, curY = inY;
+  for (let p = 0; p < passes; p++) {
+    const len = curX.length;
+    const outX = new Float32Array(len * 2 - 2);
+    const outY = new Float32Array(len * 2 - 2);
+    let k = 0;
+    for (let i = 0; i < len - 1; i++) {
+      const x0 = curX[i], y0 = curY[i];
+      const x1 = curX[i + 1], y1 = curY[i + 1];
+      outX[k] = x0 * 0.75 + x1 * 0.25;
+      outY[k] = y0 * 0.75 + y1 * 0.25;
+      k++;
+      outX[k] = x0 * 0.25 + x1 * 0.75;
+      outY[k] = y0 * 0.25 + y1 * 0.75;
+      k++;
+    }
+    curX = outX;
+    curY = outY;
+  }
+  return { ptsX: curX, ptsY: curY };
+}
+
+function buildFastTourMain(ptsX, ptsY, W, H, stencil, startSeed = 0) {
+  const n = ptsX.length;
+  if (n < 2) return { tX: ptsX, tY: ptsY };
+
+  const cell = 16;
+  const cols = Math.ceil(W / cell) + 1;
+  const rows = Math.ceil(H / cell) + 1;
+  const head = new Int32Array(cols * rows).fill(-1);
+  const next = new Int32Array(n).fill(-1);
+
+  for (let i = 0; i < n; i++) {
+    const cx = Math.max(0, Math.min(cols - 1, (ptsX[i] / cell) | 0));
+    const cy = Math.max(0, Math.min(rows - 1, (ptsY[i] / cell) | 0));
+    const idx = cy * cols + cx;
+    next[i] = head[idx];
+    head[idx] = i;
+  }
+
+  const outX = new Float32Array(n);
+  const outY = new Float32Array(n);
+  const visited = new Uint8Array(n);
+
+  let curr = startSeed % n;
+  visited[curr] = 1;
+  outX[0] = ptsX[curr];
+  outY[0] = ptsY[curr];
+
+  for (let step = 1; step < n; step++) {
+    const px = ptsX[curr], py = ptsY[curr];
+    const cx = (px / cell) | 0, cy = (py / cell) | 0;
+    let best = -1, bestDistSq = Infinity;
+
+    for (let rad = 0; rad <= 32; rad++) {
+      const minDy = Math.max(-cy, -rad), maxDy = Math.min(rows - 1 - cy, rad);
+      const minDx = Math.max(-cx, -rad), maxDx = Math.min(cols - 1 - cx, rad);
+      for (let dy = minDy; dy <= maxDy; dy++) {
+        const rowOff = (cy + dy) * cols;
+        for (let dx = minDx; dx <= maxDx; dx++) {
+          if (rad > 0 && Math.abs(dx) < rad && Math.abs(dy) < rad) continue;
+          let j = head[rowOff + (cx + dx)];
+          while (j !== -1) {
+            if (!visited[j]) {
+              const ddx = ptsX[j] - px, ddy = ptsY[j] - py;
+              let dSq = ddx * ddx + ddy * ddy;
+              if (stencil && dSq > 256) {
+                const mx = ((px + ptsX[j]) * 0.5) | 0;
+                const my = ((py + ptsY[j]) * 0.5) | 0;
+                if (mx >= 0 && mx < W && my >= 0 && my < H && stencil[my * W + mx] > 0.94) {
+                  dSq *= 16.0;
+                }
+              }
+              if (dSq < bestDistSq) {
+                bestDistSq = dSq;
+                best = j;
+              }
+            }
+            j = next[j];
+          }
+        }
+      }
+      if (best !== -1 && bestDistSq <= (rad * cell) * (rad * cell)) break;
+    }
+
+    if (best === -1) {
+      for (let j = 0; j < n; j++) {
+        if (!visited[j]) {
+          const ddx = ptsX[j] - px, ddy = ptsY[j] - py;
+          let dSq = ddx * ddx + ddy * ddy;
+          if (stencil && dSq > 256) {
+            const mx = ((px + ptsX[j]) * 0.5) | 0;
+            const my = ((py + ptsY[j]) * 0.5) | 0;
+            if (mx >= 0 && mx < W && my >= 0 && my < H && stencil[my * W + mx] > 0.94) {
+              dSq *= 16.0;
+            }
+          }
+          if (dSq < bestDistSq) {
+            bestDistSq = dSq;
+            best = j;
+          }
+        }
+      }
+    }
+
+    visited[best] = 1;
+    outX[step] = ptsX[best];
+    outY[step] = ptsY[best];
+    curr = best;
+  }
+
+  return { tX: outX, tY: outY };
+}
+
 function startLiveDifferentialGrowthMode() {
   stopLiveGrowth();
   stopAnimation();
 
   const maxNodes = TARGET_NODES;
-  const cap = maxNodes + 4000;
-  if (!liveNodesX || liveNodesX.length < cap) {
-    liveNodesX = new Float32Array(cap);
-    liveNodesY = new Float32Array(cap);
-  }
-  liveNodeCount = 0;
+  const cap = maxNodes + 8000;
 
-  // 1. Extraer exactamente TARGET_NODES puntos de rasgo por difusión de masa sobre el Calco a Lápiz (step232Stencil)
+  // 1. Extraer nodos con Ridge-Locking hacia las aristas oscuras del Calco a Lápiz (step232Stencil)
   const len = W * H;
   const err = new Float32Array(len);
   let totalMass = 0;
   for (let i = 0; i < len; i++) {
     const dark = Math.max(0, 1.0 - step232Stencil[i]);
-    const w = dark < 0.08 ? 0 : Math.pow(dark, 1.45);
+    const w = dark < 0.03 ? 0 : Math.pow(dark, 1.25);
     err[i] = w;
     totalMass += w;
   }
+  if (totalMass < 10) return;
 
-  const featX = new Float32Array(cap);
-  const featY = new Float32Array(cap);
-  let fCount = 0;
+  const unitMass = totalMass / maxNodes;
+  const halfUnit = unitMass * 0.5;
+  const rx = new Float32Array(cap);
+  const ry = new Float32Array(cap);
+  let count = 0;
 
-  if (totalMass > 10) {
-    const unitMass = totalMass / (maxNodes * 0.65);
-    const halfUnit = unitMass * 0.5;
-    for (let y = 5; y < H - 5; y++) {
-      const l2r = (y & 1) === 0;
-      for (let s = 5; s < W - 5; s++) {
-        const x = l2r ? s : (W - 1 - s);
-        const idx = y * W + x;
-        const val = err[idx];
-        let quantErr = val;
-        if (val >= halfUnit && step232Stencil[idx] < 0.90 && fCount < cap - 10) {
-          featX[fCount] = x + (Math.random() - 0.5) * 0.8;
-          featY[fCount] = y + (Math.random() - 0.5) * 0.8;
-          fCount++;
-          quantErr = val - unitMass;
-        }
-        const dir = l2r ? 1 : -1;
-        err[idx + dir] += quantErr * 0.4375;
-        err[(y + 1) * W + (x - dir)] += quantErr * 0.1875;
-        err[(y + 1) * W + x] += quantErr * 0.3125;
-        err[(y + 1) * W + (x + dir)] += quantErr * 0.0625;
+  for (let y = 4; y < H - 4; y++) {
+    const l2r = (y & 1) === 0;
+    for (let s = 4; s < W - 4; s++) {
+      const x = l2r ? s : (W - 1 - s);
+      const idx = y * W + x;
+      const val = err[idx];
+      let quantErr = val;
+      if (val >= halfUnit && step232Stencil[idx] < 0.93 && count < maxNodes) {
+        rx[count] = x + (Math.random() - 0.5) * 0.5;
+        ry[count] = y + (Math.random() - 0.5) * 0.5;
+        count++;
+        quantErr = val - unitMass;
       }
+      const dir = l2r ? 1 : -1;
+      err[idx + dir] += quantErr * 0.4375;
+      err[(y + 1) * W + (x - dir)] += quantErr * 0.1875;
+      err[(y + 1) * W + x] += quantErr * 0.3125;
+      err[(y + 1) * W + (x + dir)] += quantErr * 0.0625;
     }
   }
 
-  if (fCount < 100) {
-    for (let i = 0; i < 1200; i++) {
-      const a = i * 0.15;
-      const r = 8 + i * 0.25;
-      featX[fCount] = W * 0.5 + Math.cos(a) * r;
-      featY[fCount] = H * 0.5 + Math.sin(a) * r;
-      fCount++;
-    }
-  }
-
-  // 2. Indexar los puntos de rasgo en una rejilla espacial para que el trazo crezca en vivo desde el centro tejiendo y cruzando
-  const fUsed = new Uint8Array(fCount);
-  const fCell = 14;
-  const fCols = Math.ceil(W / fCell) + 1;
-  const fRows = Math.ceil(H / fCell) + 1;
-  const fHead = new Int32Array(fCols * fRows).fill(-1);
-  const fNext = new Int32Array(fCount).fill(-1);
-
-  let startFeat = 0;
-  let bestCenterDist = Infinity;
-  for (let i = 0; i < fCount; i++) {
-    const cx = Math.max(0, Math.min(fCols - 1, (featX[i] / fCell) | 0));
-    const cy = Math.max(0, Math.min(fRows - 1, (featY[i] / fCell) | 0));
-    const cIdx = cy * fCols + cx;
-    fNext[i] = fHead[cIdx];
-    fHead[cIdx] = i;
-
-    const dCenter = Math.hypot(featX[i] - W * 0.5, featY[i] - H * 0.42);
-    if (dCenter < bestCenterDist) {
-      bestCenterDist = dCenter;
-      startFeat = i;
-    }
-  }
-
-  fUsed[startFeat] = 1;
-  let headX = featX[startFeat];
-  let headY = featY[startFeat];
-  let headAngle = 0;
-  liveNodesX[liveNodeCount] = headX;
-  liveNodesY[liveNodeCount] = headY;
-  liveNodeCount++;
-
-  const cellSize = 12;
+  // 4 pasadas de relajación con ridge locking hacia el mínimo local del calco
+  const cellSize = 8;
   const cols = Math.ceil(W / cellSize) + 1;
-  const gRows = Math.ceil(H / cellSize) + 1;
-  const head = new Int32Array(cols * gRows);
-  const nextInCell = new Int32Array(cap);
+  const rows = Math.ceil(H / cellSize) + 1;
+  const rHead = new Int32Array(cols * rows);
+  const rNext = new Int32Array(count);
+
+  for (let iter = 0; iter < 4; iter++) {
+    rHead.fill(-1);
+    for (let i = 0; i < count; i++) {
+      const cx = Math.max(0, Math.min(cols - 1, (rx[i] / cellSize) | 0));
+      const cy = Math.max(0, Math.min(rows - 1, (ry[i] / cellSize) | 0));
+      const cIdx = cy * cols + cx;
+      rNext[i] = rHead[cIdx];
+      rHead[cIdx] = i;
+    }
+
+    for (let i = 0; i < count; i++) {
+      const px = rx[i], py = ry[i];
+      const sIdx = Math.min(H - 2, Math.max(1, py | 0)) * W + Math.min(W - 2, Math.max(1, px | 0));
+      const s = step232Stencil[sIdx];
+      const rTarget = MIN_R + (MAX_R - MIN_R) * Math.pow(s, 1.25);
+      const rSq = rTarget * rTarget;
+      let fx = 0, fy = 0;
+
+      const gx = step232Stencil[sIdx + 1] - step232Stencil[sIdx - 1];
+      const gy = step232Stencil[sIdx + W] - step232Stencil[sIdx - W];
+      const pull = (1.0 - s) * 2.2;
+      fx -= gx * pull;
+      fy -= gy * pull;
+
+      const cx = (px / cellSize) | 0, cy = (py / cellSize) | 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        const ny = cy + dy;
+        if (ny < 0 || ny >= rows) continue;
+        const rowOff = ny * cols;
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = cx + dx;
+          if (nx < 0 || nx >= cols) continue;
+          let j = rHead[rowOff + nx];
+          while (j !== -1) {
+            if (j !== i) {
+              const ddx = px - rx[j], ddy = py - ry[j];
+              const dSq = ddx * ddx + ddy * ddy;
+              if (dSq < rSq && dSq > 1e-4) {
+                const d = Math.sqrt(dSq);
+                const f = ((rTarget - d) / d) * 0.22;
+                fx += ddx * f;
+                fy += ddy * f;
+              }
+            }
+            j = rNext[j];
+          }
+        }
+      }
+      rx[i] = Math.max(4, Math.min(W - 4, px + Math.max(-1.4, Math.min(1.4, fx))));
+      ry[i] = Math.max(4, Math.min(H - 4, py + Math.max(-1.4, Math.min(1.4, fy))));
+    }
+  }
+
+  // 2. Particionar nodos en 3 capas de cruces (boceto cruzado de alta calidad)
+  const n3 = Math.floor(count / 3);
+  const xA = new Float32Array(n3), yA = new Float32Array(n3);
+  const xB = new Float32Array(n3), yB = new Float32Array(n3);
+  const xC = new Float32Array(count - n3 * 2), yC = new Float32Array(count - n3 * 2);
+
+  let cA = 0, cB = 0, cC = 0;
+  for (let i = 0; i < count; i++) {
+    const m = i % 3;
+    if (m === 0 && cA < n3) { xA[cA] = rx[i]; yA[cA] = ry[i]; cA++; }
+    else if (m === 1 && cB < n3) { xB[cB] = rx[i]; yB[cB] = ry[i]; cB++; }
+    else if (cC < xC.length) { xC[cC] = rx[i]; yC[cC] = ry[i]; cC++; }
+  }
+
+  const { tX: t1X, tY: t1Y } = buildFastTourMain(xA, yA, W, H, step232Stencil, 0);
+
+  let bestSeedB = 0, bestDistB = Infinity;
+  if (t1X.length > 0) {
+    const end1X = t1X[t1X.length - 1], end1Y = t1Y[t1Y.length - 1];
+    for (let i = 0; i < xB.length; i++) {
+      const d = Math.hypot(xB[i] - end1X, yB[i] - end1Y);
+      if (d < bestDistB) { bestDistB = d; bestSeedB = i; }
+    }
+  }
+  const { tX: t2X, tY: t2Y } = buildFastTourMain(xB, yB, W, H, step232Stencil, bestSeedB);
+
+  let bestSeedC = 0, bestDistC = Infinity;
+  if (t2X.length > 0) {
+    const end2X = t2X[t2X.length - 1], end2Y = t2Y[t2Y.length - 1];
+    for (let i = 0; i < xC.length; i++) {
+      const d = Math.hypot(xC[i] - end2X, yC[i] - end2Y);
+      if (d < bestDistC) { bestDistC = d; bestSeedC = i; }
+    }
+  }
+  const { tX: t3X, tY: t3Y } = buildFastTourMain(xC, yC, W, H, step232Stencil, bestSeedC);
+
+  const fullCount = t1X.length + t2X.length + t3X.length;
+  let fullTourX = new Float32Array(fullCount);
+  let fullTourY = new Float32Array(fullCount);
+  fullTourX.set(t1X, 0); fullTourY.set(t1Y, 0);
+  fullTourX.set(t2X, t1X.length); fullTourY.set(t2Y, t1Y.length);
+  fullTourX.set(t3X, t1X.length + t2X.length); fullTourY.set(t3Y, t1X.length + t2X.length);
+
+  // Suavizado Chaikin de alta fidelidad
+  const passes = Math.max(1, CHAIKIN_PASSES);
+  ({ ptsX: fullTourX, ptsY: fullTourY } = chaikinSmoothMain(fullTourX, fullTourY, passes));
+
+  liveNodesX = fullTourX;
+  liveNodesY = fullTourY;
+  const totalLiveNodes = fullTourX.length;
+  liveNodeCount = Math.min(240, totalLiveNodes);
+  const nodesPerFrame = Math.max(200, Math.round(totalLiveNodes / 110));
 
   function stepLiveGrowth() {
     if (ENGINE_MODE !== 'live_growth') return;
@@ -875,145 +1133,22 @@ function startLiveDifferentialGrowthMode() {
       return;
     }
 
-    const nodesPerFrame = Math.max(220, Math.round(maxNodes / 95));
-    let addedThisFrame = 0;
-
-    while (liveNodeCount < maxNodes && addedThisFrame < nodesPerFrame) {
-      const cx = (headX / fCell) | 0;
-      const cy = (headY / fCell) | 0;
-      let chosen = -1;
-      let bestScore = Infinity;
-
-      for (let rad = 1; rad <= 32; rad++) {
-        const minDy = Math.max(-cy, -rad), maxDy = Math.min(fRows - 1 - cy, rad);
-        const minDx = Math.max(-cx, -rad), maxDx = Math.min(fCols - 1 - cx, rad);
-        for (let dy = minDy; dy <= maxDy; dy++) {
-          const rowOff = (cy + dy) * fCols;
-          for (let dx = minDx; dx <= maxDx; dx++) {
-            if (rad > 2 && Math.abs(dx) < rad && Math.abs(dy) < rad) continue;
-            let j = fHead[rowOff + (cx + dx)];
-            while (j !== -1) {
-              if (!fUsed[j]) {
-                const ddx = featX[j] - headX, ddy = featY[j] - headY;
-                const dSq = ddx * ddx + ddy * ddy;
-                // Preferir saltos de 3.5px a 28px que cruzan suavemente sobre los rasgos
-                if (dSq > 10 && dSq < bestScore) {
-                  bestScore = dSq;
-                  chosen = j;
-                }
-              }
-              j = fNext[j];
-            }
-          }
-        }
-        if (chosen !== -1 && bestScore < (rad * fCell + 10) * (rad * fCell + 10)) break;
-      }
-
-      if (chosen === -1) {
-        for (let tries = 0; tries < 90; tries++) {
-          const rnd = (Math.random() * fCount) | 0;
-          if (!fUsed[rnd]) { chosen = rnd; break; }
-        }
-      }
-
-      let tx, ty;
-      if (chosen !== -1) {
-        fUsed[chosen] = 1;
-        tx = featX[chosen];
-        ty = featY[chosen];
-      } else {
-        const rnd = (Math.random() * fCount) | 0;
-        headAngle += 2.39996;
-        tx = featX[rnd] + Math.cos(headAngle) * (MIN_R * 2.0);
-        ty = featY[rnd] + Math.sin(headAngle) * (MIN_R * 2.0);
-      }
-
-      const mx = (headX + tx) * 0.5;
-      const my = (headY + ty) * 0.5;
-      const dist = Math.hypot(tx - headX, ty - headY);
-      if (dist > 3.2 && liveNodeCount < maxNodes - 1) {
-        const nx = -(ty - headY) / dist;
-        const ny = (tx - headX) / dist;
-        const buckle = ((liveNodeCount & 1) ? 1 : -1) * Math.min(4.8, dist * 0.24);
-        liveNodesX[liveNodeCount] = Math.max(5, Math.min(W - 5, mx + nx * buckle));
-        liveNodesY[liveNodeCount] = Math.max(5, Math.min(H - 5, my + ny * buckle));
-        liveNodeCount++;
-        addedThisFrame++;
-      }
-
-      liveNodesX[liveNodeCount] = Math.max(5, Math.min(W - 5, tx));
-      liveNodesY[liveNodeCount] = Math.max(5, Math.min(H - 5, ty));
-      liveNodeCount++;
-      addedThisFrame++;
-      headX = tx;
-      headY = ty;
-    }
-
-    // Relajación diferencial en vivo sobre la cola activa
-    const activeStart = Math.max(1, liveNodeCount - 3200);
-    head.fill(-1);
-    for (let i = activeStart; i < liveNodeCount; i++) {
-      const cx = Math.max(0, Math.min(cols - 1, (liveNodesX[i] / cellSize) | 0));
-      const cy = Math.max(0, Math.min(gRows - 1, (liveNodesY[i] / cellSize) | 0));
-      const cIdx = cy * cols + cx;
-      nextInCell[i] = head[cIdx];
-      head[cIdx] = i;
-    }
-
-    for (let i = activeStart; i < liveNodeCount - 1; i++) {
-      const px = liveNodesX[i], py = liveNodesY[i];
-      const ix = Math.min(W - 2, Math.max(1, px | 0));
-      const iy = Math.min(H - 2, Math.max(1, py | 0));
-      const idx = iy * W + ix;
-      const st = step232Stencil[idx];
-      const rLocal = MIN_R + (MAX_R - MIN_R) * Math.pow(st, 1.35);
-
-      const gx = step232Stencil[idx + 1] - step232Stencil[idx - 1];
-      const gy = step232Stencil[idx + W] - step232Stencil[idx - W];
-      let fx = -gx * 4.5 + ((liveNodesX[i - 1] + liveNodesX[i + 1]) * 0.5 - px) * 0.12;
-      let fy = -gy * 4.5 + ((liveNodesY[i - 1] + liveNodesY[i + 1]) * 0.5 - py) * 0.12;
-
-      const cx = (px / cellSize) | 0, cy = (py / cellSize) | 0;
-      const rSq = rLocal * rLocal;
-      for (let dy = -1; dy <= 1; dy++) {
-        const ny = cy + dy;
-        if (ny < 0 || ny >= gRows) continue;
-        const rowOff = ny * cols;
-        for (let dx = -1; dx <= 1; dx++) {
-          const nx = cx + dx;
-          if (nx < 0 || nx >= cols) continue;
-          let j = head[rowOff + nx];
-          while (j !== -1) {
-            if (Math.abs(j - i) > 4) {
-              const ddx = px - liveNodesX[j], ddy = py - liveNodesY[j];
-              const dSq = ddx * ddx + ddy * ddy;
-              if (dSq < rSq && dSq > 1e-4) {
-                const d = Math.sqrt(dSq);
-                const f = ((rLocal - d) / d) * 0.22;
-                fx += ddx * f;
-                fy += ddy * f;
-              }
-            }
-            j = nextInCell[j];
-          }
-        }
-      }
-
-      liveNodesX[i] = Math.max(5, Math.min(W - 5, px + Math.max(-1.8, Math.min(1.8, fx))));
-      liveNodesY[i] = Math.max(5, Math.min(H - 5, py + Math.max(-1.8, Math.min(1.8, fy))));
-    }
-
+    liveNodeCount = Math.min(totalLiveNodes, liveNodeCount + nodesPerFrame);
     ptsX = liveNodesX.subarray(0, liveNodeCount);
     ptsY = liveNodesY.subarray(0, liveNodeCount);
     lineCacheDirty = true;
-    statusPhase = liveNodeCount < maxNodes
-      ? `🌱 Tejiendo en vivo con cruces (${liveNodeCount.toLocaleString()} / ${maxNodes.toLocaleString()})`
+
+    statusPhase = liveNodeCount < totalLiveNodes
+      ? `🌱 Tejiendo en vivo con cruces (${liveNodeCount.toLocaleString()} / ${totalLiveNodes.toLocaleString()})`
       : `✓ Crecimiento con cruces completado (0% CPU en reposo)`;
+
     updateStatsText();
     render();
 
-    if (liveNodeCount < maxNodes) {
+    if (liveNodeCount < totalLiveNodes) {
       liveGrowthRafId = requestAnimationFrame(stepLiveGrowth);
+    } else {
+      liveGrowthRafId = null;
     }
   }
 
@@ -1083,15 +1218,11 @@ function segmentCrossesOutsideSilhouette(ax, ay, bx, by, silhouetteMask, W, H) {
   return false;
 }
 
-function buildPlanarContinuousTour(rawX, rawY, W, H, maxLocalStep = 22, silhouetteMask = null) {
+function buildPlanarContinuousTour(rawX, rawY, W, H, maxLocalStep = 24, silhouetteMask = null) {
   const N = rawX.length;
-  if (N < 3) return { ptsX: rawX, ptsY: rawY };
+  if (N < 2) return { ptsX: rawX, ptsY: rawY };
 
-  const visited = new Uint8Array(N);
-  const nextNode = new Int32Array(N).fill(-1);
-  const prevNode = new Int32Array(N).fill(-1);
-
-  const cSize = 12;
+  const cSize = 16;
   const cols = Math.ceil(W / cSize) + 1;
   const rows = Math.ceil(H / cSize) + 1;
   const head = new Int32Array(cols * rows).fill(-1);
@@ -1105,29 +1236,35 @@ function buildPlanarContinuousTour(rawX, rawY, W, H, maxLocalStep = 22, silhouet
     head[cIdx] = i;
   }
 
+  const tourX = new Float32Array(N);
+  const tourY = new Float32Array(N);
+  const visited = new Uint8Array(N);
+
   let curr = 0;
-  visited[curr] = 1;
-  const tourOrder = new Int32Array(N);
-  let tourLen = 0;
-  tourOrder[tourLen++] = curr;
-  const maxStepSq = maxLocalStep * maxLocalStep;
+  visited[0] = 1;
+  tourX[0] = rawX[0];
+  tourY[0] = rawY[0];
 
   for (let step = 1; step < N; step++) {
     const px = rawX[curr], py = rawY[curr];
     const cx = (px / cSize) | 0, cy = (py / cSize) | 0;
-    let bestNode = -1, bestDistSq = maxStepSq;
+    let bestNode = -1, bestDistSq = Infinity;
 
-    for (let rad = 0; rad <= 2; rad++) {
+    for (let rad = 0; rad <= 32; rad++) {
       const minDy = Math.max(-cy, -rad), maxDy = Math.min(rows - 1 - cy, rad);
       const minDx = Math.max(-cx, -rad), maxDx = Math.min(cols - 1 - cx, rad);
       for (let dy = minDy; dy <= maxDy; dy++) {
         const rowOff = (cy + dy) * cols;
         for (let dx = minDx; dx <= maxDx; dx++) {
+          if (rad > 0 && Math.abs(dx) < rad && Math.abs(dy) < rad) continue;
           let j = head[rowOff + (cx + dx)];
           while (j !== -1) {
             if (!visited[j]) {
               const ddx = rawX[j] - px, ddy = rawY[j] - py;
-              const dSq = ddx * ddx + ddy * ddy;
+              let dSq = ddx * ddx + ddy * ddy;
+              if (silhouetteMask && segmentCrossesOutsideSilhouette(px, py, rawX[j], rawY[j], silhouetteMask, W, H)) {
+                dSq *= 16.0;
+              }
               if (dSq < bestDistSq) {
                 bestDistSq = dSq;
                 bestNode = j;
@@ -1137,114 +1274,32 @@ function buildPlanarContinuousTour(rawX, rawY, W, H, maxLocalStep = 22, silhouet
           }
         }
       }
-      if (bestNode !== -1) break;
+      if (bestNode !== -1 && bestDistSq <= (rad * cSize) * (rad * cSize)) break;
     }
-    if (bestNode !== -1) {
-      visited[bestNode] = 1;
-      tourOrder[tourLen++] = bestNode;
-      curr = bestNode;
-    } else break;
-  }
 
-  for (let i = 0; i < tourLen - 1; i++) {
-    nextNode[tourOrder[i]] = tourOrder[i + 1];
-    prevNode[tourOrder[i + 1]] = tourOrder[i];
-  }
-  let tourHead = tourOrder[0];
-
-  const vHead = new Int32Array(cols * rows).fill(-1);
-  const vNext = new Int32Array(N).fill(-1);
-  for (let i = 0; i < tourLen; i++) {
-    const u = tourOrder[i];
-    const cx = Math.max(0, Math.min(cols - 1, (rawX[u] / cSize) | 0));
-    const cy = Math.max(0, Math.min(rows - 1, (rawY[u] / cSize) | 0));
-    const cIdx = cy * cols + cx;
-    vNext[u] = vHead[cIdx];
-    vHead[cIdx] = u;
-  }
-
-  let remBufA = new Int32Array(N);
-  let remBufB = new Int32Array(N);
-  let remLen = 0;
-  for (let i = 0; i < N; i++) if (!visited[i]) remBufA[remLen++] = i;
-
-  for (let pass = 0; pass < 32 && remLen > 0; pass++) {
-    const maxRad = pass < 10 ? 2 : (pass < 22 ? 6 : Math.max(cols, rows));
-    let nextRemLen = 0;
-
-    for (let idx = 0; idx < remLen; idx++) {
-      const p = remBufA[idx];
-      const px = rawX[p], py = rawY[p];
-      const cx = (px / cSize) | 0, cy = (py / cSize) | 0;
-      let bestU = -1, bestCost = Infinity;
-
-      for (let rad = 0; rad <= maxRad; rad++) {
-        const minDy = Math.max(-cy, -rad), maxDy = Math.min(rows - 1 - cy, rad);
-        const minDx = Math.max(-cx, -rad), maxDx = Math.min(cols - 1 - cx, rad);
-        for (let dy = minDy; dy <= maxDy; dy++) {
-          const rowOff = (cy + dy) * cols;
-          for (let dx = minDx; dx <= maxDx; dx++) {
-            if (rad > 0 && Math.abs(dx) < rad && Math.abs(dy) < rad) continue;
-            let u = vHead[rowOff + (cx + dx)];
-            while (u !== -1) {
-              const ddx = rawX[u] - px, ddy = rawY[u] - py;
-              let dSq = ddx * ddx + ddy * ddy;
-              if (silhouetteMask && segmentCrossesOutsideSilhouette(px, py, rawX[u], rawY[u], silhouetteMask, W, H)) {
-                dSq *= 25.0;
-              }
-              if (dSq < bestCost) {
-                bestCost = dSq;
-                bestU = u;
-              }
-              u = vNext[u];
-            }
+    if (bestNode === -1) {
+      for (let j = 0; j < N; j++) {
+        if (!visited[j]) {
+          const ddx = rawX[j] - px, ddy = rawY[j] - py;
+          let dSq = ddx * ddx + ddy * ddy;
+          if (silhouetteMask && segmentCrossesOutsideSilhouette(px, py, rawX[j], rawY[j], silhouetteMask, W, H)) {
+            dSq *= 16.0;
+          }
+          if (dSq < bestDistSq) {
+            bestDistSq = dSq;
+            bestNode = j;
           }
         }
-        if (bestU !== -1 && bestCost <= (rad * cSize) * (rad * cSize)) break;
-      }
-
-      if (bestU !== -1) {
-        const un = nextNode[bestU], up = prevNode[bestU];
-        let insertAfter = true;
-        if (un !== -1 && up !== -1) {
-          const dUp = (rawX[up] - px) * (rawX[up] - px) + (rawY[up] - py) * (rawY[up] - py);
-          const dUn = (rawX[un] - px) * (rawX[un] - px) + (rawY[un] - py) * (rawY[un] - py);
-          if (dUp < dUn) insertAfter = false;
-        } else if (un === -1) insertAfter = true;
-        else insertAfter = false;
-
-        if (insertAfter) {
-          const nxt = nextNode[bestU];
-          nextNode[bestU] = p; prevNode[p] = bestU; nextNode[p] = nxt;
-          if (nxt !== -1) prevNode[nxt] = p;
-        } else {
-          const prv = prevNode[bestU];
-          prevNode[bestU] = p; nextNode[p] = bestU; prevNode[p] = prv;
-          if (prv !== -1) nextNode[prv] = p;
-          else tourHead = p;
-        }
-        visited[p] = 1;
-        const cIdx = cy * cols + cx;
-        vNext[p] = vHead[cIdx];
-        vHead[cIdx] = p;
-      } else {
-        remBufB[nextRemLen++] = p;
       }
     }
-    const tmp = remBufA; remBufA = remBufB; remBufB = tmp;
-    remLen = nextRemLen;
+
+    visited[bestNode] = 1;
+    tourX[step] = rawX[bestNode];
+    tourY[step] = rawY[bestNode];
+    curr = bestNode;
   }
 
-  const ptsX = new Float32Array(N);
-  const ptsY = new Float32Array(N);
-  let k = 0, node = tourHead;
-  while (node !== -1 && k < N) {
-    ptsX[k] = rawX[node];
-    ptsY[k] = rawY[node];
-    node = nextNode[node];
-    k++;
-  }
-  return { ptsX: ptsX.subarray(0, k), ptsY: ptsY.subarray(0, k) };
+  return { ptsX: tourX, ptsY: tourY };
 }
 
 function runFast2OptPass(ptsX, ptsY, oHead, oNext, segLen, oCols, oRows, optCell, silhouetteMask, W, H) {
@@ -2826,6 +2881,19 @@ function getOrganicLineColor(i, totalLen, x, y) {
     return BG_THEME === 'dark' ? '#e8eef7' : '#0e1118';
   }
 
+  if (COLOR_MODE === 'photo_exact') {
+    if (rCh && gCh && bCh) {
+      const ix = Math.min(W - 1, Math.max(0, x | 0));
+      const iy = Math.min(H - 1, Math.max(0, y | 0));
+      const pIdx = iy * W + ix;
+      const r = Math.min(255, Math.max(0, (rCh[pIdx] * 255 + 0.5) | 0));
+      const g = Math.min(255, Math.max(0, (gCh[pIdx] * 255 + 0.5) | 0));
+      const b = Math.min(255, Math.max(0, (bCh[pIdx] * 255 + 0.5) | 0));
+      return `rgb(${r},${g},${b})`;
+    }
+    return BG_THEME === 'dark' ? '#e8eef7' : '#0e1118';
+  }
+
   const c0 = customColorsRGB[0];
   const c1 = customColorsRGB[1];
   const c2 = customColorsRGB[2];
@@ -2951,7 +3019,7 @@ function rebuildLineCache() {
     lCtx.stroke(cachedPath2D);
   } else {
     // Trazado multicolor orgánico por micro-segmentos continuos solapados (fluido en GPU a 60fps)
-    const chunkStep = isColorFlowing ? 42 : 24;
+    const chunkStep = (COLOR_MODE === 'photo_exact') ? 3 : (isColorFlowing ? 36 : 18);
     for (let start = 1; start < totalLen - 1; start += chunkStep) {
       const end = Math.min(totalLen - 1, start + chunkStep);
       const midIdx = (start + end) >> 1;
@@ -3095,23 +3163,40 @@ function startAnimation() {
 
     const aCtx = animAccumCanvas.getContext('2d');
     const startIdx = Math.max(1, lastAnimatedIndex);
-    const midIdx = (startIdx + nextLimit) >> 1;
-    aCtx.strokeStyle = getOrganicLineColor(midIdx, totalLen, ptsX[midIdx], ptsY[midIdx]);
     aCtx.lineWidth = LINE_W;
     aCtx.lineCap = 'round';
     aCtx.lineJoin = 'round';
-    aCtx.beginPath();
 
-    const mxStart = (ptsX[startIdx - 1] + ptsX[startIdx]) * 0.5;
-    const myStart = (ptsY[startIdx - 1] + ptsY[startIdx]) * 0.5;
-    aCtx.moveTo(mxStart, myStart);
-
-    for (let i = startIdx; i < nextLimit; i++) {
-      const mx1 = (ptsX[i] + ptsX[i + 1]) * 0.5;
-      const my1 = (ptsY[i] + ptsY[i + 1]) * 0.5;
-      aCtx.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
+    if (COLOR_MODE === 'photo_exact') {
+      for (let s = startIdx; s < nextLimit; s += 3) {
+        const e = Math.min(nextLimit, s + 3);
+        const m = (s + e) >> 1;
+        aCtx.strokeStyle = getOrganicLineColor(m, totalLen, ptsX[m], ptsY[m]);
+        aCtx.beginPath();
+        const mx0 = (ptsX[s - 1] + ptsX[s]) * 0.5;
+        const my0 = (ptsY[s - 1] + ptsY[s]) * 0.5;
+        aCtx.moveTo(mx0, my0);
+        for (let i = s; i < e; i++) {
+          const mx1 = (ptsX[i] + ptsX[i + 1]) * 0.5;
+          const my1 = (ptsY[i] + ptsY[i + 1]) * 0.5;
+          aCtx.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
+        }
+        aCtx.stroke();
+      }
+    } else {
+      const midIdx = (startIdx + nextLimit) >> 1;
+      aCtx.strokeStyle = getOrganicLineColor(midIdx, totalLen, ptsX[midIdx], ptsY[midIdx]);
+      aCtx.beginPath();
+      const mxStart = (ptsX[startIdx - 1] + ptsX[startIdx]) * 0.5;
+      const myStart = (ptsY[startIdx - 1] + ptsY[startIdx]) * 0.5;
+      aCtx.moveTo(mxStart, myStart);
+      for (let i = startIdx; i < nextLimit; i++) {
+        const mx1 = (ptsX[i] + ptsX[i + 1]) * 0.5;
+        const my1 = (ptsY[i] + ptsY[i + 1]) * 0.5;
+        aCtx.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
+      }
+      aCtx.stroke();
     }
-    aCtx.stroke();
 
     lastAnimatedIndex = nextLimit;
     drawProgressCount = nextLimit;
@@ -3311,11 +3396,42 @@ document.getElementById('colorMode').addEventListener('change', (e) => {
 
 document.getElementById('colorPalette').addEventListener('change', (e) => {
   COLOR_PALETTE = e.target.value;
-  const preset = PALETTE_PRESETS[COLOR_PALETTE];
-  if (preset) {
-    document.getElementById('colPick1').value = preset[0];
-    document.getElementById('colPick2').value = preset[1];
-    document.getElementById('colPick3').value = preset[2];
+  const harmony = computeHarmonyColors(COLOR_PALETTE, COLOR_HUE);
+  if (harmony) {
+    document.getElementById('colPick1').value = harmony[0];
+    document.getElementById('colPick2').value = harmony[1];
+    document.getElementById('colPick3').value = harmony[2];
+    syncCustomColorsFromPickers();
+  } else {
+    const preset = PALETTE_PRESETS[COLOR_PALETTE];
+    if (preset) {
+      document.getElementById('colPick1').value = preset[0];
+      document.getElementById('colPick2').value = preset[1];
+      document.getElementById('colPick3').value = preset[2];
+      syncCustomColorsFromPickers();
+    }
+  }
+  if (COLOR_MODE === 'mono') {
+    COLOR_MODE = 'organic_flow';
+    document.getElementById('colorMode').value = 'organic_flow';
+  }
+  lineCacheDirty = true;
+  render();
+});
+
+document.getElementById('colorHue').addEventListener('input', (e) => {
+  COLOR_HUE = parseInt(e.target.value, 10);
+  document.getElementById('vColHue').textContent = `${COLOR_HUE}°`;
+  let harmony = computeHarmonyColors(COLOR_PALETTE, COLOR_HUE);
+  if (!harmony) {
+    COLOR_PALETTE = 'triad';
+    document.getElementById('colorPalette').value = 'triad';
+    harmony = computeHarmonyColors('triad', COLOR_HUE);
+  }
+  if (harmony) {
+    document.getElementById('colPick1').value = harmony[0];
+    document.getElementById('colPick2').value = harmony[1];
+    document.getElementById('colPick3').value = harmony[2];
     syncCustomColorsFromPickers();
   }
   if (COLOR_MODE === 'mono') {
@@ -3427,9 +3543,21 @@ document.getElementById('btnResetDefaults').onclick = () => {
   TARGET_NODES = isMobileDevice ? 22000 : 26000;
   LINE_W = 1.0;
   COLOR_MODE = 'mono';
+  COLOR_PALETTE = 'iris';
+  COLOR_HUE = 205;
   BG_THEME = 'white';
   document.getElementById('colorMode').value = 'mono';
+  document.getElementById('colorPalette').value = 'iris';
+  document.getElementById('colorHue').value = 205;
+  document.getElementById('vColHue').textContent = '205°';
   document.getElementById('bgTheme').value = 'white';
+  const pIris = PALETTE_PRESETS['iris'];
+  if (pIris) {
+    document.getElementById('colPick1').value = pIris[0];
+    document.getElementById('colPick2').value = pIris[1];
+    document.getElementById('colPick3').value = pIris[2];
+    syncCustomColorsFromPickers();
+  }
   applyModePreset(ENGINE_MODE);
   rebuildPortrait(false);
 };
@@ -3471,7 +3599,7 @@ document.getElementById('btnSvg').onclick = () => {
     }
     pathsMarkup = `  <path d="${parts.join(' ')}" fill="none" stroke="${strokeCol}" stroke-width="${LINE_W}" stroke-linecap="round" stroke-linejoin="round"/>`;
   } else {
-    const chunkStep = 28;
+    const chunkStep = (COLOR_MODE === 'photo_exact') ? 4 : 24;
     const pathList = [];
     for (let start = 1; start < len - 1; start += chunkStep) {
       const end = Math.min(len - 1, start + chunkStep);
