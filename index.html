@@ -27,8 +27,8 @@
       display: flex; height: 100vh; height: 100dvh; overflow: hidden;
     }
     #sidebar {
-      width: 375px; background: var(--bg-panel); padding: 12px 14px;
-      display: flex; flex-direction: column; gap: 8px;
+      width: 385px; background: var(--bg-panel); padding: 9px 12px;
+      display: flex; flex-direction: column; gap: 6px;
       border-right: 1px solid var(--border); z-index: 10;
       overflow-y: auto; box-shadow: 4px 0 24px rgba(0,0,0,0.45);
       overscroll-behavior: contain;
@@ -42,41 +42,41 @@
       max-height: 94vh; max-width: 94%; border-radius: 4px;
       display: block; object-fit: contain;
     }
-    h2 { font-size: 15px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 7px; }
-    .subtitle { font-size: 11px; color: var(--text-dim); margin-top: 2px; line-height: 1.3; }
+    h2 { font-size: 14.5px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px; }
+    .subtitle { font-size: 10.5px; color: var(--text-dim); margin-top: 1px; line-height: 1.25; }
     
     .panel-section {
       background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 8px; padding: 9px 11px; display: flex; flex-direction: column; gap: 6px;
+      border-radius: 7px; padding: 7px 9px; display: flex; flex-direction: column; gap: 4px;
     }
     .panel-title {
-      font-size: 11px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.6px; color: var(--accent); display: flex; justify-content: space-between;
+      font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--accent); display: flex; justify-content: space-between;
     }
-    label { font-size: 11px; color: var(--text-dim); display: flex; justify-content: space-between; align-items: center; }
+    label { font-size: 10.5px; color: var(--text-dim); display: flex; justify-content: space-between; align-items: center; }
     label span { color: var(--text); font-weight: 600; font-family: monospace; }
     input[type="range"] {
-      width: 100%; accent-color: var(--accent); height: 6px;
-      background: #2b334d; border-radius: 4px; outline: none; margin-top: 3px;
+      width: 100%; accent-color: var(--accent); height: 5px;
+      background: #2b334d; border-radius: 4px; outline: none; margin-top: 2px;
       cursor: pointer;
     }
     select {
       background: #242b40; color: #fff; border: 1px solid var(--border);
-      padding: 7px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;
+      padding: 5px 7px; border-radius: 5px; font-size: 11.5px; font-weight: 600;
       outline: none; width: 100%; cursor: pointer;
     }
     select:focus { border-color: var(--accent); }
     button, .file-btn {
       background: #252c42; color: #fff; border: 1px solid var(--border);
-      padding: 8px 9px; border-radius: 6px; cursor: pointer;
-      font-weight: 600; text-align: center; font-size: 11.5px;
+      padding: 6px 8px; border-radius: 6px; cursor: pointer;
+      font-weight: 600; text-align: center; font-size: 11px;
       display: flex; align-items: center; justify-content: center; gap: 5px;
       transition: background 0.15s ease, border-color 0.15s ease;
       user-select: none;
     }
     button:hover, .file-btn:hover { background: #323b59; border-color: var(--accent); }
     button:active, .file-btn:active { transform: scale(0.98); }
-    .file-btn { background: #1f3b60; border-color: var(--accent); font-size: 13px; padding: 9px; }
+    .file-btn { background: #1f3b60; border-color: var(--accent); font-size: 12px; padding: 7px; }
     .file-btn:hover { background: #264a78; }
     button.primary { background: #1e5236; border-color: var(--green); }
     button.primary:hover { background: #286b47; }
@@ -87,17 +87,18 @@
     button.recording { background: #8e1c1c; border-color: #f87171; animation: pulseRec 1.2s infinite; }
     @keyframes pulseRec { 0%,100% { opacity: 1; } 50% { opacity: 0.65; } }
     
-    .row-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .row-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     .mode-badge {
-      font-size: 10.5px; padding: 5px 7px; border-radius: 4px;
+      font-size: 10px; padding: 4px 6px; border-radius: 4px;
       background: rgba(95, 164, 249, 0.12); color: #b9d7ff;
-      border: 1px solid rgba(95, 164, 249, 0.25); line-height: 1.35;
+      border: 1px solid rgba(95, 164, 249, 0.25); line-height: 1.3;
     }
     .stats {
       font-family: ui-monospace, Menlo, Consolas, monospace;
-      font-size: 11px; color: var(--text-dim);
-      background: #0e111a; padding: 7px 9px; border-radius: 6px;
-      border: 1px solid var(--border); line-height: 1.4; margin-top: auto;
+      font-size: 10.5px; color: var(--text-dim);
+      background: #0e111a; padding: 5px 8px; border-radius: 6px;
+      border: 1px solid var(--border); line-height: 1.35; margin-top: auto;
     }
 
     /* Diseño Responsivo para Teléfono Móvil y Tablet */
@@ -126,8 +127,8 @@
         height: 8px;
       }
       button, .file-btn, select {
-        padding: 9px 10px;
-        font-size: 12.5px;
+        padding: 8px 9px;
+        font-size: 12px;
       }
     }
   </style>
@@ -135,9 +136,11 @@
 <body>
 
   <div id="sidebar">
-    <div>
-      <h2>✒️ Estudio de Línea Continua</h2>
-      <div class="subtitle">7 Modos Completos + Color Orgánico · PC y Móvil</div>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h2>✒️ Estudio de Línea Continua</h2>
+        <div class="subtitle">10 Motores Completos + Color Orgánico · PC y Móvil</div>
+      </div>
     </div>
     
     <label class="file-btn">
@@ -145,101 +148,107 @@
       <input type="file" id="imgInput" accept="image/*" style="display:none">
     </label>
 
-    <!-- Selector de Algoritmo / Estilo de Línea Continua (TODOS CONSERVADOS + HEX-ESPIRAL) -->
+    <!-- Selector de Algoritmo / Estilo de Línea Continua (TODOS LOS MODOS CONSERVADOS + NUEVOS) -->
     <div class="panel-section">
-      <div class="panel-title"><span>Modo / Algoritmo de Línea</span> <span>⚡</span></div>
+      <div class="panel-title"><span>Modo / Algoritmo de Línea (10 Modos)</span> <span>⚡</span></div>
       <select id="engineMode">
-        <option value="coral">🌊 1. Coral Cerebral (@algorigraph · 100% Relleno de Líneas)</option>
-        <option value="stencil_clean">✏️ 2. Calco a Lápiz Tatuador Sin Cruces (Fiel a Rasgos · 2-Opt)</option>
-        <option value="stencil_cross">✍️ 3. Calco a Lápiz CON CRUCES (Boceto de Trazos Cruzados)</option>
-        <option value="live_growth">🌱 4. Crecimiento en Vivo CON CRUCES (1ª Versión Original)</option>
-        <option value="golden">🌻 5. Proporción Áurea φ = 1.618 (Filotaxis 137.508°)</option>
-        <option value="fractal">❄️ 6. Curva Fractal Adaptativa (Hilbert Multiescala 2ⁿ)</option>
-        <option value="hex_spiral">🌀 7. Mosaico Hex-Espiral Geométrico (@fabian.jimenez)</option>
+        <option value="coral">🧠 1. Coral Cerebral Dendrítico (@algorigraph · 100% Relleno)</option>
+        <option value="coral_tsp">🌊 2. Coral Orgánico TSP (Stippling + 2-Opt + Chaikin)</option>
+        <option value="stencil_clean">✏️ 3. Calco a Lápiz Tatuador Sin Cruces (Paso 232 · 2-Opt)</option>
+        <option value="stencil_cross">✍️ 4. Calco a Lápiz CON CRUCES (Boceto de Trazos Cruzados)</option>
+        <option value="live_growth">🌱 5. Crecimiento en Vivo CON CRUCES (1ª Versión Original)</option>
+        <option value="golden">🌻 6. Proporción Áurea φ = 1.618 (Filotaxis 137.508°)</option>
+        <option value="fractal">❄️ 7. Curva Fractal Adaptativa (Hilbert Multiescala 2ⁿ)</option>
+        <option value="hex_spiral">🌀 8. Mosaico Hex-Espiral Geométrico (@fabian.jimenez)</option>
+        <option value="iso_diamond">💎 9. Mosaico Rombos Isométricos 3D (@fabian.jimenez)</option>
+        <option value="pursuit_vortex">🌪️ 10. Vórtice Geométrico en Espiral (@fabian.jimenez)</option>
       </select>
       <div id="modeDesc" class="mode-badge">
-        🌊 Coral @algorigraph: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros en U de extremo a extremo.
+        🧠 Coral @algorigraph: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros en U de extremo a extremo.
+      </div>
+      <div style="margin-top:2px;">
+        <label style="margin-bottom:2px;">Vista del Lienzo</label>
+        <select id="viewMode">
+          <option value="line">✒️ Solo Línea Continua (Resultado Final)</option>
+          <option value="both">👁️ Línea Continua + Calco a Lápiz Debajo</option>
+          <option value="stencil">✏️ Ver Solo el Calco a Lápiz / Silueta</option>
+          <option value="photo">🖼️ Ver Foto Original</option>
+        </select>
       </div>
     </div>
 
-    <!-- NUEVO: Motor de Color Orgánico y Mezcla de Colores en las Líneas -->
+    <!-- Motor de Color Orgánico y Mezcla de Colores en las Líneas -->
     <div class="panel-section">
       <div class="panel-title"><span>Color Orgánico y Mezcla</span> <span>🎨</span></div>
-      <div>
-        <label>Modo de Color de Línea</label>
-        <select id="colorMode">
-          <option value="mono">⚫ Tinta Monocroma Clásica</option>
-          <option value="organic_flow">🌊 Flujo Orgánico en la Línea (Mezcla Continua)</option>
-          <option value="organic_spatial">🌀 Ondas Simétricas 2D (@fabian.jimenez)</option>
-          <option value="tonal_blend">🌡️ Fusión Tonal (Sombra → Medio → Luz)</option>
-          <option value="photo_fusion">🖼️ Pigmento Real de Foto + Mezcla Orgánica</option>
-        </select>
-      </div>
-      <div>
-        <label>Paleta de Mezcla Cromática</label>
-        <select id="colorPalette">
-          <option value="iris">🌈 Iris Orgánico (Coral · Turquesa · Violeta)</option>
-          <option value="fabian">✨ Plata, Cian & Ámbar (@fabian.jimenez)</option>
-          <option value="sunset">🌅 Atardecer Cálido (Carmesí · Oro · Malva)</option>
-          <option value="ocean">🌊 Bioluminiscencia (Esmeralda · Cian · Índigo)</option>
-          <option value="forest">🍃 Bosque Boreal (Salvia · Ocre · Terracota)</option>
-          <option value="custom">🎛️ Personalizada (Elige los 3 colores abajo)</option>
-        </select>
-      </div>
-      <div style="display:flex; gap:6px; align-items:center; justify-content:space-between; margin-top:2px;">
-        <label style="margin:0; font-size:10px;">Mezclar 3 Colores:</label>
-        <div style="display:flex; gap:6px;">
-          <input type="color" id="colPick1" value="#ff4d6d" title="Color Orgánico 1 (Sombras / Fase A)" style="width:32px; height:24px; border:none; border-radius:4px; background:none; cursor:pointer;">
-          <input type="color" id="colPick2" value="#00d2ff" title="Color Orgánico 2 (Medios / Fase B)" style="width:32px; height:24px; border:none; border-radius:4px; background:none; cursor:pointer;">
-          <input type="color" id="colPick3" value="#9b5de5" title="Color Orgánico 3 (Luces / Fase C)" style="width:32px; height:24px; border:none; border-radius:4px; background:none; cursor:pointer;">
+      <div class="grid-2col">
+        <div>
+          <label>Modo de Color</label>
+          <select id="colorMode">
+            <option value="mono">⚫ Monocromo</option>
+            <option value="organic_flow">🌊 Flujo Orgánico</option>
+            <option value="organic_spatial">🌀 Ondas 2D</option>
+            <option value="tonal_blend">🌡️ Fusión Tonal</option>
+            <option value="photo_fusion">🖼️ Foto + Mezcla</option>
+          </select>
+        </div>
+        <div>
+          <label>Paleta Cromática</label>
+          <select id="colorPalette">
+            <option value="iris">🌈 Iris Orgánico</option>
+            <option value="fabian">✨ Plata/Cian/Ámbar</option>
+            <option value="sunset">🌅 Atardecer</option>
+            <option value="ocean">🌊 Bioluminiscencia</option>
+            <option value="forest">🍃 Bosque Boreal</option>
+            <option value="custom">🎛️ Personalizada</option>
+          </select>
         </div>
       </div>
-      <div>
-        <label>Suavidad / Escala de Mezcla <span id="vColScale">3.5</span></label>
-        <input type="range" id="colorScale" min="0.8" max="10.0" step="0.2" value="3.5">
+      <div class="grid-2col" style="align-items:center; margin-top:2px;">
+        <div style="display:flex; gap:5px; align-items:center;">
+          <label style="margin:0; font-size:10px;">3 Colores:</label>
+          <input type="color" id="colPick1" value="#ff4d6d" title="Color Orgánico 1" style="width:26px; height:21px; border:none; border-radius:4px; background:none; cursor:pointer;">
+          <input type="color" id="colPick2" value="#00d2ff" title="Color Orgánico 2" style="width:26px; height:21px; border:none; border-radius:4px; background:none; cursor:pointer;">
+          <input type="color" id="colPick3" value="#9b5de5" title="Color Orgánico 3" style="width:26px; height:21px; border:none; border-radius:4px; background:none; cursor:pointer;">
+        </div>
+        <div>
+          <select id="bgTheme" title="Fondo del Lienzo">
+            <option value="white">📄 Fondo Blanco</option>
+            <option value="dark">🌑 Fondo Noche</option>
+            <option value="cream">📜 Pergamino</option>
+          </select>
+        </div>
       </div>
-      <div>
-        <label>Fondo del Lienzo</label>
-        <select id="bgTheme">
-          <option value="white">📄 Papel Estudio Blanco (#ffffff)</option>
-          <option value="dark">🌑 Tapiz Noche Oscuro (#0d0f14)</option>
-          <option value="cream">📜 Pergamino Cálido (#f6f2e8)</option>
-        </select>
+      <div class="grid-2col" style="align-items:center; margin-top:1px;">
+        <div>
+          <label>Mezcla <span id="vColScale">3.5</span></label>
+          <input type="range" id="colorScale" min="0.8" max="10.0" step="0.2" value="3.5">
+        </div>
+        <button id="btnColorFlow" style="background:#232838; color:#7ce8ff; border:1px solid #355472; padding:6px;">
+          🌈 Fluir Colores
+        </button>
       </div>
-      <button id="btnColorFlow" style="width:100%; margin-top:2px; background:#232838; color:#7ce8ff; border:1px solid #355472;">
-        🌈 Fluir y Mezclar Colores en Vivo
-      </button>
-    </div>
-
-    <!-- Vista del Lienzo -->
-    <div class="panel-section">
-      <div class="panel-title"><span>Vista del Lienzo</span> <span>👁️</span></div>
-      <select id="viewMode">
-        <option value="line">✒️ Solo Línea Continua (Resultado Final)</option>
-        <option value="both">👁️ Línea Continua + Calco a Lápiz Debajo</option>
-        <option value="stencil">✏️ Ver Solo el Calco a Lápiz / Silueta</option>
-        <option value="photo">🖼️ Ver Foto Original</option>
-      </select>
     </div>
 
     <!-- PASO 1: Calco a Lápiz de Tatuador y Limpieza de Silueta -->
     <div class="panel-section">
       <div class="panel-title"><span>Paso 1: Calco a Lápiz y Silueta</span> <span>✏️</span></div>
-      <div>
-        <label>Fuerza del Lápiz (Ojos y Rasgos) <span id="vPencil">8.5</span></label>
-        <input type="range" id="pencilStr" min="2.0" max="14.0" step="0.5" value="8.5">
-      </div>
-      <div>
-        <label>Grosor de Trazo del Calco <span id="vBlur">2.0</span></label>
-        <input type="range" id="pencilBlur" min="1.0" max="5.0" step="0.5" value="2.0">
-      </div>
-      <div>
-        <label>Relleno de Sombras / Pelo <span id="vShade">0.55</span></label>
-        <input type="range" id="shadeWeight" min="0.00" max="0.90" step="0.05" value="0.55">
-      </div>
-      <div>
-        <label>Limpieza de Fondo (Silueta) <span id="vClean">0.140</span></label>
-        <input type="range" id="bgClean" min="0.000" max="0.280" step="0.002" value="0.140">
+      <div class="grid-2col">
+        <div>
+          <label>Fuerza Lápiz <span id="vPencil">8.5</span></label>
+          <input type="range" id="pencilStr" min="2.0" max="14.0" step="0.5" value="8.5">
+        </div>
+        <div>
+          <label>Grosor Calco <span id="vBlur">2.0</span></label>
+          <input type="range" id="pencilBlur" min="1.0" max="5.0" step="0.5" value="2.0">
+        </div>
+        <div>
+          <label>Sombras/Pelo <span id="vShade">0.55</span></label>
+          <input type="range" id="shadeWeight" min="0.00" max="0.90" step="0.05" value="0.55">
+        </div>
+        <div>
+          <label>Limpieza Fondo <span id="vClean">0.140</span></label>
+          <input type="range" id="bgClean" min="0.000" max="0.280" step="0.002" value="0.140">
+        </div>
       </div>
     </div>
 
@@ -250,21 +259,23 @@
         <label>Cantidad de Nodos (Detalle) <span id="vNodes">26000</span></label>
         <input type="range" id="maxN" min="6000" max="45000" step="2000" value="26000">
       </div>
-      <div>
-        <label>Separación Mínima (Ojos/Pelo) <span id="vMin">1.5</span></label>
-        <input type="range" id="minR" min="0.8" max="3.5" step="0.1" value="1.5">
-      </div>
-      <div>
-        <label>Separación Máxima (Piel/Luz) <span id="vMax">4.8</span></label>
-        <input type="range" id="maxR" min="3.0" max="15.0" step="0.2" value="4.8">
-      </div>
-      <div>
-        <label>Redondeo Coral (Pliegues en U) <span id="vChaikin">2</span></label>
-        <input type="range" id="chaikinPasses" min="0" max="2" step="1" value="2">
-      </div>
-      <div>
-        <label>Grosor de la Línea <span id="vWidth">1.0</span></label>
-        <input type="range" id="lineW" min="0.4" max="2.8" step="0.1" value="1.0">
+      <div class="grid-2col">
+        <div>
+          <label>Sep. Mínima <span id="vMin">1.5</span></label>
+          <input type="range" id="minR" min="0.8" max="3.5" step="0.1" value="1.5">
+        </div>
+        <div>
+          <label>Sep. Máxima <span id="vMax">4.8</span></label>
+          <input type="range" id="maxR" min="3.0" max="15.0" step="0.2" value="4.8">
+        </div>
+        <div>
+          <label>Redondeo (U) <span id="vChaikin">2</span></label>
+          <input type="range" id="chaikinPasses" min="0" max="2" step="1" value="2">
+        </div>
+        <div>
+          <label>Grosor Línea <span id="vWidth">1.0</span></label>
+          <input type="range" id="lineW" min="0.4" max="2.8" step="0.1" value="1.0">
+        </div>
       </div>
     </div>
 
@@ -390,23 +401,29 @@ let liveNodesY = null;
 let liveNodeCount = 0;
 
 const MODE_DESCRIPTIONS = {
-  coral: '🌊 Coral Cerebral (@algorigraph): Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros redondeados en U sin dejar huecos vacíos.',
+  coral: '🧠 Coral Cerebral Dendrítico (@algorigraph): Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros redondeados en U sin dejar huecos vacíos.',
+  coral_tsp: '🌊 Coral Orgánico TSP (Versión Anterior): Stippling adaptativo por tono + repulsión + ruta continua 2-Opt libre de cruces + curvas Chaikin.',
   stencil_clean: '✏️ Calco a Lápiz Tatuador Sin Cruces (Paso 232): Algoritmo exacto de calco a lápiz por inversión de capa + línea continua 100% libre de cruces (2-Opt).',
   stencil_cross: '✍️ Calco a Lápiz CON CRUCES: Mantiene el calco a lápiz del tatuador pero enlaza los trazos permitiendo cruces y sombreado cruzado rápido.',
   live_growth: '🌱 Crecimiento Diferencial en Vivo CON CRUCES (1ª Versión): El trazo nace en el centro del rostro y teje en vivo sobre los rasgos cruzando líneas.',
   golden: '🌻 Proporción Áurea (φ = 1.61803): Distribuye los nodos en espiral de Fermat con el ángulo áureo exacto (137.50776°) y brazos espirales de Fibonacci (55/89).',
   fractal: '❄️ Curva Fractal Adaptativa (Hilbert 2ⁿ): Subdivide recursivamente el retrato en una curva fractal autosemejante más densa en ojos y sombras, con 0 cruces.',
-  hex_spiral: '🌀 Mosaico Hex-Espiral (@fabian.jimenez): Teje una red continua de espirales hexagonales e isométricas cuya densidad de vueltas esculpe las sombras del retrato.'
+  hex_spiral: '🌀 Mosaico Hex-Espiral (@fabian.jimenez): Teje una red continua de espirales hexagonales e isométricas cuya densidad de vueltas esculpe las sombras del retrato.',
+  iso_diamond: '💎 Mosaico Rombos Isométricos 3D (@fabian.jimenez): Celdas de rombos/cubos 3D con pliegues concéntricos modulados por las luces y sombras del retrato.',
+  pursuit_vortex: '🌪️ Vórtice Geométrico en Espiral (@fabian.jimenez): Celdas poligonales con giro progresivo (curvas de persecución) que esculpen el volumen facial.'
 };
 
 const MODE_PRESETS = {
-  coral:         { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.140, minR: 1.5, maxR: 4.8, chaikin: 2 },
-  stencil_clean: { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.20, bgClean: 0.022, minR: 1.1, maxR: 9.0, chaikin: 0 },
-  stencil_cross: { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.20, bgClean: 0.022, minR: 1.1, maxR: 9.0, chaikin: 0 },
-  live_growth:   { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.22, bgClean: 0.022, minR: 1.3, maxR: 8.5, chaikin: 0 },
-  golden:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.42, bgClean: 0.140, minR: 1.4, maxR: 8.0, chaikin: 1 },
-  fractal:       { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.140, minR: 1.4, maxR: 8.0, chaikin: 1 },
-  hex_spiral:    { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.50, bgClean: 0.140, minR: 1.4, maxR: 6.5, chaikin: 0 }
+  coral:          { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.140, minR: 1.5, maxR: 4.8, chaikin: 2 },
+  coral_tsp:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.140, minR: 1.4, maxR: 6.5, chaikin: 2 },
+  stencil_clean:  { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.20, bgClean: 0.022, minR: 1.1, maxR: 9.0, chaikin: 0 },
+  stencil_cross:  { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.20, bgClean: 0.022, minR: 1.1, maxR: 9.0, chaikin: 0 },
+  live_growth:    { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.22, bgClean: 0.022, minR: 1.3, maxR: 8.5, chaikin: 0 },
+  golden:         { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.42, bgClean: 0.140, minR: 1.4, maxR: 8.0, chaikin: 1 },
+  fractal:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.140, minR: 1.4, maxR: 8.0, chaikin: 1 },
+  hex_spiral:     { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.50, bgClean: 0.140, minR: 1.4, maxR: 6.5, chaikin: 0 },
+  iso_diamond:    { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.50, bgClean: 0.140, minR: 1.4, maxR: 6.5, chaikin: 0 },
+  pursuit_vortex: { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.50, bgClean: 0.140, minR: 1.4, maxR: 6.5, chaikin: 0 }
 };
 
 function syncSlidersFromState() {
