@@ -646,148 +646,114 @@ function buildAllStencilsAndSilhouettes() {
   const pBroad = PENCIL_STR * 0.35;
 
   if (BG_CLEAN > 0.003) {
-    const tol = BG_CLEAN;
-    const bgR = [], bgG = [], bgB = [];
+    const tol = Math.max(0.05, BG_CLEAN);
+    const bgR = [], bgG = [];
+    const bgB = [];
+    for (let x = 0; x < W; x += 6) {
+      const idx = 2 * W + x;
+      if (cachedGradMag[idx] < 0.085) {
+        bgR.push(cachedRBlur[idx]); bgG.push(cachedGBlur[idx]); bgB.push(cachedBBlur[idx]);
+      }
+    }
+    const maxSampleY = Math.floor(H * 0.58);
+    for (let y = 0; y < maxSampleY; y += 6) {
+      const iL = y * W + 2, iR = y * W + W - 3;
+      if (cachedGradMag[iL] < 0.085) { bgR.push(cachedRBlur[iL]); bgG.push(cachedGBlur[iL]); bgB.push(cachedBBlur[iL]); }
+      if (cachedGradMag[iR] < 0.085) { bgR.push(cachedRBlur[iR]); bgG.push(cachedGBlur[iR]); bgB.push(cachedBBlur[iR]); }
+    }
+    const nSamples = bgR.length;
 
-    // Muestreo exclusivo en las 4 esquinas exteriores (NUNCA en el centro donde está la cabeza/pelo)
-    const cornerW = Math.max(12, Math.min(36, Math.floor(W * 0.12)));
-    const cornerH = Math.max(12, Math.min(36, Math.floor(H * 0.10)));
+    const distToBgPalette = (idx) => {
+      if (nSamples === 0) return 999;
+      const r = cachedRBlur[idx], g = cachedGBlur[idx], b = cachedBBlur[idx];
+      const rg = r - g, rb = r - b;
+      let minD = 999;
+      for (let k = 0; k < nSamples; k++) {
+        const sr = bgR[k], sg = bgG[k], sb = bgB[k];
+        const dr = r - sr, dg = g - sg, db = b - sb;
+        const dChroma = Math.abs(rg - (sr - sg)) + Math.abs(rb - (sr - sb));
+        const d = Math.sqrt(dr * dr + dg * dg + db * db) + dChroma * 0.85;
+        if (d < minD) minD = d;
+      }
+      return minD;
+    };
 
-    const sampleRect = (x0, x1, y0, y1) => {
-      for (let y = y0; y <= y1; y += 3) {
-        const row = y * W;
-        for (let x = x0; x <= x1; x += 3) {
-          const idx = row + x;
-          const gMag = cachedSharpGrad ? Math.max(cachedGradMag[idx], cachedSharpGrad[idx]) : cachedGradMag[idx];
-          if (gMag < 0.045) {
-            bgR.push(cachedRBlur[idx]);
-            bgG.push(cachedGBlur[idx]);
-            bgB.push(cachedBBlur[idx]);
-          }
-        }
+    scratchIsBg.fill(0);
+    let qHead = 0, qTail = 0;
+    const paletteTol = tol;
+    const stepTolSq = (0.018 + tol * 0.08) * (0.018 + tol * 0.08);
+    const gradTol = 0.042 + tol * 0.12;
+    const texTol = gradTol * 0.78;
+
+    const trySeed = (x, y) => {
+      const idx = y * W + x;
+      if (!scratchIsBg[idx] && cachedGradMag[idx] < gradTol * 1.4 && distToBgPalette(idx) < paletteTol * 1.15) {
+        scratchIsBg[idx] = 1;
+        scratchQueue[qTail++] = idx;
       }
     };
 
-    // Esquinas superiores
-    sampleRect(2, cornerW, 2, cornerH);
-    sampleRect(W - 1 - cornerW, W - 3, 2, cornerH);
-    // Esquinas inferiores
-    sampleRect(2, Math.floor(cornerW * 0.7), H - 1 - Math.floor(cornerH * 0.7), H - 3);
-    sampleRect(W - 1 - Math.floor(cornerW * 0.7), W - 3, H - 1 - Math.floor(cornerH * 0.7), H - 3);
+    for (let x = 0; x < W; x++) { trySeed(x, 0); trySeed(x, 1); }
+    const seedMaxY = Math.floor(H * 0.74);
+    for (let y = 0; y < seedMaxY; y++) {
+      trySeed(0, y); trySeed(1, y);
+      trySeed(W - 1, y); trySeed(W - 2, y);
+    }
 
-    const nSamples = bgR.length;
-    if (nSamples > 8) {
-      let sumR = 0, sumG = 0, sumB = 0;
-      for (let k = 0; k < nSamples; k++) {
-        sumR += bgR[k]; sumG += bgG[k]; sumB += bgB[k];
-      }
-      const meanR = sumR / nSamples;
-      const meanG = sumG / nSamples;
-      const meanB = sumB / nSamples;
+    const dirs = [-1, 1, -W, W];
+    while (qHead < qTail) {
+      const curr = scratchQueue[qHead++];
+      const cx = curr % W;
+      const cr = cachedRBlur[curr], cg = cachedGBlur[curr], cb = cachedBBlur[curr];
+      for (let d = 0; d < 4; d++) {
+        const nxt = curr + dirs[d];
+        if (nxt < 0 || nxt >= N || scratchIsBg[nxt]) continue;
+        if (Math.abs((nxt % W) - cx) > 1) continue;
 
-      const distToBgPalette = (idx) => {
-        const r = cachedRBlur[idx], g = cachedGBlur[idx], b = cachedBBlur[idx];
-        const dr = r - meanR, dg = g - meanG, db = b - meanB;
-        const dChroma = Math.abs((r - g) - (meanR - meanG)) + Math.abs((r - b) - (meanR - meanB));
-        return Math.sqrt(dr * dr + dg * dg + db * db) + dChroma * 0.75;
-      };
-
-      scratchIsBg.fill(0);
-      let qHead = 0, qTail = 0;
-
-      const paletteTol = tol * 1.05;
-      const stepTolSq = (0.015 + tol * 0.05) * (0.015 + tol * 0.05);
-      const gradTol = 0.038 + tol * 0.10;
-      const texTol = 0.032 + tol * 0.08;
-
-      const trySeed = (x, y) => {
-        const idx = y * W + x;
-        const gMag = cachedSharpGrad ? Math.max(cachedGradMag[idx], cachedSharpGrad[idx]) : cachedGradMag[idx];
-        if (!scratchIsBg[idx] && gMag < gradTol * 0.85 && distToBgPalette(idx) < paletteTol * 0.90) {
-          scratchIsBg[idx] = 1;
-          scratchQueue[qTail++] = idx;
-        }
-      };
-
-      // Semillas ÚNICAMENTE en las esquinas más exteriores (NUNCA cruzar la zona central de la cabeza)
-      for (let x = 0; x < 6; x++) {
-        for (let y = 0; y < 6; y++) {
-          trySeed(x, y);
-          trySeed(W - 1 - x, y);
-        }
-      }
-
-      // Zona de protección del núcleo del sujeto (rostro / cuerpo)
-      const cxCore = W * 0.5;
-      const cyCore = H * 0.48;
-      const rxCore = W * 0.36;
-      const ryCore = H * 0.44;
-
-      const dirs = [-1, 1, -W, W];
-      while (qHead < qTail) {
-        const curr = scratchQueue[qHead++];
-        const cx = curr % W;
-        const cy = (curr / W) | 0;
-        const cr = cachedRBlur[curr], cg = cachedGBlur[curr], cb = cachedBBlur[curr];
-
-        for (let d = 0; d < 4; d++) {
-          const nxt = curr + dirs[d];
-          if (nxt < 0 || nxt >= N || scratchIsBg[nxt]) continue;
-          if (Math.abs((nxt % W) - cx) > 1) continue;
-
-          const nx = nxt % W;
-          const ny = (nxt / W) | 0;
-
-          // Protección reforzada en el núcleo central del sujeto
-          const normDx = (nx - cxCore) / rxCore;
-          const normDy = (ny - cyCore) / ryCore;
-          const inCore = (normDx * normDx + normDy * normDy) < 1.0;
-
-          const gMag = cachedSharpGrad ? Math.max(cachedGradMag[nxt], cachedSharpGrad[nxt]) : cachedGradMag[nxt];
-          const edgeAct = cachedStep232EdgeAct ? cachedStep232EdgeAct[nxt] : gMag;
-          if (gMag > gradTol || (inCore && edgeAct > 0.038)) continue;
-
-          const dr = cachedRBlur[nxt] - cr;
-          const dg = cachedGBlur[nxt] - cg;
-          const db = cachedBBlur[nxt] - cb;
-          if (dr * dr + dg * dg + db * db < stepTolSq &&
-              cachedLocalTex[nxt] < texTol &&
-              distToBgPalette(nxt) < (inCore ? paletteTol * 0.65 : paletteTol)) {
-            scratchIsBg[nxt] = 1;
-            scratchQueue[qTail++] = nxt;
-          }
-        }
-      }
-
-      for (let i = 0; i < N; i++) scratchRawSubj[i] = scratchIsBg[i] ? 0.0 : 1.0;
-
-      // Suavizado y cierre morfológico para que no queden huecos dentro del sujeto
-      gaussianBlur(scratchRawSubj, W, H, 4, smoothSilMap);
-      for (let i = 0; i < N; i++) smoothSilMap[i] = smoothSilMap[i] > 0.42 ? 1.0 : 0.0;
-
-      scratchExtBg.fill(0);
-      qHead = 0; qTail = 0;
-      for (let x = 0; x < 8; x++) {
-        if (smoothSilMap[x] === 0 && !scratchExtBg[x]) { scratchExtBg[x] = 1; scratchQueue[qTail++] = x; }
-        const rx = W - 1 - x;
-        if (smoothSilMap[rx] === 0 && !scratchExtBg[rx]) { scratchExtBg[rx] = 1; scratchQueue[qTail++] = rx; }
-      }
-      while (qHead < qTail) {
-        const curr = scratchQueue[qHead++];
-        const cx = curr % W;
-        for (let d = 0; d < 4; d++) {
-          const nxt = curr + dirs[d];
-          if (nxt < 0 || nxt >= N || scratchExtBg[nxt] || smoothSilMap[nxt] > 0.5) continue;
-          if (Math.abs((nxt % W) - cx) > 1) continue;
-          scratchExtBg[nxt] = 1;
+        const dr = cachedRBlur[nxt] - cr;
+        const dg = cachedGBlur[nxt] - cg;
+        const db = cachedBBlur[nxt] - cb;
+        if (dr * dr + dg * dg + db * db < stepTolSq &&
+            cachedGradMag[nxt] < gradTol &&
+            cachedLocalTex[nxt] < texTol &&
+            distToBgPalette(nxt) < paletteTol) {
+          scratchIsBg[nxt] = 1;
           scratchQueue[qTail++] = nxt;
         }
       }
-
-      for (let i = 0; i < N; i++) scratchRawSubj[i] = scratchExtBg[i] ? 0.0 : 1.0;
-      gaussianBlur(scratchRawSubj, W, H, 3, smoothSilMap);
-      for (let i = 0; i < N; i++) silhouetteMask[i] = smoothSilMap[i] > 0.50 ? 1 : 0;
     }
+
+    for (let i = 0; i < N; i++) scratchRawSubj[i] = scratchIsBg[i] ? 0.0 : 1.0;
+
+    gaussianBlur(scratchRawSubj, W, H, 5, smoothSilMap);
+    for (let i = 0; i < N; i++) smoothSilMap[i] = smoothSilMap[i] > 0.45 ? 1.0 : 0.0;
+
+    scratchExtBg.fill(0);
+    qHead = 0; qTail = 0;
+    for (let x = 0; x < W; x++) {
+      if (smoothSilMap[x] === 0 && !scratchExtBg[x]) { scratchExtBg[x] = 1; scratchQueue[qTail++] = x; }
+    }
+    const extMaxY = Math.floor(H * 0.76);
+    for (let y = 0; y < extMaxY; y++) {
+      const l = y * W, r = y * W + W - 1;
+      if (smoothSilMap[l] === 0 && !scratchExtBg[l]) { scratchExtBg[l] = 1; scratchQueue[qTail++] = l; }
+      if (smoothSilMap[r] === 0 && !scratchExtBg[r]) { scratchExtBg[r] = 1; scratchQueue[qTail++] = r; }
+    }
+    while (qHead < qTail) {
+      const curr = scratchQueue[qHead++];
+      const cx = curr % W;
+      for (let d = 0; d < 4; d++) {
+        const nxt = curr + dirs[d];
+        if (nxt < 0 || nxt >= N || scratchExtBg[nxt] || smoothSilMap[nxt] > 0.5) continue;
+        if (Math.abs((nxt % W) - cx) > 1) continue;
+        scratchExtBg[nxt] = 1;
+        scratchQueue[qTail++] = nxt;
+      }
+    }
+
+    for (let i = 0; i < N; i++) scratchRawSubj[i] = scratchExtBg[i] ? 0.0 : 1.0;
+    gaussianBlur(scratchRawSubj, W, H, 3, smoothSilMap);
+    for (let i = 0; i < N; i++) silhouetteMask[i] = smoothSilMap[i] > 0.50 ? 1 : 0;
   }
 
   lumHist.fill(0);
@@ -851,14 +817,12 @@ function buildAllStencilsAndSilhouettes() {
     const darkFeature = toneVal < 0.38 ? ((1.0 - SHADE_WEIGHT) + SHADE_WEIGHT * (toneVal / 0.38)) : 1.0;
     const pencilVal = masterLine * darkFeature;
 
-    // Protección absoluta: las líneas del retrato NUNCA se borran por limpieza de fondo
-    const isLineFeature = (1.0 - masterLine) > 0.05 || edgeMag > 0.035;
-    const sil232 = (BG_CLEAN <= 0.002 || isLineFeature) ? 1.0 : (silhouetteMask[i] ? 1.0 : Math.min(1.0, Math.max(0.0, (cachedStep232EdgeAct[i] - bgClean04) * invBgClean14)));
+    const sil232 = BG_CLEAN <= 0.002 ? 1.0 : (silhouetteMask[i] ? 1.0 : Math.min(1.0, Math.max(0.0, (cachedStep232EdgeAct[i] - bgClean04) * invBgClean14)));
     const s232 = Math.max(0.0, Math.min(1.0, 1.0 - (1.0 - pencilVal) * sil232));
     step232Stencil[i] = s232;
 
     let cTone = 1.0;
-    if (silhouetteMask[i] || isLineFeature || BG_CLEAN <= 0.002) {
+    if (silhouetteMask[i] || BG_CLEAN <= 0.002) {
       let normLum = Math.max(0.0, Math.min(1.0, (toneVal - p05) * invLumSpan));
       normLum = normLum * normLum * (3.0 - 2.0 * normLum);
       const combined = masterLine * (1.0 - SHADE_WEIGHT) + normLum * SHADE_WEIGHT;
