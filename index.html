@@ -137,7 +137,7 @@
   <div id="sidebar">
     <div>
       <h2>✒️ Estudio de Línea Continua</h2>
-      <div class="subtitle">6 Modos Completos · Motor Ultra-Optimizado (PC y Móvil)</div>
+      <div class="subtitle">7 Modos Completos + Color Orgánico · PC y Móvil</div>
     </div>
     
     <label class="file-btn">
@@ -145,20 +145,70 @@
       <input type="file" id="imgInput" accept="image/*" style="display:none">
     </label>
 
-    <!-- Selector de Algoritmo / Estilo de Línea Continua (TODOS CONSERVADOS) -->
+    <!-- Selector de Algoritmo / Estilo de Línea Continua (TODOS CONSERVADOS + HEX-ESPIRAL) -->
     <div class="panel-section">
       <div class="panel-title"><span>Modo / Algoritmo de Línea</span> <span>⚡</span></div>
       <select id="engineMode">
-        <option value="coral">🌊 1. Coral Orgánico (@algorigraph · Silueta Limpia + Pliegues U)</option>
+        <option value="coral">🌊 1. Coral Cerebral (@algorigraph · 100% Relleno de Líneas)</option>
         <option value="stencil_clean">✏️ 2. Calco a Lápiz Tatuador Sin Cruces (Fiel a Rasgos · 2-Opt)</option>
         <option value="stencil_cross">✍️ 3. Calco a Lápiz CON CRUCES (Boceto de Trazos Cruzados)</option>
         <option value="live_growth">🌱 4. Crecimiento en Vivo CON CRUCES (1ª Versión Original)</option>
         <option value="golden">🌻 5. Proporción Áurea φ = 1.618 (Filotaxis 137.508°)</option>
         <option value="fractal">❄️ 6. Curva Fractal Adaptativa (Hilbert Multiescala 2ⁿ)</option>
+        <option value="hex_spiral">🌀 7. Mosaico Hex-Espiral Geométrico (@fabian.jimenez)</option>
       </select>
       <div id="modeDesc" class="mode-badge">
-        🌊 Coral @algorigraph: Silueta exterior 100% blanca sin huecos y pliegues redondeados en U con alto contraste entre sombras y luz.
+        🌊 Coral @algorigraph: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros en U de extremo a extremo.
       </div>
+    </div>
+
+    <!-- NUEVO: Motor de Color Orgánico y Mezcla de Colores en las Líneas -->
+    <div class="panel-section">
+      <div class="panel-title"><span>Color Orgánico y Mezcla</span> <span>🎨</span></div>
+      <div>
+        <label>Modo de Color de Línea</label>
+        <select id="colorMode">
+          <option value="mono">⚫ Tinta Monocroma Clásica</option>
+          <option value="organic_flow">🌊 Flujo Orgánico en la Línea (Mezcla Continua)</option>
+          <option value="organic_spatial">🌀 Ondas Simétricas 2D (@fabian.jimenez)</option>
+          <option value="tonal_blend">🌡️ Fusión Tonal (Sombra → Medio → Luz)</option>
+          <option value="photo_fusion">🖼️ Pigmento Real de Foto + Mezcla Orgánica</option>
+        </select>
+      </div>
+      <div>
+        <label>Paleta de Mezcla Cromática</label>
+        <select id="colorPalette">
+          <option value="iris">🌈 Iris Orgánico (Coral · Turquesa · Violeta)</option>
+          <option value="fabian">✨ Plata, Cian & Ámbar (@fabian.jimenez)</option>
+          <option value="sunset">🌅 Atardecer Cálido (Carmesí · Oro · Malva)</option>
+          <option value="ocean">🌊 Bioluminiscencia (Esmeralda · Cian · Índigo)</option>
+          <option value="forest">🍃 Bosque Boreal (Salvia · Ocre · Terracota)</option>
+          <option value="custom">🎛️ Personalizada (Elige los 3 colores abajo)</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:6px; align-items:center; justify-content:space-between; margin-top:2px;">
+        <label style="margin:0; font-size:10px;">Mezclar 3 Colores:</label>
+        <div style="display:flex; gap:6px;">
+          <input type="color" id="colPick1" value="#ff4d6d" title="Color Orgánico 1 (Sombras / Fase A)" style="width:32px; height:24px; border:none; border-radius:4px; background:none; cursor:pointer;">
+          <input type="color" id="colPick2" value="#00d2ff" title="Color Orgánico 2 (Medios / Fase B)" style="width:32px; height:24px; border:none; border-radius:4px; background:none; cursor:pointer;">
+          <input type="color" id="colPick3" value="#9b5de5" title="Color Orgánico 3 (Luces / Fase C)" style="width:32px; height:24px; border:none; border-radius:4px; background:none; cursor:pointer;">
+        </div>
+      </div>
+      <div>
+        <label>Suavidad / Escala de Mezcla <span id="vColScale">3.5</span></label>
+        <input type="range" id="colorScale" min="0.8" max="10.0" step="0.2" value="3.5">
+      </div>
+      <div>
+        <label>Fondo del Lienzo</label>
+        <select id="bgTheme">
+          <option value="white">📄 Papel Estudio Blanco (#ffffff)</option>
+          <option value="dark">🌑 Tapiz Noche Oscuro (#0d0f14)</option>
+          <option value="cream">📜 Pergamino Cálido (#f6f2e8)</option>
+        </select>
+      </div>
+      <button id="btnColorFlow" style="width:100%; margin-top:2px; background:#232838; color:#7ce8ff; border:1px solid #355472;">
+        🌈 Fluir y Mezclar Colores en Vivo
+      </button>
     </div>
 
     <!-- Vista del Lienzo -->
@@ -184,8 +234,8 @@
         <input type="range" id="pencilBlur" min="1.0" max="5.0" step="0.5" value="2.0">
       </div>
       <div>
-        <label>Relleno de Sombras / Pelo <span id="vShade">0.45</span></label>
-        <input type="range" id="shadeWeight" min="0.00" max="0.85" step="0.05" value="0.45">
+        <label>Relleno de Sombras / Pelo <span id="vShade">0.55</span></label>
+        <input type="range" id="shadeWeight" min="0.00" max="0.90" step="0.05" value="0.55">
       </div>
       <div>
         <label>Limpieza de Fondo (Silueta) <span id="vClean">0.140</span></label>
@@ -205,8 +255,8 @@
         <input type="range" id="minR" min="0.8" max="3.5" step="0.1" value="1.5">
       </div>
       <div>
-        <label>Separación Máxima (Piel/Luz) <span id="vMax">8.5</span></label>
-        <input type="range" id="maxR" min="3.5" max="15.0" step="0.5" value="8.5">
+        <label>Separación Máxima (Piel/Luz) <span id="vMax">4.8</span></label>
+        <input type="range" id="maxR" min="3.0" max="15.0" step="0.2" value="4.8">
       </div>
       <div>
         <label>Redondeo Coral (Pliegues en U) <span id="vChaikin">2</span></label>
@@ -218,7 +268,7 @@
       </div>
     </div>
 
-    <!-- Botones de Acción (TODOS CONSERVADOS + LIMPIAR / RESETEAR) -->
+    <!-- Botones de Acción (TODOS CONSERVADOS + LIMPIAR / RESETEAR / PNG / SVG / WEBM) -->
     <div class="row-buttons">
       <button id="btnRebuild" class="primary">🔄 Reiniciar / Recalcular</button>
       <button id="btnAnimate" class="gold">🎬 Animar Dibujo</button>
@@ -230,8 +280,12 @@
     </div>
     
     <div class="row-buttons">
-      <button id="btnSvg">✒️ Descargar .SVG</button>
-      <button id="btnRecord">⏺ Grabar Vídeo .WEBM</button>
+      <button id="btnSvg">✒️ Exportar .SVG</button>
+      <button id="btnPng">🖼️ Guardar .PNG</button>
+    </div>
+
+    <div class="row-buttons">
+      <button id="btnRecord" style="grid-column: span 2;">⏺ Grabar Vídeo .WEBM</button>
     </div>
 
     <div class="stats" id="stats">Listo | Motor cargado (0% CPU en reposo)</div>
@@ -282,14 +336,42 @@ let ENGINE_MODE = 'coral';
 let VIEW_MODE = 'line';
 let PENCIL_STR = 8.5;
 let PENCIL_BLUR = 2.0;
-let SHADE_WEIGHT = 0.45;
+let SHADE_WEIGHT = 0.55;
 let BG_CLEAN = 0.140;
 
 let TARGET_NODES = isMobileDevice ? 22000 : 26000;
 let MIN_R = 1.5;
-let MAX_R = 8.5;
+let MAX_R = 4.8;
 let CHAIKIN_PASSES = 2;
 let LINE_W = 1.0;
+
+// Estado del Motor de Color Orgánico y Mezcla
+let COLOR_MODE = 'mono';
+let COLOR_PALETTE = 'iris';
+let COLOR_SCALE = 3.5;
+let BG_THEME = 'white';
+let customColorsRGB = [
+  [255, 77, 109],  // #ff4d6d
+  [0, 210, 255],   // #00d2ff
+  [155, 93, 229]   // #9b5de5
+];
+let colorPhase = 0.0;
+let isColorFlowing = false;
+let colorFlowRafId = null;
+
+const PALETTE_PRESETS = {
+  iris:   ['#ff4d6d', '#00d2ff', '#9b5de5'],
+  fabian: ['#56cfe1', '#e0fbfc', '#f4a261'],
+  sunset: ['#e63946', '#ffb703', '#8338ec'],
+  ocean:  ['#00f5d4', '#00bbf9', '#5e60ce'],
+  forest: ['#2a9d8f', '#e9c46a', '#e76f51']
+};
+
+const BG_COLORS = {
+  white: '#ffffff',
+  dark:  '#0d0f14',
+  cream: '#f6f2e8'
+};
 
 let ptsX = new Float32Array(0);
 let ptsY = new Float32Array(0);
@@ -308,21 +390,23 @@ let liveNodesY = null;
 let liveNodeCount = 0;
 
 const MODE_DESCRIPTIONS = {
-  coral: '🌊 Coral Orgánico (@algorigraph): Recorta la silueta exterior limpia sin huecos y rellena el retrato con pliegues redondeados en U tipo coral cerebral sin cruces.',
+  coral: '🌊 Coral Cerebral (@algorigraph): Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros redondeados en U sin dejar huecos vacíos.',
   stencil_clean: '✏️ Calco a Lápiz Tatuador Sin Cruces (Paso 232): Algoritmo exacto de calco a lápiz por inversión de capa + línea continua 100% libre de cruces (2-Opt).',
   stencil_cross: '✍️ Calco a Lápiz CON CRUCES: Mantiene el calco a lápiz del tatuador pero enlaza los trazos permitiendo cruces y sombreado cruzado rápido.',
   live_growth: '🌱 Crecimiento Diferencial en Vivo CON CRUCES (1ª Versión): El trazo nace en el centro del rostro y teje en vivo sobre los rasgos cruzando líneas.',
   golden: '🌻 Proporción Áurea (φ = 1.61803): Distribuye los nodos en espiral de Fermat con el ángulo áureo exacto (137.50776°) y brazos espirales de Fibonacci (55/89).',
-  fractal: '❄️ Curva Fractal Adaptativa (Hilbert 2ⁿ): Subdivide recursivamente el retrato en una curva fractal autosemejante más densa en ojos y sombras, con 0 cruces.'
+  fractal: '❄️ Curva Fractal Adaptativa (Hilbert 2ⁿ): Subdivide recursivamente el retrato en una curva fractal autosemejante más densa en ojos y sombras, con 0 cruces.',
+  hex_spiral: '🌀 Mosaico Hex-Espiral (@fabian.jimenez): Teje una red continua de espirales hexagonales e isométricas cuya densidad de vueltas esculpe las sombras del retrato.'
 };
 
 const MODE_PRESETS = {
-  coral:         { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.140, minR: 1.5, maxR: 8.5, chaikin: 2 },
+  coral:         { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.140, minR: 1.5, maxR: 4.8, chaikin: 2 },
   stencil_clean: { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.20, bgClean: 0.022, minR: 1.1, maxR: 9.0, chaikin: 0 },
   stencil_cross: { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.20, bgClean: 0.022, minR: 1.1, maxR: 9.0, chaikin: 0 },
   live_growth:   { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.22, bgClean: 0.022, minR: 1.3, maxR: 8.5, chaikin: 0 },
   golden:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.42, bgClean: 0.140, minR: 1.4, maxR: 8.0, chaikin: 1 },
-  fractal:       { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.140, minR: 1.4, maxR: 8.0, chaikin: 1 }
+  fractal:       { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.140, minR: 1.4, maxR: 8.0, chaikin: 1 },
+  hex_spiral:    { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.50, bgClean: 0.140, minR: 1.4, maxR: 6.5, chaikin: 0 }
 };
 
 function syncSlidersFromState() {
@@ -341,6 +425,7 @@ function syncSlidersFromState() {
   setSlider('maxR', 'vMax', MAX_R, 1);
   setSlider('chaikinPasses', 'vChaikin', CHAIKIN_PASSES);
   setSlider('lineW', 'vWidth', LINE_W, 1);
+  setSlider('colorScale', 'vColScale', COLOR_SCALE, 1);
 }
 syncSlidersFromState();
 
@@ -529,8 +614,8 @@ function buildAllStencilsAndSilhouettes() {
 
     for (let i = 0; i < N; i++) scratchRawSubj[i] = scratchIsBg[i] ? 0.0 : 1.0;
 
-    gaussianBlur(scratchRawSubj, W, H, 6, smoothSilMap);
-    for (let i = 0; i < N; i++) smoothSilMap[i] = smoothSilMap[i] > 0.28 ? 1.0 : 0.0;
+    gaussianBlur(scratchRawSubj, W, H, 5, smoothSilMap);
+    for (let i = 0; i < N; i++) smoothSilMap[i] = smoothSilMap[i] > 0.45 ? 1.0 : 0.0;
 
     scratchExtBg.fill(0);
     qHead = 0; qTail = 0;
@@ -557,7 +642,7 @@ function buildAllStencilsAndSilhouettes() {
 
     for (let i = 0; i < N; i++) scratchRawSubj[i] = scratchExtBg[i] ? 0.0 : 1.0;
     gaussianBlur(scratchRawSubj, W, H, 3, smoothSilMap);
-    for (let i = 0; i < N; i++) silhouetteMask[i] = smoothSilMap[i] > 0.48 ? 1 : 0;
+    for (let i = 0; i < N; i++) silhouetteMask[i] = smoothSilMap[i] > 0.50 ? 1 : 0;
   }
 
   lumHist.fill(0);
@@ -609,9 +694,10 @@ function buildAllStencilsAndSilhouettes() {
 
     let cTone = 1.0;
     if (silhouetteMask[i]) {
-      const normLum = Math.max(0.0, Math.min(1.0, (g - p05) * invLumSpan));
+      let normLum = Math.max(0.0, Math.min(1.0, (g - p05) * invLumSpan));
+      normLum = normLum * normLum * (3.0 - 2.0 * normLum);
       const combined = sketch * (1.0 - SHADE_WEIGHT) + normLum * SHADE_WEIGHT;
-      cTone = Math.max(0.0, Math.min(1.0, Math.min(sketch * 0.90, combined)));
+      cTone = Math.max(0.0, Math.min(1.0, Math.min(sketch * 0.88, combined)));
     }
     coralToneMap[i] = cTone;
 
@@ -1217,37 +1303,85 @@ function buildCrossedSketchTour(rawX, rawY, W, H) {
   return { ptsX: outX.subarray(0, k), ptsY: outY.subarray(0, k) };
 }
 
-function generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TARGET_NODES, MIN_R, MAX_R) {
-  const len = W * H;
-  const rMap = new Float32Array(len);
-  for (let i = 0; i < len; i++) {
-    if (!silhouetteMask[i]) {
-      rMap[i] = MAX_R * 2.5;
-    } else {
-      const t = coralToneMap[i];
-      const sCurve = t < 0.5
-        ? 0.5 * Math.pow(2.0 * t, 2.2)
-        : 1.0 - 0.5 * Math.pow(2.0 * (1.0 - t), 1.8);
-      rMap[i] = MIN_R + (MAX_R - MIN_R) * sCurve;
+function workerBlur(src, width, height, radius) {
+  let curr = new Float32Array(src);
+  let temp = new Float32Array(width * height);
+  const r = Math.max(1, Math.round(radius));
+  const invCount = 1.0 / (2 * r + 1);
+  for (let pass = 0; pass < 2; pass++) {
+    for (let y = 0; y < height; y++) {
+      const row = y * width;
+      let sum = curr[row] * (r + 1);
+      for (let x = 1; x <= r; x++) sum += curr[row + Math.min(width - 1, x)];
+      for (let x = 0; x < width; x++) {
+        temp[row + x] = sum * invCount;
+        sum += curr[row + Math.min(width - 1, x + r + 1)] - curr[row + Math.max(0, x - r)];
+      }
+    }
+    for (let x = 0; x < width; x++) {
+      let sum = temp[x] * (r + 1);
+      for (let y = 1; y <= r; y++) sum += temp[Math.min(height - 1, y) * width + x];
+      for (let y = 0; y < height; y++) {
+        curr[y * width + x] = sum * invCount;
+        sum += temp[Math.min(height - 1, y + r + 1) * width + x] - temp[Math.max(0, y - r) * width + x];
+      }
+    }
+  }
+  return curr;
+}
+
+/**
+ * MODO 1: MOTOR CORAL CEREBRAL @algorigraph (100% RELLENO DE CANALES PARALELOS + GIROS EN U):
+ * 1. Empaqueta centros de espuma en el 100% de la silueta con diámetro D(x,y) = 2 * w(x,y) (cero huecos vacíos).
+ * 2. Relaja los centros con 14 pasadas de repulsión de espuma de Lloyd.
+ * 3. Construye un Grafo Planar de Gabriel y un Árbol Generador Orgánico (grado máx 3) alineado con las isofotas del retrato.
+ * 4. Traza el Contorno de Euler de Doble Pared con capuchones semicirculares de 180° en cada hoja y 0 bucles en esquinas cóncavas.
+ * 5. Aplica 14 pasadas de Relajación Elástica de Paredes Paralelas.
+ */
+function generateDendriticCoralPortrait(toneMap, silhouetteMask, smoothSilMap, W, H, minW = 1.48, maxW = 4.8, chaikinPasses = 2) {
+  const N = W * H;
+  const effMaxW = Math.max(minW + 1.2, Math.min(6.2, maxW));
+
+  const smoothTone = workerBlur(toneMap, W, H, 4);
+  const gradX = new Float32Array(N);
+  const gradY = new Float32Array(N);
+  for (let y = 1; y < H - 1; y++) {
+    for (let x = 1; x < W - 1; x++) {
+      const i = y * W + x;
+      gradX[i] = (smoothTone[i + 1] - smoothTone[i - 1]) * 0.55 + (smoothSilMap[i + 1] - smoothSilMap[i - 1]) * 0.85;
+      gradY[i] = (smoothTone[i + W] - smoothTone[i - W]) * 0.55 + (smoothSilMap[i + W] - smoothSilMap[i - W]) * 0.85;
     }
   }
 
-  const maxCap = Math.min(60000, Math.round(TARGET_NODES * 1.45) + 4000);
-  const rx = new Float32Array(maxCap);
-  const ry = new Float32Array(maxCap);
-  const rr = new Float32Array(maxCap);
-  const pNext = new Int32Array(maxCap).fill(-1);
-  let count = 0;
+  const wMap = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    if (!silhouetteMask[i]) {
+      wMap[i] = effMaxW * 2.0;
+    } else {
+      const t = Math.max(0, Math.min(1, toneMap[i]));
+      const s = t < 0.48
+        ? 0.38 * Math.pow(t / 0.48, 1.65)
+        : 0.38 + 0.62 * Math.pow((t - 0.48) / 0.52, 1.35);
+      wMap[i] = minW + (effMaxW - minW) * s;
+    }
+  }
 
   const cellSize = 4;
   const gCols = Math.ceil(W / cellSize) + 1;
   const gRows = Math.ceil(H / cellSize) + 1;
   const pHead = new Int32Array(gCols * gRows).fill(-1);
+  const maxNodes = 42000;
+  const vx = new Float32Array(maxNodes);
+  const vy = new Float32Array(maxNodes);
+  const vd = new Float32Array(maxNodes);
+  const vBoundary = new Uint8Array(maxNodes);
+  const pNext = new Int32Array(maxNodes).fill(-1);
+  let vCount = 0;
 
-  const canPlace = (x, y, rReq) => {
+  const canPlace = (x, y, dReq, factor = 0.46) => {
     const cx = (x / cellSize) | 0;
     const cy = (y / cellSize) | 0;
-    const rad = Math.ceil((rReq + 1.5) / cellSize);
+    const rad = Math.ceil((dReq + 3) / cellSize);
     for (let dy = -rad; dy <= rad; dy++) {
       const ny = cy + dy;
       if (ny < 0 || ny >= gRows) continue;
@@ -1257,8 +1391,8 @@ function generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TA
         if (nx < 0 || nx >= gCols) continue;
         let j = pHead[rowOff + nx];
         while (j !== -1) {
-          const ddx = x - rx[j], ddy = y - ry[j];
-          const minSep = (rReq + rr[j]) * 0.44;
+          const ddx = x - vx[j], ddy = y - vy[j];
+          const minSep = (dReq + vd[j]) * factor;
           if (ddx * ddx + ddy * ddy < minSep * minSep) return false;
           j = pNext[j];
         }
@@ -1267,107 +1401,101 @@ function generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TA
     return true;
   };
 
-  const addNode = (x, y, rReq) => {
-    if (count >= maxCap) return;
-    const idx = count++;
-    rx[idx] = x; ry[idx] = y; rr[idx] = rReq;
+  const addVertex = (x, y, dReq, isBound = 0) => {
+    if (vCount >= maxNodes) return;
+    const i = vCount++;
+    vx[i] = x; vy[i] = y; vd[i] = dReq; vBoundary[i] = isBound;
     const cx = Math.max(0, Math.min(gCols - 1, (x / cellSize) | 0));
     const cy = Math.max(0, Math.min(gRows - 1, (y / cellSize) | 0));
     const cIdx = cy * gCols + cx;
-    pNext[idx] = pHead[cIdx];
-    pHead[cIdx] = idx;
+    pNext[i] = pHead[cIdx];
+    pHead[cIdx] = i;
   };
 
-  for (let y = 5; y < H - 5; y += 2) {
-    for (let x = 5; x < W - 5; x += 2) {
+  for (let y = 6; y < H - 6; y++) {
+    for (let x = 6; x < W - 6; x++) {
       const i = y * W + x;
-      if (silhouetteMask[i] && smoothSilMap[i] >= 0.48 && smoothSilMap[i] <= 0.80) {
-        const rHere = Math.min(MAX_R * 0.60, Math.max(MIN_R * 1.15, rMap[i] * 0.80));
-        if (canPlace(x, y, rHere)) addNode(x, y, rHere);
+      if (silhouetteMask[i] && smoothSilMap[i] >= 0.54 && smoothSilMap[i] <= 0.72) {
+        const dReq = wMap[i] * 1.92;
+        if (canPlace(x, y, dReq, 0.46)) addVertex(x, y, dReq, 1);
       }
     }
   }
 
-  const err = new Float32Array(len);
-  let totalWeight = 0;
-  for (let i = 0; i < len; i++) {
-    if (silhouetteMask[i]) {
-      const r = rMap[i];
-      const w = 1.0 / (r * r);
-      err[i] = w;
-      totalWeight += w;
-    }
-  }
+  let seed = 1337;
+  const rand = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
 
-  const thresh = Math.max(0.18, totalWeight / (TARGET_NODES * 1.15));
-  for (let y = 5; y < H - 5; y++) {
-    const l2r = (y & 1) === 0;
-    for (let s = 5; s < W - 5; s++) {
-      const x = l2r ? s : (W - 1 - s);
-      const idx = y * W + x;
-      if (!silhouetteMask[idx]) continue;
-
-      const val = err[idx];
-      let quantErr = val;
-      if (val >= thresh) {
-        const rHere = rMap[idx];
-        const jx = x + (Math.random() - 0.5) * 0.7;
-        const jy = y + (Math.random() - 0.5) * 0.7;
-        if (canPlace(jx, jy, rHere)) {
-          addNode(jx, jy, rHere);
-          quantErr = val - thresh;
-        } else {
-          quantErr = 0;
+  for (let pass = 0; pass < 3; pass++) {
+    const step = pass === 0 ? 2 : 1;
+    const factor = pass < 2 ? 0.46 : 0.43;
+    for (let y = 6; y < H - 6; y += step) {
+      const l2r = ((y + pass) & 1) === 0;
+      for (let s = 6; s < W - 6; s += step) {
+        const x = l2r ? s : (W - 1 - s);
+        const i = y * W + x;
+        if (!silhouetteMask[i] || smoothSilMap[i] < 0.52) continue;
+        const jx = x + (rand() - 0.5) * 1.4;
+        const jy = y + (rand() - 0.5) * 1.4;
+        const ji = Math.min(H - 1, Math.max(0, jy | 0)) * W + Math.min(W - 1, Math.max(0, jx | 0));
+        if (!silhouetteMask[ji]) continue;
+        const dReq = wMap[ji] * 1.92;
+        if (canPlace(jx, jy, dReq, factor)) {
+          addVertex(jx, jy, dReq, 0);
         }
       }
-      const dir = l2r ? 1 : -1;
-      err[idx + dir] += quantErr * 0.4375;
-      err[(y + 1) * W + (x - dir)] += quantErr * 0.1875;
-      err[(y + 1) * W + x] += quantErr * 0.3125;
-      err[(y + 1) * W + (x + dir)] += quantErr * 0.0625;
     }
   }
 
-  const N = count;
-  const rCell = 9;
+  if (vCount < 10) {
+    return { ptsX: new Float32Array(0), ptsY: new Float32Array(0) };
+  }
+
+  // 14 pasadas de relajación de espuma de Lloyd
+  const rCell = 10;
   const rCols = Math.ceil(W / rCell) + 1;
   const rRows = Math.ceil(H / rCell) + 1;
   const rHead = new Int32Array(rCols * rRows);
-  const rNext = new Int32Array(N);
+  const rNext = new Int32Array(vCount);
 
-  for (let iter = 0; iter < 8; iter++) {
+  for (let iter = 0; iter < 14; iter++) {
     rHead.fill(-1);
-    for (let i = 0; i < N; i++) {
-      const cx = Math.max(0, Math.min(rCols - 1, (rx[i] / rCell) | 0));
-      const cy = Math.max(0, Math.min(rRows - 1, (ry[i] / rCell) | 0));
+    for (let i = 0; i < vCount; i++) {
+      const cx = Math.max(0, Math.min(rCols - 1, (vx[i] / rCell) | 0));
+      const cy = Math.max(0, Math.min(rRows - 1, (vy[i] / rCell) | 0));
       const cIdx = cy * rCols + cx;
       rNext[i] = rHead[cIdx];
       rHead[cIdx] = i;
     }
 
-    for (let i = 0; i < N; i++) {
-      const px = rx[i], py = ry[i];
-      const ri = rMap[Math.min(H - 1, Math.max(0, py | 0)) * W + Math.min(W - 1, Math.max(0, px | 0))];
-      rr[i] = ri;
+    for (let i = 0; i < vCount; i++) {
+      if (vBoundary[i]) continue;
+      const px = vx[i], py = vy[i];
+      const idx = Math.min(H - 1, Math.max(0, py | 0)) * W + Math.min(W - 1, Math.max(0, px | 0));
+      const di = wMap[idx] * 1.92;
+      vd[i] = di;
       let fx = 0, fy = 0;
 
       const cx = (px / rCell) | 0, cy = (py / rCell) | 0;
-      for (let dy = -1; dy <= 1; dy++) {
+      const rad = Math.ceil((di + 4) / rCell);
+      for (let dy = -rad; dy <= rad; dy++) {
         const ny = cy + dy;
         if (ny < 0 || ny >= rRows) continue;
         const rowOff = ny * rCols;
-        for (let dx = -1; dx <= 1; dx++) {
+        for (let dx = -rad; dx <= rad; dx++) {
           const nx = cx + dx;
           if (nx < 0 || nx >= rCols) continue;
           let j = rHead[rowOff + nx];
           while (j !== -1) {
             if (j !== i) {
-              const ddx = px - rx[j], ddy = py - ry[j];
+              const ddx = px - vx[j], ddy = py - vy[j];
               const dSq = ddx * ddx + ddy * ddy;
-              const targetD = (ri + rr[j]) * 0.58;
+              const targetD = (di + vd[j]) * 0.55;
               if (dSq < targetD * targetD && dSq > 1e-4) {
                 const d = Math.sqrt(dSq);
-                const f = ((targetD - d) / d) * 0.36;
+                const f = ((targetD - d) / d) * 0.35;
                 fx += ddx * f;
                 fy += ddy * f;
               }
@@ -1377,16 +1505,448 @@ function generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TA
         }
       }
 
-      const nx = Math.max(5, Math.min(W - 5, px + Math.max(-1.6, Math.min(1.6, fx))));
-      const ny = Math.max(5, Math.min(H - 5, py + Math.max(-1.6, Math.min(1.6, fy))));
-      if (silhouetteMask[(ny | 0) * W + (nx | 0)]) {
-        rx[i] = nx;
-        ry[i] = ny;
+      const nx = Math.max(6, Math.min(W - 6, px + Math.max(-1.8, Math.min(1.8, fx))));
+      const ny = Math.max(6, Math.min(H - 6, py + Math.max(-1.8, Math.min(1.8, fy))));
+      const nIdx = (ny | 0) * W + (nx | 0);
+      if (silhouetteMask[nIdx] && smoothSilMap[nIdx] > 0.54) {
+        vx[i] = nx;
+        vy[i] = ny;
       }
     }
   }
 
-  return { rawX: rx.subarray(0, N), rawY: ry.subarray(0, N) };
+  // Paso 2: Grafo Planar de Gabriel
+  const adj = Array.from({ length: vCount }, () => []);
+  rHead.fill(-1);
+  for (let i = 0; i < vCount; i++) {
+    const cx = Math.max(0, Math.min(rCols - 1, (vx[i] / rCell) | 0));
+    const cy = Math.max(0, Math.min(rRows - 1, (vy[i] / rCell) | 0));
+    const cIdx = cy * rCols + cx;
+    rNext[i] = rHead[cIdx];
+    rHead[cIdx] = i;
+  }
+
+  for (let i = 0; i < vCount; i++) {
+    const ax = vx[i], ay = vy[i], da = vd[i];
+    const cx = (ax / rCell) | 0, cy = (ay / rCell) | 0;
+    const rad = Math.ceil((da * 2.5) / rCell);
+
+    for (let dy = -rad; dy <= rad; dy++) {
+      const ny = cy + dy;
+      if (ny < 0 || ny >= rRows) continue;
+      const rowOff = ny * rCols;
+      for (let dx = -rad; dx <= rad; dx++) {
+        const nx = cx + dx;
+        if (nx < 0 || nx >= rCols) continue;
+        let j = rHead[rowOff + nx];
+        while (j !== -1) {
+          if (j > i) {
+            const bx = vx[j], by = vy[j], db = vd[j];
+            const ddx = bx - ax, ddy = by - ay;
+            const dSq = ddx * ddx + ddy * ddy;
+            const maxAllow = (da + db) * 1.45;
+            if (dSq <= maxAllow * maxAllow) {
+              const mx = (ax + bx) * 0.5, my = (ay + by) * 0.5;
+              const mIdx = (my | 0) * W + (mx | 0);
+              if (silhouetteMask[mIdx]) {
+                const rGabSq = dSq * 0.25 - 1e-3;
+                const mCx = (mx / rCell) | 0, mCy = (my / rCell) | 0;
+                const gRad = Math.ceil(Math.sqrt(rGabSq) / rCell);
+                let gabrielOk = true;
+                for (let gdy = -gRad; gdy <= gRad && gabrielOk; gdy++) {
+                  const gny = mCy + gdy;
+                  if (gny < 0 || gny >= rRows) continue;
+                  const gRowOff = gny * rCols;
+                  for (let gdx = -gRad; gdx <= gRad; gdx++) {
+                    const gnx = mCx + gdx;
+                    if (gnx < 0 || gnx >= rCols) continue;
+                    let k = rHead[gRowOff + gnx];
+                    while (k !== -1) {
+                      if (k !== i && k !== j) {
+                        const kdx = vx[k] - mx, kdy = vy[k] - my;
+                        if (kdx * kdx + kdy * kdy < rGabSq) {
+                          gabrielOk = false;
+                          break;
+                        }
+                      }
+                      k = rNext[k];
+                    }
+                  }
+                }
+                if (gabrielOk) {
+                  adj[i].push(j);
+                  adj[j].push(i);
+                }
+              }
+            }
+          }
+          j = rNext[j];
+        }
+      }
+    }
+  }
+
+  // Paso 3: Árbol Generador de Coral Cerebral (Grado máx 3 + meandros orgánicos cortos)
+  const inTree = new Uint8Array(vCount);
+  const treeAdj = Array.from({ length: vCount }, () => []);
+  const parentOf = new Int32Array(vCount).fill(-1);
+  const chainLen = new Int32Array(vCount);
+
+  const heapU = new Int32Array(vCount * 10);
+  const heapV = new Int32Array(vCount * 10);
+  const heapW = new Float32Array(vCount * 10);
+  let heapSize = 0;
+
+  const heapPush = (u, v, w) => {
+    let i = heapSize++;
+    heapU[i] = u; heapV[i] = v; heapW[i] = w;
+    while (i > 0) {
+      const p = (i - 1) >> 1;
+      if (heapW[p] <= heapW[i]) break;
+      let tu = heapU[p], tv = heapV[p], tw = heapW[p];
+      heapU[p] = heapU[i]; heapV[p] = heapV[i]; heapW[p] = heapW[i];
+      heapU[i] = tu; heapV[i] = tv; heapW[i] = tw;
+      i = p;
+    }
+  };
+
+  const heapPop = () => {
+    const u = heapU[0], v = heapV[0];
+    heapSize--;
+    if (heapSize > 0) {
+      heapU[0] = heapU[heapSize];
+      heapV[0] = heapV[heapSize];
+      heapW[0] = heapW[heapSize];
+      let i = 0;
+      while (true) {
+        const l = (i << 1) + 1, r = l + 1;
+        let s = i;
+        if (l < heapSize && heapW[l] < heapW[s]) s = l;
+        if (r < heapSize && heapW[r] < heapW[s]) s = r;
+        if (s === i) break;
+        let tu = heapU[i], tv = heapV[i], tw = heapW[i];
+        heapU[i] = heapU[s]; heapV[i] = heapV[s]; heapW[i] = heapW[s];
+        heapU[s] = tu; heapV[s] = tv; heapW[s] = tw;
+        i = s;
+      }
+    }
+    return { u, v };
+  };
+
+  const pushEdgesFrom = (u) => {
+    const p = parentOf[u];
+    let pdx = 0, pdy = 0;
+    if (p !== -1) {
+      pdx = vx[u] - vx[p]; pdy = vy[u] - vy[p];
+      const l = Math.hypot(pdx, pdy) + 1e-5;
+      pdx /= l; pdy /= l;
+    }
+
+    for (const v of adj[u]) {
+      if (inTree[v]) continue;
+      const dx = vx[v] - vx[u], dy = vy[v] - vy[u];
+      const dist = Math.hypot(dx, dy) + 1e-5;
+      const ux = dx / dist, uy = dy / dist;
+
+      const mIdx = (((vy[u] + vy[v]) * 0.5) | 0) * W + (((vx[u] + vx[v]) * 0.5) | 0);
+      const gx = gradX[mIdx], gy = gradY[mIdx];
+      const crossGrad = Math.abs(gx * ux + gy * uy);
+
+      let contFactor = 1.0;
+      if (p !== -1) {
+        const dot = pdx * ux + pdy * uy;
+        const curvePref = Math.abs(dot - 0.50) * 0.32;
+        if (chainLen[u] < 6) {
+          contFactor = 0.68 + curvePref;
+        } else {
+          contFactor = 1.28 + curvePref;
+        }
+      }
+
+      const jitter = 0.88 + rand() * 0.24;
+      const w = dist * (1.0 + crossGrad * 4.8) * contFactor * jitter;
+      heapPush(u, v, w);
+    }
+  };
+
+  let root = 0, bestRootD = Infinity;
+  for (let i = 0; i < vCount; i++) {
+    const d = Math.hypot(vx[i] - W * 0.5, vy[i] - H * 0.45);
+    if (d < bestRootD) { bestRootD = d; root = i; }
+  }
+
+  inTree[root] = 1;
+  pushEdgesFrom(root);
+
+  let treeEdges = 0;
+  while (heapSize > 0) {
+    const { u, v } = heapPop();
+    if (inTree[v]) continue;
+    if (treeAdj[u].length >= 3) continue;
+    inTree[v] = 1;
+    parentOf[v] = u;
+    chainLen[v] = treeAdj[u].length === 1 ? (chainLen[u] + 1) : 1;
+    treeAdj[u].push(v);
+    treeAdj[v].push(u);
+    treeEdges++;
+    pushEdgesFrom(v);
+  }
+
+  for (let pass = 0; pass < 3; pass++) {
+    for (let i = 0; i < vCount; i++) {
+      if (inTree[i]) continue;
+      let bestU = -1, bestD = Infinity;
+      for (const nb of adj[i]) {
+        if (inTree[nb]) {
+          const d = Math.hypot(vx[i] - vx[nb], vy[i] - vy[nb]) + treeAdj[nb].length * 5.0;
+          if (d < bestD) { bestD = d; bestU = nb; }
+        }
+      }
+      if (bestU !== -1) {
+        inTree[i] = 1;
+        parentOf[i] = bestU;
+        treeAdj[bestU].push(i);
+        treeAdj[i].push(bestU);
+        treeEdges++;
+      }
+    }
+  }
+
+  for (let u = 0; u < vCount; u++) {
+    if (treeAdj[u].length > 1) {
+      treeAdj[u].sort((a, b) => {
+        const angA = Math.atan2(vy[a] - vy[u], vx[a] - vx[u]);
+        const angB = Math.atan2(vy[b] - vy[u], vx[b] - vx[u]);
+        return angA - angB;
+      });
+    }
+  }
+
+  // Paso 4: Trazado de Contorno de Euler de Doble Pared
+  const outX = [];
+  const outY = [];
+
+  let startU = root;
+  for (let i = 0; i < vCount; i++) {
+    if (treeAdj[i].length === 1) { startU = i; break; }
+  }
+  let currU = startU;
+  let currV = treeAdj[startU][0];
+
+  const totalDirEdges = treeEdges * 2;
+  for (let step = 0; step < totalDirEdges; step++) {
+    const dx = vx[currV] - vx[currU];
+    const dy = vy[currV] - vy[currU];
+    const len = Math.hypot(dx, dy);
+    const tx = dx / (len + 1e-5), ty = dy / (len + 1e-5);
+    const nx = ty, ny = -tx;
+
+    const rU = vd[currU] * 0.25;
+    const rV = vd[currV] * 0.25;
+
+    const tStart = Math.min(0.42, (rU * 0.85) / (len + 1e-5));
+    const tEnd = Math.max(0.58, 1.0 - (rV * 0.85) / (len + 1e-5));
+    const span = Math.max(0.05, tEnd - tStart);
+    const numSegs = Math.max(1, Math.ceil((len * span) / 1.9));
+    for (let s = 0; s <= numSegs; s++) {
+      const t = tStart + (s / numSegs) * span;
+      const rMid = rU * (1.0 - t) + rV * t;
+      outX.push(vx[currU] + dx * t + nx * rMid);
+      outY.push(vy[currU] + dy * t + ny * rMid);
+    }
+
+    const nbrs = treeAdj[currV];
+    const deg = nbrs.length;
+    const idxBack = nbrs.indexOf(currU);
+    const nextW = nbrs[(idxBack + 1) % deg];
+
+    if (deg === 1) {
+      const baseAng = Math.atan2(ny, nx);
+      const capSteps = 6;
+      for (let c = 1; c < capSteps; c++) {
+        const ang = baseAng + (c / capSteps) * Math.PI;
+        outX.push(vx[currV] + Math.cos(ang) * rV);
+        outY.push(vy[currV] + Math.sin(ang) * rV);
+      }
+    } else {
+      const dx2 = vx[nextW] - vx[currV];
+      const dy2 = vy[nextW] - vy[currV];
+      const len2 = Math.hypot(dx2, dy2);
+      const tx2 = dx2 / (len2 + 1e-5), ty2 = dy2 / (len2 + 1e-5);
+      const nx2 = ty2, ny2 = -tx2;
+
+      const turnDot = tx2 * nx + ty2 * ny;
+      if (turnDot < -0.05) {
+        const ang1 = Math.atan2(ny, nx);
+        let ang2 = Math.atan2(ny2, nx2);
+        let dAng = ang2 - ang1;
+        while (dAng < 0) dAng += 2 * Math.PI;
+        if (dAng > Math.PI * 1.25) dAng -= 2 * Math.PI;
+        const arcSteps = Math.max(2, Math.min(5, Math.ceil(Math.abs(dAng) / 0.45)));
+        for (let c = 1; c < arcSteps; c++) {
+          const ang = ang1 + (c / arcSteps) * dAng;
+          outX.push(vx[currV] + Math.cos(ang) * rV);
+          outY.push(vy[currV] + Math.sin(ang) * rV);
+        }
+      } else {
+        let bx = nx + nx2, by = ny + ny2;
+        const bLen = Math.hypot(bx, by);
+        if (bLen > 1e-3) {
+          bx /= bLen; by /= bLen;
+          outX.push(vx[currV] + bx * rV);
+          outY.push(vy[currV] + by * rV);
+        }
+      }
+    }
+
+    currU = currV;
+    currV = nextW;
+  }
+
+  outX.push(outX[0]);
+  outY.push(outY[0]);
+
+  let ptsX = new Float32Array(outX);
+  let ptsY = new Float32Array(outY);
+  const k = ptsX.length;
+  const tempX = new Float32Array(k);
+  const tempY = new Float32Array(k);
+
+  const pCell = 7;
+  const pCols = Math.ceil(W / pCell) + 1;
+  const pRows = Math.ceil(H / pCell) + 1;
+  const cHead = new Int32Array(pCols * pRows);
+  const cNext = new Int32Array(k);
+
+  const relaxPasses = 10 + chaikinPasses * 3;
+  for (let iter = 0; iter < relaxPasses; iter++) {
+    cHead.fill(-1);
+    for (let i = 0; i < k; i++) {
+      const cx = Math.max(0, Math.min(pCols - 1, (ptsX[i] / pCell) | 0));
+      const cy = Math.max(0, Math.min(pRows - 1, (ptsY[i] / pCell) | 0));
+      const cIdx = cy * pCols + cx;
+      cNext[i] = cHead[cIdx];
+      cHead[cIdx] = i;
+    }
+
+    for (let i = 0; i < k; i++) {
+      const prv = (i - 1 + k) % k;
+      const nxt = (i + 1) % k;
+      const px = ptsX[i], py = ptsY[i];
+      const idx = Math.min(H - 1, Math.max(0, py | 0)) * W + Math.min(W - 1, Math.max(0, px | 0));
+      const targetSep = wMap[idx] * 0.94;
+      const targetSq = targetSep * targetSep;
+
+      let fx = ((ptsX[prv] + ptsX[nxt]) * 0.5 - px) * 0.34;
+      let fy = ((ptsY[prv] + ptsY[nxt]) * 0.5 - py) * 0.34;
+
+      const cx = (px / pCell) | 0, cy = (py / pCell) | 0;
+      const rad = Math.ceil(targetSep / pCell);
+      for (let dy = -rad; dy <= rad; dy++) {
+        const ny = cy + dy;
+        if (ny < 0 || ny >= pRows) continue;
+        const rowOff = ny * pCols;
+        for (let dx = -rad; dx <= rad; dx++) {
+          const nx = cx + dx;
+          if (nx < 0 || nx >= pCols) continue;
+          let j = cHead[rowOff + nx];
+          while (j !== -1) {
+            const diff = Math.abs(i - j);
+            const loopDiff = Math.min(diff, k - diff);
+            if (loopDiff > 4) {
+              const ddx = px - ptsX[j], ddy = py - ptsY[j];
+              const dSq = ddx * ddx + ddy * ddy;
+              if (dSq < targetSq && dSq > 1e-4) {
+                const d = Math.sqrt(dSq);
+                const f = ((targetSep - d) / d) * 0.18;
+                fx += ddx * f;
+                fy += ddy * f;
+              }
+            }
+            j = cNext[j];
+          }
+        }
+      }
+
+      const nx = Math.max(5, Math.min(W - 5, px + Math.max(-1.0, Math.min(1.0, fx))));
+      const ny = Math.max(5, Math.min(H - 5, py + Math.max(-1.0, Math.min(1.0, fy))));
+      if (silhouetteMask[(ny | 0) * W + (nx | 0)]) {
+        tempX[i] = nx;
+        tempY[i] = ny;
+      } else {
+        tempX[i] = px;
+        tempY[i] = py;
+      }
+    }
+    ptsX.set(tempX);
+    ptsY.set(tempY);
+  }
+
+  return { ptsX, ptsY };
+}
+
+/**
+ * MODO 7: MOSAICO HEX-ESPIRAL GEOMÉTRICO (@fabian.jimenez):
+ * Teje una red continua de celdas hexagonales/isométricas en espiral donde la cantidad de vueltas
+ * y separación de cada celda esculpen las luces y sombras del retrato.
+ */
+function generateHexSpiralPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MAX_R) {
+  const cellR = Math.max(10, Math.min(22, Math.round(MAX_R * 2.4)));
+  const dxHex = cellR * Math.sqrt(3);
+  const dyHex = cellR * 1.5;
+
+  const outX = [];
+  const outY = [];
+  const rows = Math.ceil(H / dyHex) + 1;
+  const cols = Math.ceil(W / dxHex) + 1;
+
+  for (let r = 1; r < rows - 1; r++) {
+    const cy = r * dyHex;
+    const l2r = (r & 1) === 0;
+    for (let s = 1; s < cols - 1; s++) {
+      const c = l2r ? s : (cols - 1 - s);
+      const cx = c * dxHex + ((r & 1) ? dxHex * 0.5 : 0);
+      if (cx < 8 || cx >= W - 8 || cy < 8 || cy >= H - 8) continue;
+
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+
+      // Muestrear oscuridad media de la celda hexagonal
+      let sumDark = 0, cnt = 0;
+      for (let oy = -4; oy <= 4; oy += 4) {
+        for (let ox = -4; ox <= 4; ox += 4) {
+          const ii = Math.min(H - 1, Math.max(0, (cy + oy) | 0)) * W + Math.min(W - 1, Math.max(0, (cx + ox) | 0));
+          sumDark += (1.0 - coralToneMap[ii]);
+          cnt++;
+        }
+      }
+      const dark = sumDark / cnt;
+      const turns = Math.max(1, Math.min(7, Math.round(1.2 + Math.pow(dark, 1.15) * 5.8)));
+      const totalCorners = turns * 6;
+
+      // Espiral hexagonal hacia el centro de la celda
+      for (let k = 0; k <= totalCorners; k++) {
+        const u = k / totalCorners;
+        const rad = cellR * 0.90 * (1.0 - u * 0.84);
+        const ang = (k % 6) * (Math.PI / 3) + Math.PI / 6;
+        outX.push(cx + Math.cos(ang) * rad);
+        outY.push(cy + Math.sin(ang) * rad);
+      }
+      // Salida suave de regreso al borde para enlazar con la siguiente celda sin cortar
+      for (let k = totalCorners - 1; k >= 0; k -= 3) {
+        const u = k / totalCorners;
+        const rad = cellR * 0.90 * (1.0 - u * 0.84) * 0.92;
+        const ang = (k % 6) * (Math.PI / 3) + Math.PI / 6 + 0.18;
+        outX.push(cx + Math.cos(ang) * rad);
+        outY.push(cy + Math.sin(ang) * rad);
+      }
+    }
+  }
+
+  return {
+    ptsX: new Float32Array(outX),
+    ptsY: new Float32Array(outY)
+  };
 }
 
 function generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, MAX_R) {
@@ -1490,11 +2050,10 @@ function generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, 
 
 /**
  * MODO 5: PROPORCIÓN ÁUREA φ = 1.61803398875 (FILOTAXIS DE FIBONACCI 137.507764° + BRAZOS ESPIRALES 55/89)
- * Cubre el 100% de la silueta desde el centro áureo del rostro hasta los hombros con exactamente TARGET_NODES nodos.
  */
 function generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES) {
   const PHI = 1.618033988749895;
-  const GOLDEN_ANGLE = Math.PI * (3.0 - Math.sqrt(5.0)); // 137.507764°
+  const GOLDEN_ANGLE = Math.PI * (3.0 - Math.sqrt(5.0));
 
   let minX = W, maxX = 0, minY = H, maxY = 0;
   let sumX = 0, sumY = 0, sumW = 0;
@@ -1528,7 +2087,6 @@ function generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_
     const tone = coralToneMap[idx];
     const darkness = 1.0 - tone;
 
-    // Parásticas de Fibonacci: 55 espirales horarias y 89 antihorarias (89/55 = 1.61818 ≈ φ)
     const rRatio = r / maxRadius;
     const spiral55 = Math.cos(55.0 * theta - rRatio * 55.0 * PHI * Math.PI);
     const spiral89 = Math.cos(89.0 * theta + rRatio * 89.0 * Math.PI);
@@ -1539,7 +2097,6 @@ function generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_
     return Math.min(1.0, baseDark * 0.85 + spiralBoost);
   };
 
-  // Pre-muestreo rápido de 4000 puntos en la espiral de Fermat para calibrar el total de candidatos M
   const probeN = 4000;
   let probeSum = 0;
   for (let k = 1; k <= probeN; k++) {
@@ -1664,6 +2221,25 @@ self.onmessage = function(e) {
 
   const tStart = performance.now();
 
+  if (engineMode === 'coral') {
+    const { ptsX, ptsY } = generateDendriticCoralPortrait(coralToneMap, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, CHAIKIN_PASSES);
+    const outX = new Float32Array(ptsX);
+    const outY = new Float32Array(ptsY);
+    self.postMessage({ jobId, ptsX: outX, ptsY: outY, pass: 1, totalPasses: 1, done: true }, [outX.buffer, outY.buffer]);
+    return;
+  }
+
+  if (engineMode === 'hex_spiral') {
+    let { ptsX, ptsY } = generateHexSpiralPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MAX_R);
+    if (CHAIKIN_PASSES > 0) {
+      ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+    }
+    const outX = new Float32Array(ptsX);
+    const outY = new Float32Array(ptsY);
+    self.postMessage({ jobId, ptsX: outX, ptsY: outY, pass: 1, totalPasses: 1, done: true }, [outX.buffer, outY.buffer]);
+    return;
+  }
+
   if (engineMode === 'fractal') {
     let { ptsX, ptsY } = generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES);
     if (CHAIKIN_PASSES > 0) {
@@ -1689,17 +2265,14 @@ self.onmessage = function(e) {
 
   let rawX, rawY;
   let useSilPenalty = null;
-  if (engineMode === 'coral') {
-    ({ rawX, rawY } = generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TARGET_NODES, MIN_R, MAX_R));
-    useSilPenalty = silhouetteMask;
-  } else if (engineMode === 'golden') {
+  if (engineMode === 'golden') {
     ({ rawX, rawY } = generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES));
     useSilPenalty = silhouetteMask;
   } else {
     ({ rawX, rawY } = generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, MAX_R));
   }
 
-  let { ptsX, ptsY } = buildPlanarContinuousTour(rawX, rawY, W, H, engineMode === 'coral' ? 20 : 24, useSilPenalty);
+  let { ptsX, ptsY } = buildPlanarContinuousTour(rawX, rawY, W, H, 24, useSilPenalty);
 
   const k = ptsX.length;
   const optCell = 18;
@@ -1832,8 +2405,121 @@ function rebuildPortrait(skipStencilRebuild = false) {
 }
 
 // =========================================================
-// 4. RENDERIZADO CON CACHÉ GPU (Path2D) + ANIMACIÓN INCREMENTAL O(1)
+// 4. MOTOR DE COLOR ORGÁNICO Y MEZCLA CROMÁTICA CONTINUA + CACHÉ GPU
 // =========================================================
+function hexToRgbTuple(hex) {
+  const clean = hex.replace('#', '');
+  const num = parseInt(clean, 16);
+  return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+}
+
+function syncCustomColorsFromPickers() {
+  customColorsRGB[0] = hexToRgbTuple(document.getElementById('colPick1').value);
+  customColorsRGB[1] = hexToRgbTuple(document.getElementById('colPick2').value);
+  customColorsRGB[2] = hexToRgbTuple(document.getElementById('colPick3').value);
+}
+
+/**
+ * Calcula el color mezclado de forma 100% orgánica en el punto (x, y) e índice de trazo i.
+ * Usa pesos tri-fásicos en coseno alzado (separados 120° = 2π/3) para fundir los 3 colores
+ * como pigmentos líquidos sin cortes bruscos.
+ */
+function getOrganicLineColor(i, totalLen, x, y) {
+  if (COLOR_MODE === 'mono') {
+    return BG_THEME === 'dark' ? '#e8eef7' : '#0e1118';
+  }
+
+  const c0 = customColorsRGB[0];
+  const c1 = customColorsRGB[1];
+  const c2 = customColorsRGB[2];
+
+  const ix = Math.min(W - 1, Math.max(0, x | 0));
+  const iy = Math.min(H - 1, Math.max(0, y | 0));
+  const pIdx = iy * W + ix;
+  const tone = coralToneMap ? coralToneMap[pIdx] : 0.5;
+
+  let phaseVal = 0;
+  if (COLOR_MODE === 'organic_flow') {
+    const u = (i / Math.max(1, totalLen)) * COLOR_SCALE * Math.PI * 2.0;
+    const spatialCurl =
+      Math.sin((x / W) * COLOR_SCALE * 3.2 + colorPhase * 0.7) *
+      Math.cos((y / H) * COLOR_SCALE * 3.2 - colorPhase * 0.5) * 1.35;
+    phaseVal = u + spatialCurl + colorPhase;
+  } else if (COLOR_MODE === 'organic_spatial') {
+    // Simetría bilateral + ondas concéntricas orgánicas estilo @fabian.jimenez.art
+    const symX = Math.abs(x - W * 0.5) / (W * 0.5);
+    const normY = (y - H * 0.45) / (H * 0.5);
+    const rad = Math.hypot(symX, normY);
+    const wave1 = Math.sin(rad * COLOR_SCALE * 4.2 - colorPhase);
+    const wave2 = Math.cos((symX * 2.5 - normY * 1.8) * COLOR_SCALE + colorPhase * 0.6);
+    phaseVal = (wave1 + wave2 * 0.75) * Math.PI + (1.0 - tone) * 2.2 + colorPhase * 0.5;
+  } else if (COLOR_MODE === 'tonal_blend') {
+    // Fusión suave Sombra (Color 1) -> Medio (Color 2) -> Luz (Color 3) con respiración orgánica
+    const breathe = Math.sin((x + y) * 0.012 * COLOR_SCALE + colorPhase) * 0.14;
+    const t = Math.max(0, Math.min(1, tone + breathe));
+    let r, g, b;
+    if (t < 0.5) {
+      const u = t * 2.0;
+      const s = u * u * (3.0 - 2.0 * u);
+      r = c0[0] + (c1[0] - c0[0]) * s;
+      g = c0[1] + (c1[1] - c0[1]) * s;
+      b = c0[2] + (c1[2] - c0[2]) * s;
+    } else {
+      const u = (t - 0.5) * 2.0;
+      const s = u * u * (3.0 - 2.0 * u);
+      r = c1[0] + (c2[0] - c1[0]) * s;
+      g = c1[1] + (c2[1] - c1[1]) * s;
+      b = c1[2] + (c2[2] - c1[2]) * s;
+    }
+    return `rgb(${r | 0},${g | 0},${b | 0})`;
+  } else {
+    // photo_fusion: Pigmento real de la foto en (x,y) fundido con onda cromática orgánica
+    const u = (i / Math.max(1, totalLen)) * COLOR_SCALE * Math.PI * 2.0 + colorPhase;
+    const w0 = 0.5 + 0.5 * Math.cos(u);
+    const w1 = 0.5 + 0.5 * Math.cos(u - 2.094395);
+    const w2 = 0.5 + 0.5 * Math.cos(u - 4.188790);
+    const wSum = w0 + w1 + w2 + 1e-5;
+    const palR = (c0[0] * w0 + c1[0] * w1 + c2[0] * w2) / wSum;
+    const palG = (c0[1] * w0 + c1[1] * w1 + c2[1] * w2) / wSum;
+    const palB = (c0[2] * w0 + c1[2] * w1 + c2[2] * w2) / wSum;
+
+    if (rCh && gCh && bCh) {
+      let pr = rCh[pIdx] * 255, pg = gCh[pIdx] * 255, pb = bCh[pIdx] * 255;
+      const lum = 0.299 * pr + 0.587 * pg + 0.114 * pb;
+      // Realzar saturación del pigmento original para que luzca vivo en el trazo
+      pr = Math.max(0, Math.min(255, lum + (pr - lum) * 1.65));
+      pg = Math.max(0, Math.min(255, lum + (pg - lum) * 1.65));
+      pb = Math.max(0, Math.min(255, lum + (pb - lum) * 1.65));
+      const mix = 0.42 + 0.22 * Math.sin(colorPhase + (x - y) * 0.01);
+      const r = pr * (1.0 - mix) + palR * mix;
+      const g = pg * (1.0 - mix) + palG * mix;
+      const b = pb * (1.0 - mix) + palB * mix;
+      return `rgb(${r | 0},${g | 0},${b | 0})`;
+    }
+    phaseVal = u;
+  }
+
+  // Mezcla orgánica tri-fásica (120° = 2.094395 rad) con modulación tonal de sombra/luz
+  const w0 = Math.pow(0.5 + 0.5 * Math.cos(phaseVal), 1.35);
+  const w1 = Math.pow(0.5 + 0.5 * Math.cos(phaseVal - 2.0943951), 1.35);
+  const w2 = Math.pow(0.5 + 0.5 * Math.cos(phaseVal - 4.1887902), 1.35);
+  const invSum = 1.0 / (w0 + w1 + w2 + 1e-5);
+
+  let r = (c0[0] * w0 + c1[0] * w1 + c2[0] * w2) * invSum;
+  let g = (c0[1] * w0 + c1[1] * w1 + c2[1] * w2) * invSum;
+  let b = (c0[2] * w0 + c1[2] * w1 + c2[2] * w2) * invSum;
+
+  // Modulación sutil de profundidad según la sombra del retrato
+  const shadeFactor = BG_THEME === 'dark'
+    ? (0.72 + 0.36 * (1.0 - tone * 0.4))
+    : (0.62 + 0.38 * (1.0 - (1.0 - tone) * 0.45));
+  r = Math.max(0, Math.min(255, r * shadeFactor));
+  g = Math.max(0, Math.min(255, g * shadeFactor));
+  b = Math.max(0, Math.min(255, b * shadeFactor));
+
+  return `rgb(${r | 0},${g | 0},${b | 0})`;
+}
+
 function rebuildLineCache() {
   if (lineCacheCanvas.width !== W || lineCacheCanvas.height !== H) {
     lineCacheCanvas.width = W;
@@ -1848,28 +2534,52 @@ function rebuildLineCache() {
     return;
   }
 
-  cachedPath2D = new Path2D();
-  const mx0 = (ptsX[0] + ptsX[1]) * 0.5;
-  const my0 = (ptsY[0] + ptsY[1]) * 0.5;
-  cachedPath2D.moveTo(mx0, my0);
-
-  for (let i = 1; i < totalLen - 1; i++) {
-    const mx1 = (ptsX[i] + ptsX[i + 1]) * 0.5;
-    const my1 = (ptsY[i] + ptsY[i + 1]) * 0.5;
-    cachedPath2D.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
-  }
-
-  lCtx.strokeStyle = '#0e1118';
   lCtx.lineWidth = LINE_W;
   lCtx.lineCap = 'round';
   lCtx.lineJoin = 'round';
-  lCtx.stroke(cachedPath2D);
+
+  if (COLOR_MODE === 'mono') {
+    cachedPath2D = new Path2D();
+    const mx0 = (ptsX[0] + ptsX[1]) * 0.5;
+    const my0 = (ptsY[0] + ptsY[1]) * 0.5;
+    cachedPath2D.moveTo(mx0, my0);
+
+    for (let i = 1; i < totalLen - 1; i++) {
+      const mx1 = (ptsX[i] + ptsX[i + 1]) * 0.5;
+      const my1 = (ptsY[i] + ptsY[i + 1]) * 0.5;
+      cachedPath2D.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
+    }
+
+    lCtx.strokeStyle = BG_THEME === 'dark' ? '#e8eef7' : '#0e1118';
+    lCtx.stroke(cachedPath2D);
+  } else {
+    // Trazado multicolor orgánico por micro-segmentos continuos solapados (fluido en GPU a 60fps)
+    const chunkStep = isColorFlowing ? 42 : 24;
+    for (let start = 1; start < totalLen - 1; start += chunkStep) {
+      const end = Math.min(totalLen - 1, start + chunkStep);
+      const midIdx = (start + end) >> 1;
+
+      lCtx.strokeStyle = getOrganicLineColor(midIdx, totalLen, ptsX[midIdx], ptsY[midIdx]);
+      lCtx.beginPath();
+      const mx0 = (ptsX[start - 1] + ptsX[start]) * 0.5;
+      const my0 = (ptsY[start - 1] + ptsY[start]) * 0.5;
+      lCtx.moveTo(mx0, my0);
+
+      for (let i = start; i <= end; i++) {
+        const nxt = Math.min(totalLen - 1, i + 1);
+        const mx1 = (ptsX[i] + ptsX[nxt]) * 0.5;
+        const my1 = (ptsY[i] + ptsY[nxt]) * 0.5;
+        lCtx.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
+      }
+      lCtx.stroke();
+    }
+  }
 
   lineCacheDirty = false;
 }
 
 function render() {
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = BG_COLORS[BG_THEME] || '#ffffff';
   ctx.fillRect(0, 0, W, H);
 
   if (VIEW_MODE === 'photo') {
@@ -1883,7 +2593,7 @@ function render() {
   }
 
   if (VIEW_MODE === 'both') {
-    ctx.globalAlpha = 0.28;
+    ctx.globalAlpha = BG_THEME === 'dark' ? 0.14 : 0.28;
     ctx.drawImage(stencilCanvas, 0, 0);
     ctx.globalAlpha = 1.0;
   }
@@ -1894,7 +2604,7 @@ function render() {
     ctx.drawImage(animAccumCanvas, 0, 0);
     const limit = Math.min(ptsX.length - 1, drawProgressCount);
     if (limit < ptsX.length - 1) {
-      ctx.fillStyle = '#f59f33';
+      ctx.fillStyle = getOrganicLineColor(limit, ptsX.length, ptsX[limit], ptsY[limit]);
       ctx.beginPath();
       ctx.arc(ptsX[limit], ptsY[limit], 3.2, 0, Math.PI * 2);
       ctx.fill();
@@ -1906,6 +2616,51 @@ function render() {
     rebuildLineCache();
   }
   ctx.drawImage(lineCacheCanvas, 0, 0);
+}
+
+function startColorFlow() {
+  if (isColorFlowing) return;
+  if (COLOR_MODE === 'mono') {
+    COLOR_MODE = 'organic_flow';
+    document.getElementById('colorMode').value = 'organic_flow';
+  }
+  isColorFlowing = true;
+  const btn = document.getElementById('btnColorFlow');
+  btn.textContent = '⏸ Pausar Flujo de Color';
+  btn.style.background = '#1f5f5b';
+  btn.style.color = '#ffffff';
+
+  let lastTick = 0;
+  function stepColorFlow(ts) {
+    if (!isColorFlowing) return;
+    if (document.hidden) {
+      colorFlowRafId = requestAnimationFrame(stepColorFlow);
+      return;
+    }
+    if (ts - lastTick >= 32) {
+      lastTick = ts;
+      colorPhase += 0.055;
+      lineCacheDirty = true;
+      render();
+    }
+    colorFlowRafId = requestAnimationFrame(stepColorFlow);
+  }
+  colorFlowRafId = requestAnimationFrame(stepColorFlow);
+}
+
+function stopColorFlow() {
+  isColorFlowing = false;
+  if (colorFlowRafId) {
+    cancelAnimationFrame(colorFlowRafId);
+    colorFlowRafId = null;
+  }
+  const btn = document.getElementById('btnColorFlow');
+  if (btn) {
+    btn.textContent = '🌈 Fluir y Mezclar Colores en Vivo';
+    btn.style.background = '#232838';
+    btn.style.color = '#7ce8ff';
+  }
+  lineCacheDirty = true;
 }
 
 function updateStatsText() {
@@ -1942,13 +2697,14 @@ function startAnimation() {
     const nextLimit = Math.min(totalLen - 1, drawProgressCount + speed);
 
     const aCtx = animAccumCanvas.getContext('2d');
-    aCtx.strokeStyle = '#0e1118';
+    const startIdx = Math.max(1, lastAnimatedIndex);
+    const midIdx = (startIdx + nextLimit) >> 1;
+    aCtx.strokeStyle = getOrganicLineColor(midIdx, totalLen, ptsX[midIdx], ptsY[midIdx]);
     aCtx.lineWidth = LINE_W;
     aCtx.lineCap = 'round';
     aCtx.lineJoin = 'round';
     aCtx.beginPath();
 
-    const startIdx = Math.max(1, lastAnimatedIndex);
     const mxStart = (ptsX[startIdx - 1] + ptsX[startIdx]) * 0.5;
     const myStart = (ptsY[startIdx - 1] + ptsY[startIdx]) * 0.5;
     aCtx.moveTo(mxStart, myStart);
@@ -2105,7 +2861,7 @@ function initDemoPortrait() {
 }
 
 // =========================================================
-// 6. EVENTOS DE INTERFAZ Y BOTONES (CONSERVADOS Y CON DEBOUNCE)
+// 6. EVENTOS DE INTERFAZ Y BOTONES (CONSERVADOS + COLOR ORGÁNICO)
 // =========================================================
 document.getElementById('imgInput').addEventListener('change', (e) => {
   const file = e.target.files[0];
@@ -2144,6 +2900,69 @@ document.getElementById('viewMode').addEventListener('change', (e) => {
   render();
 });
 
+// Controles del Motor de Color Orgánico
+document.getElementById('colorMode').addEventListener('change', (e) => {
+  COLOR_MODE = e.target.value;
+  if (COLOR_MODE === 'mono' && isColorFlowing) {
+    stopColorFlow();
+  }
+  lineCacheDirty = true;
+  render();
+});
+
+document.getElementById('colorPalette').addEventListener('change', (e) => {
+  COLOR_PALETTE = e.target.value;
+  const preset = PALETTE_PRESETS[COLOR_PALETTE];
+  if (preset) {
+    document.getElementById('colPick1').value = preset[0];
+    document.getElementById('colPick2').value = preset[1];
+    document.getElementById('colPick3').value = preset[2];
+    syncCustomColorsFromPickers();
+  }
+  if (COLOR_MODE === 'mono') {
+    COLOR_MODE = 'organic_flow';
+    document.getElementById('colorMode').value = 'organic_flow';
+  }
+  lineCacheDirty = true;
+  render();
+});
+
+for (const pickId of ['colPick1', 'colPick2', 'colPick3']) {
+  document.getElementById(pickId).addEventListener('input', () => {
+    document.getElementById('colorPalette').value = 'custom';
+    COLOR_PALETTE = 'custom';
+    syncCustomColorsFromPickers();
+    if (COLOR_MODE === 'mono') {
+      COLOR_MODE = 'organic_flow';
+      document.getElementById('colorMode').value = 'organic_flow';
+    }
+    lineCacheDirty = true;
+    render();
+  });
+}
+
+document.getElementById('colorScale').addEventListener('input', (e) => {
+  COLOR_SCALE = parseFloat(e.target.value);
+  document.getElementById('vColScale').textContent = COLOR_SCALE.toFixed(1);
+  lineCacheDirty = true;
+  render();
+});
+
+document.getElementById('bgTheme').addEventListener('change', (e) => {
+  BG_THEME = e.target.value;
+  lineCacheDirty = true;
+  render();
+});
+
+document.getElementById('btnColorFlow').onclick = () => {
+  if (isColorFlowing) {
+    stopColorFlow();
+    render();
+  } else {
+    startColorFlow();
+  }
+};
+
 let stencilRafPending = false;
 const bindParam = (id, labelId, setter, isStencilParam = false, decimals = null) => {
   const el = document.getElementById(id);
@@ -2177,14 +2996,8 @@ bindParam('chaikinPasses', 'vChaikin', v => CHAIKIN_PASSES = v, false, null);
 document.getElementById('lineW').addEventListener('input', (e) => {
   LINE_W = parseFloat(e.target.value);
   document.getElementById('vWidth').textContent = LINE_W.toFixed(1);
-  if (cachedPath2D && !isAnimatingDraw) {
-    const lCtx = lineCacheCanvas.getContext('2d');
-    lCtx.clearRect(0, 0, W, H);
-    lCtx.strokeStyle = '#0e1118';
-    lCtx.lineWidth = LINE_W;
-    lCtx.lineCap = 'round';
-    lCtx.lineJoin = 'round';
-    lCtx.stroke(cachedPath2D);
+  lineCacheDirty = true;
+  if (!isAnimatingDraw) {
     render();
   }
 });
@@ -2194,6 +3007,7 @@ document.getElementById('btnRebuild').onclick = () => rebuildPortrait(false);
 document.getElementById('btnClear').onclick = () => {
   stopAnimation();
   stopLiveGrowth();
+  stopColorFlow();
   if (solverWorker && workerBusy) {
     solverWorker.terminate();
     solverWorker = null;
@@ -2203,15 +3017,20 @@ document.getElementById('btnClear').onclick = () => {
   ptsX = new Float32Array(0);
   ptsY = new Float32Array(0);
   lineCacheDirty = true;
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = BG_COLORS[BG_THEME] || '#ffffff';
   ctx.fillRect(0, 0, W, H);
   statusPhase = 'Lienzo limpio (pulsa Reiniciar / Recalcular)';
   updateStatsText();
 };
 
 document.getElementById('btnResetDefaults').onclick = () => {
+  stopColorFlow();
   TARGET_NODES = isMobileDevice ? 22000 : 26000;
   LINE_W = 1.0;
+  COLOR_MODE = 'mono';
+  BG_THEME = 'white';
+  document.getElementById('colorMode').value = 'mono';
+  document.getElementById('bgTheme').value = 'white';
   applyModePreset(ENGINE_MODE);
   rebuildPortrait(false);
 };
@@ -2226,29 +3045,62 @@ document.getElementById('btnAnimate').onclick = () => {
   }
 };
 
+document.getElementById('btnPng').onclick = () => {
+  render();
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = `retrato_${ENGINE_MODE}_${COLOR_MODE}.png`;
+  a.click();
+};
+
 document.getElementById('btnSvg').onclick = () => {
   const len = ptsX.length;
   if (len < 3) return;
 
-  const mx0 = (ptsX[0] + ptsX[1]) * 0.5;
-  const my0 = (ptsY[0] + ptsY[1]) * 0.5;
-  const parts = [`M ${mx0.toFixed(1)} ${my0.toFixed(1)}`];
+  const bgFill = BG_COLORS[BG_THEME] || '#ffffff';
+  let pathsMarkup = '';
 
-  for (let i = 1; i < len - 1; i++) {
-    const mx1 = (ptsX[i] + ptsX[i + 1]) * 0.5;
-    const my1 = (ptsY[i] + ptsY[i + 1]) * 0.5;
-    parts.push(`Q ${ptsX[i].toFixed(1)} ${ptsY[i].toFixed(1)} ${mx1.toFixed(1)} ${my1.toFixed(1)}`);
+  if (COLOR_MODE === 'mono') {
+    const strokeCol = BG_THEME === 'dark' ? '#e8eef7' : '#0e1118';
+    const mx0 = (ptsX[0] + ptsX[1]) * 0.5;
+    const my0 = (ptsY[0] + ptsY[1]) * 0.5;
+    const parts = [`M ${mx0.toFixed(1)} ${my0.toFixed(1)}`];
+    for (let i = 1; i < len - 1; i++) {
+      const mx1 = (ptsX[i] + ptsX[i + 1]) * 0.5;
+      const my1 = (ptsY[i] + ptsY[i + 1]) * 0.5;
+      parts.push(`Q ${ptsX[i].toFixed(1)} ${ptsY[i].toFixed(1)} ${mx1.toFixed(1)} ${my1.toFixed(1)}`);
+    }
+    pathsMarkup = `  <path d="${parts.join(' ')}" fill="none" stroke="${strokeCol}" stroke-width="${LINE_W}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  } else {
+    const chunkStep = 28;
+    const pathList = [];
+    for (let start = 1; start < len - 1; start += chunkStep) {
+      const end = Math.min(len - 1, start + chunkStep);
+      const midIdx = (start + end) >> 1;
+      const col = getOrganicLineColor(midIdx, len, ptsX[midIdx], ptsY[midIdx]);
+      const mx0 = (ptsX[start - 1] + ptsX[start]) * 0.5;
+      const my0 = (ptsY[start - 1] + ptsY[start]) * 0.5;
+      const segs = [`M ${mx0.toFixed(1)} ${my0.toFixed(1)}`];
+      for (let i = start; i <= end; i++) {
+        const nxt = Math.min(len - 1, i + 1);
+        const mx1 = (ptsX[i] + ptsX[nxt]) * 0.5;
+        const my1 = (ptsY[i] + ptsY[nxt]) * 0.5;
+        segs.push(`Q ${ptsX[i].toFixed(1)} ${ptsY[i].toFixed(1)} ${mx1.toFixed(1)} ${my1.toFixed(1)}`);
+      }
+      pathList.push(`  <path d="${segs.join(' ')}" fill="none" stroke="${col}" stroke-width="${LINE_W}" stroke-linecap="round" stroke-linejoin="round"/>`);
+    }
+    pathsMarkup = pathList.join('\n');
   }
 
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
-  <rect width="100%" height="100%" fill="white"/>
-  <path d="${parts.join(' ')}" fill="none" stroke="#0e1118" stroke-width="${LINE_W}" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect width="100%" height="100%" fill="${bgFill}"/>
+${pathsMarkup}
 </svg>`;
 
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
-  a.download = `retrato_${ENGINE_MODE}.svg`;
+  a.download = `retrato_${ENGINE_MODE}_${COLOR_MODE}.svg`;
   a.click();
 };
 
@@ -2256,7 +3108,7 @@ let recorder = null, chunks = [];
 const btnRec = document.getElementById('btnRecord');
 btnRec.onclick = () => {
   if (typeof MediaRecorder === 'undefined' || !canvas.captureStream) {
-    alert('La grabación de vídeo WebM no está soportada en este navegador móvil. Puedes usar Exportar .SVG.');
+    alert('La grabación de vídeo WebM no está soportada en este navegador móvil. Puedes usar Exportar .SVG o Guardar .PNG.');
     return;
   }
   if (!recorder || recorder.state === 'inactive') {
