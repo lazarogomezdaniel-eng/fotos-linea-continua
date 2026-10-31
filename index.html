@@ -330,7 +330,7 @@ const lumHist = new Uint32Array(256);
 
 // Cachés de desenfoque para respuesta en < 2ms al mover sliders
 let cachedRBlur = null, cachedGBlur = null, cachedBBlur = null;
-let cachedCleanGray = null, cachedGradMag = null, cachedLocalTex = null;
+let cachedCleanGray = null, cachedGradMag = null, cachedSharpGrad = null, cachedLocalTex = null;
 let cachedBlurRadius = -1, cachedBlurFine = null, cachedBlurMed = null, cachedBlurBroad = null;
 let cachedStep232EdgeAct = null;
 
@@ -510,15 +510,28 @@ function ensureBaseCaches() {
     cachedBBlur = gaussianBlur(bCh, W, H, 2);
     cachedCleanGray = gaussianBlur(rawGray, W, H, 1);
 
+    cachedSharpGrad = new Float32Array(N);
     cachedGradMag = new Float32Array(N);
     for (let y = 1; y < H - 1; y++) {
       const row = y * W;
       for (let x = 1; x < W - 1; x++) {
         const i = row + x;
-        const gxR = cachedRBlur[i + 1] - cachedRBlur[i - 1], gyR = cachedRBlur[i + W] - cachedRBlur[i - W];
-        const gxG = cachedGBlur[i + 1] - cachedGBlur[i - 1], gyG = cachedGBlur[i + W] - cachedGBlur[i - W];
-        const gxB = cachedBBlur[i + 1] - cachedBBlur[i - 1], gyB = cachedBBlur[i + W] - cachedBBlur[i - W];
-        cachedGradMag[i] = Math.sqrt(gxR * gxR + gyR * gyR + gxG * gxG + gyG * gyG + gxB * gxB + gyB * gyB);
+        // Gradiente Cromático Scharr 3x3 Ultra-Nítido: captura contornos de 1px en ojos, pestañas, labios, pelo y arrugas
+        const gxR = (rCh[i + 1 - W] * 3 + rCh[i + 1] * 10 + rCh[i + 1 + W] * 3) - (rCh[i - 1 - W] * 3 + rCh[i - 1] * 10 + rCh[i - 1 + W] * 3);
+        const gyR = (rCh[i - W - 1] * 3 + rCh[i - W] * 10 + rCh[i - W + 1] * 3) - (rCh[i + W - 1] * 3 + rCh[i + W] * 10 + rCh[i + W + 1] * 3);
+        const gxG = (gCh[i + 1 - W] * 3 + gCh[i + 1] * 10 + gCh[i + 1 + W] * 3) - (gCh[i - 1 - W] * 3 + gCh[i - 1] * 10 + gCh[i - 1 + W] * 3);
+        const gyG = (gCh[i - W - 1] * 3 + gCh[i - W] * 10 + gCh[i - W + 1] * 3) - (gCh[i + W - 1] * 3 + gCh[i + W] * 10 + gCh[i + W + 1] * 3);
+        const gxB = (bCh[i + 1 - W] * 3 + bCh[i + 1] * 10 + bCh[i + 1 + W] * 3) - (bCh[i - 1 - W] * 3 + bCh[i - 1] * 10 + bCh[i - 1 + W] * 3);
+        const gyB = (bCh[i - W - 1] * 3 + bCh[i - W] * 10 + bCh[i - W + 1] * 3) - (bCh[i + W - 1] * 3 + bCh[i + W] * 10 + bCh[i + W + 1] * 3);
+
+        const rawMag = Math.sqrt(gxR * gxR + gyR * gyR + gxG * gxG + gyG * gyG + gxB * gxB + gyB * gyB) / 32;
+        cachedSharpGrad[i] = rawMag > 0.040 ? (rawMag - 0.040) * 1.05 : 0;
+
+        // Gradiente suave para silueta y separación de fondo
+        const gxRb = cachedRBlur[i + 1] - cachedRBlur[i - 1], gyRb = cachedRBlur[i + W] - cachedRBlur[i - W];
+        const gxGb = cachedGBlur[i + 1] - cachedGBlur[i - 1], gyGb = cachedGBlur[i + W] - cachedGBlur[i - W];
+        const gxBb = cachedBBlur[i + 1] - cachedBBlur[i - 1], gyBb = cachedBBlur[i + W] - cachedBBlur[i - W];
+        cachedGradMag[i] = Math.sqrt(gxRb * gxRb + gyRb * gyRb + gxGb * gxGb + gyGb * gyGb + gxBb * gxBb + gyBb * gyBb);
       }
     }
     cachedLocalTex = gaussianBlur(cachedGradMag, W, H, 5);
@@ -702,19 +715,37 @@ function buildAllStencilsAndSilhouettes() {
     const dodgeBroad = Math.min(1.0, (g + 0.028) / (cachedBlurBroad[i] + 0.028));
 
     const sketch = Math.pow(dodgeFine, pFine) * 0.65 + Math.pow(dodgeMed, pMed) * 0.25 + Math.pow(dodgeBroad, pBroad) * 0.10;
-    const darkFeature = g < 0.32 ? ((1.0 - SHADE_WEIGHT) + SHADE_WEIGHT * (g / 0.32)) : 1.0;
-    const pencilVal = sketch * darkFeature;
 
-    const sil232 = BG_CLEAN <= 0.001 ? 1.0 : Math.min(1.0, Math.max(0.0, (cachedStep232EdgeAct[i] - bgClean04) * invBgClean14));
+    // Diferencia de Gaussianas (DoG) para micro-aristas en ojos, párpados y pliegues
+    const df = Math.max(0, cachedBlurFine[i] - g);
+    const dm = Math.max(0, cachedBlurMed[i] - g);
+    const dogVal = Math.max(0, 1.0 - (df * 3.6 + dm * 1.5));
+
+    // Gradiente Cromático Scharr Ultra-Nítido
+    const edgeMag = cachedSharpGrad ? cachedSharpGrad[i] : cachedGradMag[i];
+    const edgeVal = Math.max(0, 1.0 - Math.min(1.0, Math.pow(edgeMag * 3.4, 0.90)));
+
+    // Fusión Maestra: toma el rasgo más nítido de Dodge + DoG + Scharr
+    const masterLine = Math.min(sketch, dogVal, edgeVal);
+
+    // Adaptación Local de Contraste para fotos complejas (sombras duras / contraluz)
+    const localBg = cachedBlurBroad[i];
+    const localContrast = Math.max(0.0, Math.min(1.0, 0.5 + (g - localBg) * 1.6));
+    const toneVal = localContrast * 0.40 + g * 0.60;
+
+    const darkFeature = toneVal < 0.38 ? ((1.0 - SHADE_WEIGHT) + SHADE_WEIGHT * (toneVal / 0.38)) : 1.0;
+    const pencilVal = masterLine * darkFeature;
+
+    const sil232 = BG_CLEAN <= 0.001 ? 1.0 : (silhouetteMask[i] ? 1.0 : Math.min(1.0, Math.max(0.0, (cachedStep232EdgeAct[i] - bgClean04) * invBgClean14)));
     const s232 = Math.max(0.0, Math.min(1.0, 1.0 - (1.0 - pencilVal) * sil232));
     step232Stencil[i] = s232;
 
     let cTone = 1.0;
     if (silhouetteMask[i]) {
-      let normLum = Math.max(0.0, Math.min(1.0, (g - p05) * invLumSpan));
+      let normLum = Math.max(0.0, Math.min(1.0, (toneVal - p05) * invLumSpan));
       normLum = normLum * normLum * (3.0 - 2.0 * normLum);
-      const combined = sketch * (1.0 - SHADE_WEIGHT) + normLum * SHADE_WEIGHT;
-      cTone = Math.max(0.0, Math.min(1.0, Math.min(sketch * 0.88, combined)));
+      const combined = masterLine * (1.0 - SHADE_WEIGHT) + normLum * SHADE_WEIGHT;
+      cTone = Math.max(0.0, Math.min(1.0, Math.min(masterLine * 0.82, combined)));
     }
     coralToneMap[i] = cTone;
 
@@ -1359,14 +1390,14 @@ function generateDendriticCoralPortrait(toneMap, silhouetteMask, smoothSilMap, W
   const N = W * H;
   const effMaxW = Math.max(minW + 1.2, Math.min(6.2, maxW));
 
-  const smoothTone = workerBlur(toneMap, W, H, 4);
+  const smoothTone = workerBlur(toneMap, W, H, 2.0);
   const gradX = new Float32Array(N);
   const gradY = new Float32Array(N);
   for (let y = 1; y < H - 1; y++) {
     for (let x = 1; x < W - 1; x++) {
       const i = y * W + x;
-      gradX[i] = (smoothTone[i + 1] - smoothTone[i - 1]) * 0.55 + (smoothSilMap[i + 1] - smoothSilMap[i - 1]) * 0.85;
-      gradY[i] = (smoothTone[i + W] - smoothTone[i - W]) * 0.55 + (smoothSilMap[i + W] - smoothSilMap[i - W]) * 0.85;
+      gradX[i] = (smoothTone[i + 1] - smoothTone[i - 1]) * 0.70 + (smoothSilMap[i + 1] - smoothSilMap[i - 1]) * 0.70;
+      gradY[i] = (smoothTone[i + W] - smoothTone[i - W]) * 0.70 + (smoothSilMap[i + W] - smoothSilMap[i - W]) * 0.70;
     }
   }
 
@@ -1379,7 +1410,8 @@ function generateDendriticCoralPortrait(toneMap, silhouetteMask, smoothSilMap, W
       const s = t < 0.48
         ? 0.38 * Math.pow(t / 0.48, 1.65)
         : 0.38 + 0.62 * Math.pow((t - 0.48) / 0.52, 1.35);
-      wMap[i] = minW + (effMaxW - minW) * s;
+      const edgeBoost = Math.min(1.0, Math.hypot(gradX[i], gradY[i]) * 2.8);
+      wMap[i] = Math.max(minW * 0.90, (minW + (effMaxW - minW) * s) * (1.0 - edgeBoost * 0.28));
     }
   }
 
@@ -1667,6 +1699,13 @@ function generateDendriticCoralPortrait(toneMap, silhouetteMask, smoothSilMap, W
 
       const mIdx = (((vy[u] + vy[v]) * 0.5) | 0) * W + (((vx[u] + vx[v]) * 0.5) | 0);
       const gx = gradX[mIdx], gy = gradY[mIdx];
+      const gMag = Math.hypot(gx, gy);
+      let alignDiscount = 1.0;
+      if (gMag > 0.02) {
+        const tx = -gy / gMag, ty = gx / gMag;
+        const alignDot = Math.abs(ux * tx + uy * ty);
+        alignDiscount = 0.58 + 0.42 * (1.0 - alignDot);
+      }
       const crossGrad = Math.abs(gx * ux + gy * uy);
 
       let contFactor = 1.0;
@@ -1680,8 +1719,8 @@ function generateDendriticCoralPortrait(toneMap, silhouetteMask, smoothSilMap, W
         }
       }
 
-      const jitter = 0.88 + rand() * 0.24;
-      const w = dist * (1.0 + crossGrad * 4.8) * contFactor * jitter;
+      const jitter = 0.90 + rand() * 0.20;
+      const w = dist * (1.0 + crossGrad * 4.8) * contFactor * jitter * alignDiscount;
       heapPush(u, v, w);
     }
   };
@@ -1973,7 +2012,7 @@ function generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, 
 
   for (let i = 0; i < len; i++) {
     const dark = Math.max(0, 1.0 - step232Stencil[i]);
-    const w = dark < 0.08 ? 0 : Math.pow(dark, 1.45);
+    const w = dark < 0.03 ? 0 : Math.pow(dark, 1.25);
     err[i] = w;
     totalMass += w;
   }
@@ -1995,9 +2034,9 @@ function generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, 
       const val = err[idx];
       let quantErr = val;
 
-      if (val >= halfUnit && step232Stencil[idx] < 0.90 && count < maxCap) {
-        rx[count] = x + (Math.random() - 0.5) * 0.6;
-        ry[count] = y + (Math.random() - 0.5) * 0.6;
+      if (val >= halfUnit && step232Stencil[idx] < 0.92 && count < maxCap) {
+        rx[count] = x + (Math.random() - 0.5) * 0.5;
+        ry[count] = y + (Math.random() - 0.5) * 0.5;
         count++;
         quantErr = val - unitMass;
       }
@@ -2016,7 +2055,7 @@ function generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, 
   const head = new Int32Array(cols * rows);
   const next = new Int32Array(count);
 
-  for (let iter = 0; iter < 3; iter++) {
+  for (let iter = 0; iter < 4; iter++) {
     head.fill(-1);
     for (let i = 0; i < count; i++) {
       const cx = Math.max(0, Math.min(cols - 1, (rx[i] / cellSize) | 0));
@@ -2028,10 +2067,18 @@ function generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, 
 
     for (let i = 0; i < count; i++) {
       const px = rx[i], py = ry[i];
-      const s = step232Stencil[Math.min(H - 1, Math.max(0, py | 0)) * W + Math.min(W - 1, Math.max(0, px | 0))];
-      const rTarget = MIN_R + (MAX_R - MIN_R) * Math.pow(s, 1.3);
+      const sIdx = Math.min(H - 2, Math.max(1, py | 0)) * W + Math.min(W - 2, Math.max(1, px | 0));
+      const s = step232Stencil[sIdx];
+      const rTarget = MIN_R + (MAX_R - MIN_R) * Math.pow(s, 1.25);
       const rSq = rTarget * rTarget;
       let fx = 0, fy = 0;
+
+      // Ridge locking: atracción hacia el centro exacto de la línea de calco
+      const gx = step232Stencil[sIdx + 1] - step232Stencil[sIdx - 1];
+      const gy = step232Stencil[sIdx + W] - step232Stencil[sIdx - W];
+      const pull = (1.0 - s) * 2.0;
+      fx -= gx * pull;
+      fy -= gy * pull;
 
       const cx = (px / cellSize) | 0, cy = (py / cellSize) | 0;
       for (let dy = -1; dy <= 1; dy++) {
@@ -2048,7 +2095,7 @@ function generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, 
               const dSq = ddx * ddx + ddy * ddy;
               if (dSq < rSq && dSq > 1e-4) {
                 const d = Math.sqrt(dSq);
-                const f = ((rTarget - d) / d) * 0.24;
+                const f = ((rTarget - d) / d) * 0.22;
                 fx += ddx * f;
                 fy += ddy * f;
               }
@@ -2063,6 +2110,313 @@ function generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, 
   }
 
   return { rawX: rx.subarray(0, count), rawY: ry.subarray(0, count) };
+}
+
+/**
+ * MODO 2: CORAL ORGÁNICO TSP (Versión Stippling Poisson-Disc + Lloyd + 2-Opt)
+ */
+function generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TARGET_NODES, MIN_R, MAX_R) {
+  const len = W * H;
+  const rMap = new Float32Array(len);
+  for (let i = 0; i < len; i++) {
+    if (!silhouetteMask[i]) {
+      rMap[i] = MAX_R * 2.5;
+    } else {
+      const t = coralToneMap[i];
+      const sCurve = t < 0.5
+        ? 0.5 * Math.pow(2.0 * t, 2.2)
+        : 1.0 - 0.5 * Math.pow(2.0 * (1.0 - t), 1.8);
+      rMap[i] = MIN_R + (MAX_R - MIN_R) * sCurve;
+    }
+  }
+
+  const maxCap = Math.min(60000, Math.round(TARGET_NODES * 1.45) + 4000);
+  const rx = new Float32Array(maxCap);
+  const ry = new Float32Array(maxCap);
+  const rr = new Float32Array(maxCap);
+  const pNext = new Int32Array(maxCap).fill(-1);
+  let count = 0;
+
+  const cellSize = 4;
+  const gCols = Math.ceil(W / cellSize) + 1;
+  const gRows = Math.ceil(H / cellSize) + 1;
+  const pHead = new Int32Array(gCols * gRows).fill(-1);
+
+  const canPlace = (x, y, rReq) => {
+    const cx = (x / cellSize) | 0;
+    const cy = (y / cellSize) | 0;
+    const rad = Math.ceil((rReq + 1.5) / cellSize);
+    for (let dy = -rad; dy <= rad; dy++) {
+      const ny = cy + dy;
+      if (ny < 0 || ny >= gRows) continue;
+      const rowOff = ny * gCols;
+      for (let dx = -rad; dx <= rad; dx++) {
+        const nx = cx + dx;
+        if (nx < 0 || nx >= gCols) continue;
+        let j = pHead[rowOff + nx];
+        while (j !== -1) {
+          const ddx = x - rx[j], ddy = y - ry[j];
+          const minSep = (rReq + rr[j]) * 0.44;
+          if (ddx * ddx + ddy * ddy < minSep * minSep) return false;
+          j = pNext[j];
+        }
+      }
+    }
+    return true;
+  };
+
+  const addNode = (x, y, rReq) => {
+    if (count >= maxCap) return;
+    const idx = count++;
+    rx[idx] = x; ry[idx] = y; rr[idx] = rReq;
+    const cx = Math.max(0, Math.min(gCols - 1, (x / cellSize) | 0));
+    const cy = Math.max(0, Math.min(gRows - 1, (y / cellSize) | 0));
+    const cIdx = cy * gCols + cx;
+    pNext[idx] = pHead[cIdx];
+    pHead[cIdx] = idx;
+  };
+
+  for (let y = 5; y < H - 5; y += 2) {
+    for (let x = 5; x < W - 5; x += 2) {
+      const i = y * W + x;
+      if (silhouetteMask[i] && smoothSilMap[i] >= 0.48 && smoothSilMap[i] <= 0.80) {
+        const rHere = Math.min(MAX_R * 0.60, Math.max(MIN_R * 1.15, rMap[i] * 0.80));
+        if (canPlace(x, y, rHere)) addNode(x, y, rHere);
+      }
+    }
+  }
+
+  const err = new Float32Array(len);
+  let totalWeight = 0;
+  for (let i = 0; i < len; i++) {
+    if (silhouetteMask[i]) {
+      const r = rMap[i];
+      const w = 1.0 / (r * r);
+      err[i] = w;
+      totalWeight += w;
+    }
+  }
+
+  const thresh = Math.max(0.18, totalWeight / (TARGET_NODES * 1.15));
+  for (let y = 5; y < H - 5; y++) {
+    const l2r = (y & 1) === 0;
+    for (let s = 5; s < W - 5; s++) {
+      const x = l2r ? s : (W - 1 - s);
+      const idx = y * W + x;
+      if (!silhouetteMask[idx]) continue;
+
+      const val = err[idx];
+      let quantErr = val;
+      if (val >= thresh) {
+        const rHere = rMap[idx];
+        const jx = x + (Math.random() - 0.5) * 0.7;
+        const jy = y + (Math.random() - 0.5) * 0.7;
+        if (canPlace(jx, jy, rHere)) {
+          addNode(jx, jy, rHere);
+          quantErr = val - thresh;
+        } else {
+          quantErr = 0;
+        }
+      }
+
+      const dir = l2r ? 1 : -1;
+      err[idx + dir] += quantErr * 0.4375;
+      err[(y + 1) * W + (x - dir)] += quantErr * 0.1875;
+      err[(y + 1) * W + x] += quantErr * 0.3125;
+      err[(y + 1) * W + (x + dir)] += quantErr * 0.0625;
+    }
+  }
+
+  const rCell = 8;
+  const rCols = Math.ceil(W / rCell) + 1;
+  const rRows = Math.ceil(H / rCell) + 1;
+  const rHead = new Int32Array(rCols * rRows);
+  const rNext = new Int32Array(count);
+
+  for (let iter = 0; iter < 4; iter++) {
+    rHead.fill(-1);
+    for (let i = 0; i < count; i++) {
+      const cx = Math.max(0, Math.min(rCols - 1, (rx[i] / rCell) | 0));
+      const cy = Math.max(0, Math.min(rRows - 1, (ry[i] / rCell) | 0));
+      const cIdx = cy * rCols + cx;
+      rNext[i] = rHead[cIdx];
+      rHead[cIdx] = i;
+    }
+
+    for (let i = 0; i < count; i++) {
+      const px = rx[i], py = ry[i], ri = rr[i];
+      let fx = 0, fy = 0;
+
+      // Ridge locking hacia rasgos del coralToneMap
+      const sIdx = Math.min(H - 2, Math.max(1, py | 0)) * W + Math.min(W - 2, Math.max(1, px | 0));
+      const gx = coralToneMap[sIdx + 1] - coralToneMap[sIdx - 1];
+      const gy = coralToneMap[sIdx + W] - coralToneMap[sIdx - W];
+      const pull = (1.0 - coralToneMap[sIdx]) * 1.5;
+      fx -= gx * pull;
+      fy -= gy * pull;
+
+      const cx = (px / rCell) | 0, cy = (py / rCell) | 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        const ny = cy + dy;
+        if (ny < 0 || ny >= rRows) continue;
+        const rowOff = ny * rCols;
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = cx + dx;
+          if (nx < 0 || nx >= rCols) continue;
+          let j = rHead[rowOff + nx];
+          while (j !== -1) {
+            if (j !== i) {
+              const ddx = px - rx[j], ddy = py - ry[j];
+              const dSq = ddx * ddx + ddy * ddy;
+              const targetD = (ri + rr[j]) * 0.44;
+              if (dSq < targetD * targetD && dSq > 1e-4) {
+                const d = Math.sqrt(dSq);
+                const f = ((targetD - d) / d) * 0.22;
+                fx += ddx * f;
+                fy += ddy * f;
+              }
+            }
+            j = rNext[j];
+          }
+        }
+      }
+
+      const nx = Math.max(4, Math.min(W - 4, px + Math.max(-1.4, Math.min(1.4, fx))));
+      const ny = Math.max(4, Math.min(H - 4, py + Math.max(-1.4, Math.min(1.4, fy))));
+      if (silhouetteMask[(ny | 0) * W + (nx | 0)]) {
+        rx[i] = nx;
+        ry[i] = ny;
+      }
+    }
+  }
+
+  return { rawX: rx.subarray(0, count), rawY: ry.subarray(0, count) };
+}
+
+/**
+ * MODO 9: MOSAICO DE ROMBOS ISOMÉTRICOS 3D (@fabian.jimenez):
+ * Red continua de celdas isométricas (rombos 60°/120°) con pliegues concéntricos
+ * cuya densidad de vueltas esculpe las sombras del retrato.
+ */
+function generateIsoDiamondPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MAX_R) {
+  const dW = Math.max(12, Math.min(26, Math.round(MAX_R * 2.6)));
+  const dH = dW * 0.57735; // tg(30°) = 1/sqrt(3)
+
+  const outX = [];
+  const outY = [];
+  const rows = Math.ceil(H / dH) + 1;
+  const cols = Math.ceil(W / dW) + 1;
+
+  for (let r = 1; r < rows - 1; r++) {
+    const cy = r * dH;
+    const l2r = (r & 1) === 0;
+    for (let s = 1; s < cols - 1; s++) {
+      const c = l2r ? s : (cols - 1 - s);
+      const cx = c * dW + ((r & 1) ? dW * 0.5 : 0);
+      if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
+
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+
+      let sumDark = 0, cnt = 0;
+      for (let oy = -3; oy <= 3; oy += 3) {
+        for (let ox = -3; ox <= 3; ox += 3) {
+          const ii = Math.min(H - 1, Math.max(0, (cy + oy) | 0)) * W + Math.min(W - 1, Math.max(0, (cx + ox) | 0));
+          sumDark += (1.0 - coralToneMap[ii]);
+          cnt++;
+        }
+      }
+      const dark = sumDark / cnt;
+      const turns = Math.max(1, Math.min(7, Math.round(1.2 + Math.pow(dark, 1.15) * 5.8)));
+
+      for (let t = 0; t <= turns; t++) {
+        const u = t / turns;
+        const scale = 0.90 * (1.0 - u * 0.82);
+        const rx = dW * 0.5 * scale;
+        const ry = dH * 0.5 * scale;
+        outX.push(cx, cx + rx, cx, cx - rx);
+        outY.push(cy - ry, cy, cy + ry, cy);
+      }
+      outX.push(cx, cx + dW * 0.45);
+      outY.push(cy - dH * 0.45, cy);
+    }
+  }
+
+  return {
+    ptsX: new Float32Array(outX),
+    ptsY: new Float32Array(outY)
+  };
+}
+
+/**
+ * MODO 10: VÓRTICE GEOMÉTRICO EN ESPIRAL (@fabian.jimenez):
+ * Celdas poligonales en espiral con curvas de persecución que convergen en vórtices
+ * modulados por la sombra y profundidad facial.
+ */
+function generatePursuitVortexPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MAX_R) {
+  const cellR = Math.max(12, Math.min(26, Math.round(MAX_R * 2.5)));
+  const dx = cellR * 1.6;
+  const dy = cellR * 1.4;
+
+  const outX = [];
+  const outY = [];
+  const rows = Math.ceil(H / dy) + 1;
+  const cols = Math.ceil(W / dx) + 1;
+
+  for (let r = 1; r < rows - 1; r++) {
+    const cy = r * dy;
+    const l2r = (r & 1) === 0;
+    for (let s = 1; s < cols - 1; s++) {
+      const c = l2r ? s : (cols - 1 - s);
+      const cx = c * dx + ((r & 1) ? dx * 0.5 : 0);
+      if (cx < 8 || cx >= W - 8 || cy < 8 || cy >= H - 8) continue;
+
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+
+      let sumDark = 0, cnt = 0;
+      for (let oy = -4; oy <= 4; oy += 4) {
+        for (let ox = -4; ox <= 4; ox += 4) {
+          const ii = Math.min(H - 1, Math.max(0, (cy + oy) | 0)) * W + Math.min(W - 1, Math.max(0, (cx + ox) | 0));
+          sumDark += (1.0 - coralToneMap[ii]);
+          cnt++;
+        }
+      }
+      const dark = sumDark / cnt;
+      const numCorners = 5;
+      const polyX = new Float32Array(numCorners);
+      const polyY = new Float32Array(numCorners);
+      const rad = cellR * 0.90;
+      const rot0 = (r * 0.35 + c * 0.25);
+
+      for (let k = 0; k < numCorners; k++) {
+        const ang = rot0 + (k * 2 * Math.PI) / numCorners;
+        polyX[k] = cx + Math.cos(ang) * rad;
+        polyY[k] = cy + Math.sin(ang) * rad;
+      }
+
+      const totalSteps = Math.max(6, Math.min(36, Math.round(8 + Math.pow(dark, 1.1) * 28)));
+      const alpha = 0.09 + dark * 0.08;
+
+      let pIdx = 0;
+      for (let step = 0; step < totalSteps; step++) {
+        const nextIdx = (pIdx + 1) % numCorners;
+        outX.push(polyX[pIdx]);
+        outY.push(polyY[pIdx]);
+        polyX[pIdx] += (polyX[nextIdx] - polyX[pIdx]) * alpha;
+        polyY[pIdx] += (polyY[nextIdx] - polyY[pIdx]) * alpha;
+        pIdx = nextIdx;
+      }
+
+      outX.push(cx + Math.cos(rot0) * rad);
+      outY.push(cy + Math.sin(rot0) * rad);
+    }
+  }
+
+  return {
+    ptsX: new Float32Array(outX),
+    ptsY: new Float32Array(outY)
+  };
 }
 
 /**
@@ -2257,6 +2611,28 @@ self.onmessage = function(e) {
     return;
   }
 
+  if (engineMode === 'iso_diamond') {
+    let { ptsX, ptsY } = generateIsoDiamondPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MAX_R);
+    if (CHAIKIN_PASSES > 0) {
+      ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+    }
+    const outX = new Float32Array(ptsX);
+    const outY = new Float32Array(ptsY);
+    self.postMessage({ jobId, ptsX: outX, ptsY: outY, pass: 1, totalPasses: 1, done: true }, [outX.buffer, outY.buffer]);
+    return;
+  }
+
+  if (engineMode === 'pursuit_vortex') {
+    let { ptsX, ptsY } = generatePursuitVortexPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MAX_R);
+    if (CHAIKIN_PASSES > 0) {
+      ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+    }
+    const outX = new Float32Array(ptsX);
+    const outY = new Float32Array(ptsY);
+    self.postMessage({ jobId, ptsX: outX, ptsY: outY, pass: 1, totalPasses: 1, done: true }, [outX.buffer, outY.buffer]);
+    return;
+  }
+
   if (engineMode === 'fractal') {
     let { ptsX, ptsY } = generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES);
     if (CHAIKIN_PASSES > 0) {
@@ -2282,10 +2658,14 @@ self.onmessage = function(e) {
 
   let rawX, rawY;
   let useSilPenalty = null;
-  if (engineMode === 'golden') {
+  if (engineMode === 'coral_tsp') {
+    ({ rawX, rawY } = generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TARGET_NODES, MIN_R, MAX_R));
+    useSilPenalty = silhouetteMask;
+  } else if (engineMode === 'golden') {
     ({ rawX, rawY } = generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES));
     useSilPenalty = silhouetteMask;
   } else {
+    // stencil_clean
     ({ rawX, rawY } = generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, MAX_R));
   }
 
@@ -2792,6 +3172,8 @@ function loadFromImageElement(img) {
   }
 
   cachedCleanGray = null;
+  cachedSharpGrad = null;
+  cachedGradMag = null;
   cachedBlurRadius = -1;
   cachedBlurFine = null;
 
