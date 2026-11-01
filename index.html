@@ -496,8 +496,8 @@ const MODE_DESCRIPTIONS = {
 const MODE_PRESETS = {
   coral:          { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 4.8, chaikin: 2 },
   coral_tsp:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 6.5, chaikin: 2 },
-  stencil_clean:  { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.20, bgClean: 0.000, minR: 1.1, maxR: 9.0, chaikin: 0 },
-  stencil_cross:  { pencilStr: 7.5, pencilBlur: 2.0, shadeWeight: 0.20, bgClean: 0.000, minR: 1.1, maxR: 9.0, chaikin: 0 },
+  stencil_clean:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.18, bgClean: 0.000, minR: 1.6, maxR: 8.5, chaikin: 1 },
+  stencil_cross:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.32, bgClean: 0.000, minR: 2.6, maxR: 9.0, chaikin: 1 },
   live_growth:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.28, bgClean: 0.000, minR: 2.8, maxR: 9.0, chaikin: 1 },
   golden:         { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.42, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1 },
   fractal:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1 },
@@ -809,12 +809,14 @@ function buildAllStencilsAndSilhouettes() {
     // Fusión Maestra: toma el rasgo más nítido de Dodge + DoG + Scharr
     const masterLine = Math.min(sketch, dogVal, edgeVal);
 
-    // Adaptación Local de Contraste para fotos complejas (sombras duras / contraluz)
-    const localBg = cachedBlurBroad[i];
-    const localContrast = Math.max(0.0, Math.min(1.0, 0.5 + (g - localBg) * 1.6));
-    const toneVal = localContrast * 0.40 + g * 0.60;
+    // Adaptación Multi-Escala de Contraste Local (CLAHE-inspired para rasgos y volumen)
+    const localMed = cachedBlurMed[i];
+    const localBroad = cachedBlurBroad[i];
+    const featContrast = Math.max(0.0, Math.min(1.0, 0.5 + (g - localMed) * 1.75));
+    const volContrast = Math.max(0.0, Math.min(1.0, 0.5 + (g - localBroad) * 1.45));
+    const toneVal = featContrast * 0.25 + volContrast * 0.35 + g * 0.40;
 
-    const darkFeature = toneVal < 0.38 ? ((1.0 - SHADE_WEIGHT) + SHADE_WEIGHT * (toneVal / 0.38)) : 1.0;
+    const darkFeature = toneVal < 0.42 ? ((1.0 - SHADE_WEIGHT) + SHADE_WEIGHT * (toneVal / 0.42)) : 1.0;
     const pencilVal = masterLine * darkFeature;
 
     const sil232 = BG_CLEAN <= 0.002 ? 1.0 : (silhouetteMask[i] ? 1.0 : Math.min(1.0, Math.max(0.0, (cachedStep232EdgeAct[i] - bgClean04) * invBgClean14)));
@@ -824,7 +826,11 @@ function buildAllStencilsAndSilhouettes() {
     let cTone = 1.0;
     if (silhouetteMask[i] || BG_CLEAN <= 0.002) {
       let normLum = Math.max(0.0, Math.min(1.0, (toneVal - p05) * invLumSpan));
-      normLum = normLum * normLum * (3.0 - 2.0 * normLum);
+      // Curva sigmoidea fotográfica: protege las luces y modela sombras suaves
+      normLum = normLum < 0.5
+        ? 2.0 * normLum * normLum * (1.1 - 0.2 * normLum)
+        : 1.0 - 2.0 * (1.0 - normLum) * (1.0 - normLum) * (0.9 + 0.2 * (1.0 - normLum));
+      normLum = Math.max(0.0, Math.min(1.0, normLum));
       const combined = masterLine * (1.0 - SHADE_WEIGHT) + normLum * SHADE_WEIGHT;
       cTone = Math.max(0.0, Math.min(1.0, Math.min(masterLine * 0.82, combined)));
     }
@@ -1451,31 +1457,266 @@ function runFast2OptPass(ptsX, ptsY, oHead, oNext, segLen, oCols, oRows, optCell
   return swaps;
 }
 
-function buildCrossedSketchTour(rawX, rawY, W, H) {
-  const N = rawX.length;
-  if (N < 3) return { ptsX: rawX, ptsY: rawY };
+function generateCrossedEtchingTour(coralToneMap, step232Stencil, silhouetteMask, W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES) {
+  const maxNodes = Math.min(11500, Math.max(7000, Math.round(TARGET_NODES * 0.42)));
+  const cap = maxNodes + 4000;
+  const len = W * H;
+  const err = new Float32Array(len);
+  let totalMass = 0;
 
-  const outX = new Float32Array(N);
-  const outY = new Float32Array(N);
-  let k = 0;
-
-  for (let l = 0; l < 3; l++) {
-    const count = Math.ceil((N - l) / 3);
-    if (count <= 0) continue;
-    const subX = new Float32Array(count);
-    const subY = new Float32Array(count);
-    let idx = 0;
-    for (let i = l; i < N; i += 3) {
-      subX[idx] = rawX[i];
-      subY[idx] = rawY[i];
-      idx++;
+  for (let i = 0; i < len; i++) {
+    if (!silhouetteMask[i]) continue;
+    const pDark = Math.max(0, 1.0 - step232Stencil[i]);
+    const tDark = Math.max(0, 1.0 - coralToneMap[i]);
+    const edgeW = pDark > 0.07 ? Math.pow(pDark, 1.1) * 4.2 : 0;
+    const shadeTone = Math.max(0, tDark - 0.24);
+    const toneW = Math.pow(shadeTone, 2.2) * 2.6;
+    const w = edgeW + toneW;
+    if (w > 0.015) {
+      err[i] = w;
+      totalMass += w;
     }
-    const { ptsX: pX, ptsY: pY } = buildPlanarContinuousTour(subX.subarray(0, idx), subY.subarray(0, idx), W, H, 38, null);
-    outX.set(pX, k);
-    outY.set(pY, k);
-    k += pX.length;
   }
-  return { ptsX: outX.subarray(0, k), ptsY: outY.subarray(0, k) };
+
+  if (totalMass < 10) return { ptsX: new Float32Array(0), ptsY: new Float32Array(0) };
+
+  const unitMass = totalMass / maxNodes;
+  const halfUnit = unitMass * 0.5;
+  const rx = new Float32Array(cap);
+  const ry = new Float32Array(cap);
+  const rPencil = new Float32Array(cap);
+  const rTone = new Float32Array(cap);
+  let count = 0;
+
+  for (let y = 4; y < H - 4; y++) {
+    const l2r = (y & 1) === 0;
+    for (let s = 4; s < W - 4; s++) {
+      const x = l2r ? s : (W - 1 - s);
+      const idx = y * W + x;
+      const val = err[idx];
+      let quantErr = val;
+      if (val >= halfUnit && (coralToneMap[idx] < 0.88 || step232Stencil[idx] < 0.90) && count < maxNodes) {
+        rx[count] = x + (Math.random() - 0.5) * 0.3;
+        ry[count] = y + (Math.random() - 0.5) * 0.3;
+        rPencil[count] = Math.max(0, 1.0 - step232Stencil[idx]);
+        rTone[count] = Math.max(0, 1.0 - coralToneMap[idx]);
+        count++;
+        quantErr = val - unitMass;
+      }
+      const dir = l2r ? 1 : -1;
+      err[idx + dir] += quantErr * 0.4375;
+      err[(y + 1) * W + (x - dir)] += quantErr * 0.1875;
+      err[(y + 1) * W + x] += quantErr * 0.3125;
+      err[(y + 1) * W + (x + dir)] += quantErr * 0.0625;
+    }
+  }
+
+  const cellSize = 10;
+  const cols = Math.ceil(W / cellSize) + 1;
+  const rows = Math.ceil(H / cellSize) + 1;
+  const rHead = new Int32Array(cols * rows);
+  const rNext = new Int32Array(count);
+
+  for (let iter = 0; iter < 4; iter++) {
+    rHead.fill(-1);
+    for (let i = 0; i < count; i++) {
+      const cx = Math.max(0, Math.min(cols - 1, (rx[i] / cellSize) | 0));
+      const cy = Math.max(0, Math.min(rows - 1, (ry[i] / cellSize) | 0));
+      const cIdx = cy * cols + cx;
+      rNext[i] = rHead[cIdx];
+      rHead[cIdx] = i;
+    }
+
+    for (let i = 0; i < count; i++) {
+      const px = rx[i], py = ry[i];
+      const sIdx = Math.min(H - 2, Math.max(1, py | 0)) * W + Math.min(W - 2, Math.max(1, px | 0));
+      const s = Math.min(step232Stencil[sIdx], coralToneMap[sIdx]);
+      const rTarget = MIN_R + (MAX_R - MIN_R) * Math.pow(s, 1.3);
+      const rSq = rTarget * rTarget;
+      let fx = 0, fy = 0;
+
+      const gx = (step232Stencil[sIdx] < coralToneMap[sIdx] ? (step232Stencil[sIdx + 1] - step232Stencil[sIdx - 1]) : (coralToneMap[sIdx + 1] - coralToneMap[sIdx - 1])) * 0.5;
+      const gy = (step232Stencil[sIdx] < coralToneMap[sIdx] ? (step232Stencil[sIdx + W] - step232Stencil[sIdx - W]) : (coralToneMap[sIdx + W] - coralToneMap[sIdx - W])) * 0.5;
+      const pull = (1.0 - s) * 2.4;
+      fx -= gx * pull;
+      fy -= gy * pull;
+
+      const cx = (px / cellSize) | 0, cy = (py / cellSize) | 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        const ny = cy + dy;
+        if (ny < 0 || ny >= rows) continue;
+        const rowOff = ny * cols;
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = cx + dx;
+          if (nx < 0 || nx >= cols) continue;
+          let j = rHead[rowOff + nx];
+          while (j !== -1) {
+            if (j !== i) {
+              const ddx = px - rx[j], ddy = py - ry[j];
+              const dSq = ddx * ddx + ddy * ddy;
+              if (dSq < rSq && dSq > 1e-4) {
+                const d = Math.sqrt(dSq);
+                const f = ((rTarget - d) / d) * 0.24;
+                fx += ddx * f;
+                fy += ddy * f;
+              }
+            }
+            j = rNext[j];
+          }
+        }
+      }
+      rx[i] = Math.max(4, Math.min(W - 4, px + Math.max(-1.5, Math.min(1.5, fx))));
+      ry[i] = Math.max(4, Math.min(H - 4, py + Math.max(-1.5, Math.min(1.5, fy))));
+    }
+  }
+
+  const idxA = [], idxB = [], idxC = [];
+  for (let i = 0; i < count; i++) {
+    const pD = rPencil[i];
+    const tD = rTone[i];
+    if (pD > 0.13) {
+      idxA.push(i);
+    } else if (tD >= 0.46) {
+      idxC.push(i);
+    } else {
+      idxB.push(i);
+    }
+  }
+
+  if (idxA.length < 50) {
+    for (let i = 0; i < count; i += 2) idxA.push(i);
+  }
+
+  const pack = (indices) => {
+    const lLen = indices.length;
+    const px = new Float32Array(lLen), py = new Float32Array(lLen);
+    for (let k = 0; k < lLen; k++) {
+      const idx = indices[k];
+      px[k] = rx[idx]; py[k] = ry[idx];
+    }
+    return { px, py };
+  };
+
+  const lA = pack(idxA), lB = pack(idxB), lC = pack(idxC);
+
+  let startSeedA = 0, minSeedDistA = Infinity;
+  const focalX = W * 0.5, focalY = H * 0.42;
+  for (let i = 0; i < lA.px.length; i++) {
+    const d = Math.hypot(lA.px[i] - focalX, lA.py[i] - focalY);
+    if (d < minSeedDistA) { minSeedDistA = d; startSeedA = i; }
+  }
+
+  const buildDirTour = (ptsX, ptsY, dirX, dirY, seed) => {
+    const n = ptsX.length;
+    if (n < 2) return { tX: ptsX, tY: ptsY };
+    const cell = 16;
+    const cols = Math.ceil(W / cell) + 1;
+    const rows = Math.ceil(H / cell) + 1;
+    const hd = new Int32Array(cols * rows).fill(-1);
+    const nxt = new Int32Array(n).fill(-1);
+    for (let i = 0; i < n; i++) {
+      const cx = Math.max(0, Math.min(cols - 1, (ptsX[i] / cell) | 0));
+      const cy = Math.max(0, Math.min(rows - 1, (ptsY[i] / cell) | 0));
+      const idx = cy * cols + cx;
+      nxt[i] = hd[idx]; hd[idx] = i;
+    }
+    const outX = new Float32Array(n), outY = new Float32Array(n);
+    const vis = new Uint8Array(n);
+    let cur = seed % n;
+    vis[cur] = 1; outX[0] = ptsX[cur]; outY[0] = ptsY[cur];
+    const hasDir = (dirX !== 0 || dirY !== 0);
+    const invL = hasDir ? 1.0 / Math.hypot(dirX, dirY) : 0;
+    const uX = dirX * invL, uY = dirY * invL;
+    const nX = -uY, nY = uX;
+
+    for (let step = 1; step < n; step++) {
+      const px = ptsX[cur], py = ptsY[cur];
+      const cx = (px / cell) | 0, cy = (py / cell) | 0;
+      let best = -1, bestScore = Infinity;
+      for (let rad = 0; rad <= 32; rad++) {
+        const minDy = Math.max(-cy, -rad), maxDy = Math.min(rows - 1 - cy, rad);
+        const minDx = Math.max(-cx, -rad), maxDx = Math.min(cols - 1 - cx, rad);
+        for (let dy = minDy; dy <= maxDy; dy++) {
+          const rowOff = (cy + dy) * cols;
+          for (let dx = minDx; dx <= maxDx; dx++) {
+            if (rad > 0 && Math.abs(dx) < rad && Math.abs(dy) < rad) continue;
+            let j = hd[rowOff + (cx + dx)];
+            while (j !== -1) {
+              if (!vis[j]) {
+                const ddx = ptsX[j] - px, ddy = ptsY[j] - py;
+                const dSq = ddx * ddx + ddy * ddy;
+                let score = dSq;
+                if (hasDir) {
+                  const dPar = Math.abs(ddx * uX + ddy * uY);
+                  const dPerp = Math.abs(ddx * nX + ddy * nY);
+                  score = dPar * dPar + dPerp * dPerp * 2.8;
+                }
+                if (coralToneMap && dSq > 256) {
+                  const mx = ((px + ptsX[j]) * 0.5) | 0, my = ((py + ptsY[j]) * 0.5) | 0;
+                  if (mx >= 0 && mx < W && my >= 0 && my < H && coralToneMap[my * W + mx] > 0.94) score *= 16.0;
+                }
+                if (score < bestScore) { bestScore = score; best = j; }
+              }
+              j = nxt[j];
+            }
+          }
+        }
+        if (best !== -1 && bestScore <= (rad * cell) * (rad * cell)) break;
+      }
+      if (best === -1) {
+        for (let j = 0; j < n; j++) {
+          if (!vis[j]) {
+            const ddx = ptsX[j] - px, ddy = ptsY[j] - py;
+            const dSq = ddx * ddx + ddy * ddy;
+            let score = dSq;
+            if (hasDir) {
+              const dPar = Math.abs(ddx * uX + ddy * uY);
+              const dPerp = Math.abs(ddx * nX + ddy * nY);
+              score = dPar * dPar + dPerp * dPerp * 2.8;
+            }
+            if (score < bestScore) { bestScore = score; best = j; }
+          }
+        }
+      }
+      vis[best] = 1; outX[step] = ptsX[best]; outY[step] = ptsY[best]; cur = best;
+    }
+    return { tX: outX, tY: outY };
+  };
+
+  const t1 = buildDirTour(lA.px, lA.py, 0, 0, startSeedA);
+
+  let seedB = 0, distB = Infinity;
+  if (t1.tX.length > 0 && lB.px.length > 0) {
+    const endX = t1.tX[t1.tX.length - 1], endY = t1.tY[t1.tY.length - 1];
+    for (let i = 0; i < lB.px.length; i++) {
+      const d = (lB.px[i] - endX) * (lB.px[i] - endX) + (lB.py[i] - endY) * (lB.py[i] - endY);
+      if (d < distB) { distB = d; seedB = i; }
+    }
+  }
+  const t2 = buildDirTour(lB.px, lB.py, 0.707, 0.707, seedB);
+
+  let seedC = 0, distC = Infinity;
+  const lastX = t2.tX.length > 0 ? t2.tX[t2.tX.length - 1] : (t1.tX.length > 0 ? t1.tX[t1.tX.length - 1] : 0);
+  const lastY = t2.tY.length > 0 ? t2.tY[t2.tY.length - 1] : (t1.tY.length > 0 ? t1.tY[t1.tY.length - 1] : 0);
+  if (lC.px.length > 0) {
+    for (let i = 0; i < lC.px.length; i++) {
+      const d = (lC.px[i] - lastX) * (lC.px[i] - lastX) + (lC.py[i] - lastY) * (lC.py[i] - lastY);
+      if (d < distC) { distC = d; seedC = i; }
+    }
+  }
+  const t3 = buildDirTour(lC.px, lC.py, -0.707, 0.707, seedC);
+
+  const fullCount = t1.tX.length + t2.tX.length + t3.tX.length;
+  let fullTourX = new Float32Array(fullCount);
+  let fullTourY = new Float32Array(fullCount);
+  fullTourX.set(t1.tX, 0); fullTourY.set(t1.tY, 0);
+  fullTourX.set(t2.tX, t1.tX.length); fullTourY.set(t2.tY, t1.tY.length);
+  fullTourX.set(t3.tX, t1.tX.length + t2.tX.length); fullTourY.set(t3.tY, t1.tX.length + t2.tX.length);
+
+  if (CHAIKIN_PASSES > 0) {
+    ({ ptsX: fullTourX, ptsY: fullTourY } = chaikinSmoothOpenTour(fullTourX, fullTourY, CHAIKIN_PASSES));
+  }
+  return { ptsX: fullTourX, ptsY: fullTourY };
 }
 
 function workerBlur(src, width, height, radius) {
@@ -2641,9 +2882,30 @@ function generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_
     }
   }
 
-  const cx = sumW > 0 ? sumX / sumW : W * 0.5;
+  const baseCx = sumW > 0 ? sumX / sumW : W * 0.5;
   const goldenEyeY = minY < maxY ? minY + (maxY - minY) * (1.0 - 1.0 / PHI) : H * 0.40;
-  const cy = sumW > 0 ? (sumY / sumW) * 0.45 + goldenEyeY * 0.55 : H * 0.42;
+  const baseCy = sumW > 0 ? (sumY / sumW) * 0.45 + goldenEyeY * 0.55 : H * 0.42;
+
+  // Detección automática del ojo dominante / centro de la mirada para anclaje áureo
+  let bestEyeX = baseCx, bestEyeY = baseCy, maxEyeScore = -1;
+  const eyeMinY = Math.floor(minY + (maxY - minY) * 0.22);
+  const eyeMaxY = Math.floor(minY + (maxY - minY) * 0.48);
+  for (let y = eyeMinY; y <= eyeMaxY; y += 4) {
+    for (let x = Math.floor(minX + (maxX - minX) * 0.22); x <= Math.floor(minX + (maxX - minX) * 0.78); x += 4) {
+      const idx = y * W + x;
+      if (!silhouetteMask[idx]) continue;
+      const d = Math.max(0, 1.0 - coralToneMap[idx]);
+      const distFromCenter = Math.hypot(x - (minX + maxX) * 0.5, y - (minY + (maxY - minY) * 0.35));
+      const score = Math.pow(d, 1.4) / (1.0 + distFromCenter * 0.015);
+      if (score > maxEyeScore) {
+        maxEyeScore = score;
+        bestEyeX = x;
+        bestEyeY = y;
+      }
+    }
+  }
+  const cx = maxEyeScore > 0 ? bestEyeX : baseCx;
+  const cy = maxEyeScore > 0 ? bestEyeY : baseCy;
   const maxRadius = Math.hypot(Math.max(cx - minX, maxX - cx), Math.max(cy - minY, maxY - cy)) + 6;
 
   const evalGoldenWeight = (x, y, r, theta) => {
@@ -2768,8 +3030,17 @@ function generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, TARG
       hilbertRecurse(x + ax2 + bx2, y + ay2 + by2, ax2, ay2, bx2, by2, depth + 1);
       hilbertRecurse(x + ax2 + ax2 + bx2, y + ay2 + ay2 + by2, -bx2, -by2, -ax2, -ay2, depth + 1);
     } else if (info.inside && cx >= 4 && cx < W - 4 && cy >= 4 && cy < H - 4) {
-      outX.push(cx);
-      outY.push(cy);
+      let px = cx, py = cy;
+      const idx = (cy | 0) * W + (cx | 0);
+      if (idx > W && idx < W * (H - 1) - 1) {
+        const gx = (coralToneMap[idx + 1] - coralToneMap[idx - 1]) * 0.5;
+        const gy = (coralToneMap[idx + W] - coralToneMap[idx - W]) * 0.5;
+        const pull = Math.min(size * 0.32, info.darkness * 2.2);
+        px = Math.max(4, Math.min(W - 4, px - gx * pull));
+        py = Math.max(4, Math.min(H - 4, py - gy * pull));
+      }
+      outX.push(px);
+      outY.push(py);
     }
   }
 
@@ -2842,11 +3113,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'stencil_cross') {
-    const { rawX, rawY } = generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, MAX_R);
-    let { ptsX, ptsY } = buildCrossedSketchTour(rawX, rawY, W, H);
-    if (CHAIKIN_PASSES > 0) {
-      ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
-    }
+    const { ptsX, ptsY } = generateCrossedEtchingTour(coralToneMap, step232Stencil, silhouetteMask, W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES);
     const outX = new Float32Array(ptsX);
     const outY = new Float32Array(ptsY);
     self.postMessage({ jobId, ptsX: outX, ptsY: outY, pass: 1, totalPasses: 1, done: true }, [outX.buffer, outY.buffer]);
@@ -3025,12 +3292,22 @@ function getOrganicLineColor(i, totalLen, x, y) {
 
   if (COLOR_MODE === 'photo_exact') {
     if (rCh && gCh && bCh) {
-      const ix = Math.min(W - 1, Math.max(0, x | 0));
-      const iy = Math.min(H - 1, Math.max(0, y | 0));
-      const pIdx = iy * W + ix;
-      const r = Math.min(255, Math.max(0, (rCh[pIdx] * 255 + 0.5) | 0));
-      const g = Math.min(255, Math.max(0, (gCh[pIdx] * 255 + 0.5) | 0));
-      const b = Math.min(255, Math.max(0, (bCh[pIdx] * 255 + 0.5) | 0));
+      const clX = Math.max(0, Math.min(W - 1.001, x));
+      const clY = Math.max(0, Math.min(H - 1.001, y));
+      const x0 = clX | 0, y0 = clY | 0;
+      const x1 = Math.min(W - 1, x0 + 1), y1 = Math.min(H - 1, y0 + 1);
+      const fx = clX - x0, fy = clY - y0;
+      const w00 = (1.0 - fx) * (1.0 - fy);
+      const w10 = fx * (1.0 - fy);
+      const w01 = (1.0 - fx) * fy;
+      const w11 = fx * fy;
+
+      const idx00 = y0 * W + x0, idx10 = y0 * W + x1;
+      const idx01 = y1 * W + x0, idx11 = y1 * W + x1;
+
+      const r = Math.min(255, Math.max(0, ((w00 * rCh[idx00] + w10 * rCh[idx10] + w01 * rCh[idx01] + w11 * rCh[idx11]) * 255 + 0.5) | 0));
+      const g = Math.min(255, Math.max(0, ((w00 * gCh[idx00] + w10 * gCh[idx10] + w01 * gCh[idx01] + w11 * gCh[idx11]) * 255 + 0.5) | 0));
+      const b = Math.min(255, Math.max(0, ((w00 * bCh[idx00] + w10 * bCh[idx10] + w01 * bCh[idx01] + w11 * bCh[idx11]) * 255 + 0.5) | 0));
       return `rgb(${r},${g},${b})`;
     }
     return BG_THEME === 'dark' ? '#e8eef7' : '#0e1118';
@@ -3127,6 +3404,16 @@ function getOrganicLineColor(i, totalLen, x, y) {
   return `rgb(${r | 0},${g | 0},${b | 0})`;
 }
 
+function getPenWidth(x, y, baseWidth) {
+  if (!coralToneMap) return baseWidth;
+  const ix = Math.min(W - 1, Math.max(0, x | 0));
+  const iy = Math.min(H - 1, Math.max(0, y | 0));
+  const tone = coralToneMap[iy * W + ix];
+  // Presión artística de pluma: trazo más rotundo en sombras profundas (1.25x) y delicado en luces (0.82x)
+  const factor = 1.25 - 0.43 * Math.max(0, Math.min(1, tone));
+  return baseWidth * factor;
+}
+
 function rebuildLineCache() {
   if (lineCacheCanvas.width !== W || lineCacheCanvas.height !== H) {
     lineCacheCanvas.width = W;
@@ -3146,19 +3433,27 @@ function rebuildLineCache() {
   lCtx.lineJoin = 'round';
 
   if (COLOR_MODE === 'mono') {
-    cachedPath2D = new Path2D();
-    const mx0 = (ptsX[0] + ptsX[1]) * 0.5;
-    const my0 = (ptsY[0] + ptsY[1]) * 0.5;
-    cachedPath2D.moveTo(mx0, my0);
+    const monoStroke = BG_THEME === 'dark' ? '#e8eef7' : '#0e1118';
+    lCtx.strokeStyle = monoStroke;
+    const chunkStep = 10;
+    for (let start = 1; start < totalLen - 1; start += chunkStep) {
+      const end = Math.min(totalLen - 1, start + chunkStep);
+      const midIdx = (start + end) >> 1;
 
-    for (let i = 1; i < totalLen - 1; i++) {
-      const mx1 = (ptsX[i] + ptsX[i + 1]) * 0.5;
-      const my1 = (ptsY[i] + ptsY[i + 1]) * 0.5;
-      cachedPath2D.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
+      lCtx.lineWidth = getPenWidth(ptsX[midIdx], ptsY[midIdx], LINE_W);
+      lCtx.beginPath();
+      const mx0 = (ptsX[start - 1] + ptsX[start]) * 0.5;
+      const my0 = (ptsY[start - 1] + ptsY[start]) * 0.5;
+      lCtx.moveTo(mx0, my0);
+
+      for (let i = start; i <= end; i++) {
+        const nxt = Math.min(totalLen - 1, i + 1);
+        const mx1 = (ptsX[i] + ptsX[nxt]) * 0.5;
+        const my1 = (ptsY[i] + ptsY[nxt]) * 0.5;
+        lCtx.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
+      }
+      lCtx.stroke();
     }
-
-    lCtx.strokeStyle = BG_THEME === 'dark' ? '#e8eef7' : '#0e1118';
-    lCtx.stroke(cachedPath2D);
   } else {
     // Trazado multicolor orgánico por micro-segmentos continuos solapados (fluido en GPU a 60fps)
     const chunkStep = (COLOR_MODE === 'photo_exact') ? 3 : (isColorFlowing ? 36 : 18);
@@ -3167,6 +3462,7 @@ function rebuildLineCache() {
       const midIdx = (start + end) >> 1;
 
       lCtx.strokeStyle = getOrganicLineColor(midIdx, totalLen, ptsX[midIdx], ptsY[midIdx]);
+      lCtx.lineWidth = getPenWidth(ptsX[midIdx], ptsY[midIdx], LINE_W);
       lCtx.beginPath();
       const mx0 = (ptsX[start - 1] + ptsX[start]) * 0.5;
       const my0 = (ptsY[start - 1] + ptsY[start]) * 0.5;
@@ -3309,30 +3605,17 @@ function startAnimation() {
     aCtx.lineCap = 'round';
     aCtx.lineJoin = 'round';
 
-    if (COLOR_MODE === 'photo_exact') {
-      for (let s = startIdx; s < nextLimit; s += 3) {
-        const e = Math.min(nextLimit, s + 3);
-        const m = (s + e) >> 1;
-        aCtx.strokeStyle = getOrganicLineColor(m, totalLen, ptsX[m], ptsY[m]);
-        aCtx.beginPath();
-        const mx0 = (ptsX[s - 1] + ptsX[s]) * 0.5;
-        const my0 = (ptsY[s - 1] + ptsY[s]) * 0.5;
-        aCtx.moveTo(mx0, my0);
-        for (let i = s; i < e; i++) {
-          const mx1 = (ptsX[i] + ptsX[i + 1]) * 0.5;
-          const my1 = (ptsY[i] + ptsY[i + 1]) * 0.5;
-          aCtx.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
-        }
-        aCtx.stroke();
-      }
-    } else {
-      const midIdx = (startIdx + nextLimit) >> 1;
-      aCtx.strokeStyle = getOrganicLineColor(midIdx, totalLen, ptsX[midIdx], ptsY[midIdx]);
+    const chunkStep = (COLOR_MODE === 'photo_exact') ? 3 : 10;
+    for (let s = startIdx; s < nextLimit; s += chunkStep) {
+      const e = Math.min(nextLimit, s + chunkStep);
+      const m = (s + e) >> 1;
+      aCtx.strokeStyle = getOrganicLineColor(m, totalLen, ptsX[m], ptsY[m]);
+      aCtx.lineWidth = getPenWidth(ptsX[m], ptsY[m], LINE_W);
       aCtx.beginPath();
-      const mxStart = (ptsX[startIdx - 1] + ptsX[startIdx]) * 0.5;
-      const myStart = (ptsY[startIdx - 1] + ptsY[startIdx]) * 0.5;
-      aCtx.moveTo(mxStart, myStart);
-      for (let i = startIdx; i < nextLimit; i++) {
+      const mx0 = (ptsX[s - 1] + ptsX[s]) * 0.5;
+      const my0 = (ptsY[s - 1] + ptsY[s]) * 0.5;
+      aCtx.moveTo(mx0, my0);
+      for (let i = s; i < e; i++) {
         const mx1 = (ptsX[i] + ptsX[i + 1]) * 0.5;
         const my1 = (ptsY[i] + ptsY[i + 1]) * 0.5;
         aCtx.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
@@ -3747,6 +4030,7 @@ document.getElementById('btnSvg').onclick = () => {
       const end = Math.min(len - 1, start + chunkStep);
       const midIdx = (start + end) >> 1;
       const col = getOrganicLineColor(midIdx, len, ptsX[midIdx], ptsY[midIdx]);
+      const w = getPenWidth(ptsX[midIdx], ptsY[midIdx], LINE_W);
       const mx0 = (ptsX[start - 1] + ptsX[start]) * 0.5;
       const my0 = (ptsY[start - 1] + ptsY[start]) * 0.5;
       const segs = [`M ${mx0.toFixed(1)} ${my0.toFixed(1)}`];
@@ -3756,7 +4040,7 @@ document.getElementById('btnSvg').onclick = () => {
         const my1 = (ptsY[i] + ptsY[nxt]) * 0.5;
         segs.push(`Q ${ptsX[i].toFixed(1)} ${ptsY[i].toFixed(1)} ${mx1.toFixed(1)} ${my1.toFixed(1)}`);
       }
-      pathList.push(`  <path d="${segs.join(' ')}" fill="none" stroke="${col}" stroke-width="${LINE_W}" stroke-linecap="round" stroke-linejoin="round"/>`);
+      pathList.push(`  <path d="${segs.join(' ')}" fill="none" stroke="${col}" stroke-width="${w.toFixed(2)}" stroke-linecap="round" stroke-linejoin="round"/>`);
     }
     pathsMarkup = pathList.join('\n');
   }
