@@ -830,9 +830,9 @@ function buildAllStencilsAndSilhouettes() {
       normLum = normLum < 0.5
         ? 2.0 * normLum * normLum * (1.1 - 0.2 * normLum)
         : 1.0 - 2.0 * (1.0 - normLum) * (1.0 - normLum) * (0.9 + 0.2 * (1.0 - normLum));
-      normLum = Math.max(0.0, Math.min(1.0, normLum));
-      const combined = masterLine * (1.0 - SHADE_WEIGHT) + normLum * SHADE_WEIGHT;
-      cTone = Math.max(0.0, Math.min(1.0, Math.min(masterLine * 0.82, combined)));
+      const edgeDarkened = Math.pow(masterLine, 1.35);
+      const combined = edgeDarkened * (1.0 - SHADE_WEIGHT) + normLum * SHADE_WEIGHT;
+      cTone = Math.max(0.0, Math.min(1.0, Math.min(edgeDarkened, combined)));
     }
     coralToneMap[i] = cTone;
 
@@ -1282,17 +1282,21 @@ function chaikinSmoothOpenTour(inX, inY, passes = 2) {
 }
 
 function segmentCrossesOutsideSilhouette(ax, ay, bx, by, silhouetteMask, W, H) {
+  if (!silhouetteMask) return false;
   const dx = bx - ax, dy = by - ay;
   if (dx * dx + dy * dy < 196) return false;
-  const mx = ((ax + bx) * 0.5) | 0;
-  const my = ((ay + by) * 0.5) | 0;
-  if (mx >= 0 && mx < W && my >= 0 && my < H && !silhouetteMask[my * W + mx]) return true;
-  const q1x = (ax * 0.75 + bx * 0.25) | 0;
-  const q1y = (ay * 0.75 + by * 0.25) | 0;
-  if (q1x >= 0 && q1x < W && q1y >= 0 && q1y < H && !silhouetteMask[q1y * W + q1x]) return true;
-  const q3x = (ax * 0.25 + bx * 0.75) | 0;
-  const q3y = (ay * 0.25 + by * 0.75) | 0;
-  if (q3x >= 0 && q3x < W && q3y >= 0 && q3y < H && !silhouetteMask[q3y * W + q3x]) return true;
+  const isFloat = (silhouetteMask instanceof Float32Array);
+  const isOut = (x, y) => {
+    if (x < 0 || x >= W || y < 0 || y >= H) return true;
+    const idx = y * W + x;
+    return isFloat ? silhouetteMask[idx] > 0.94 : !silhouetteMask[idx];
+  };
+  const mx = ((ax + bx) * 0.5) | 0, my = ((ay + by) * 0.5) | 0;
+  if (isOut(mx, my)) return true;
+  const q1x = (ax * 0.75 + bx * 0.25) | 0, q1y = (ay * 0.75 + by * 0.25) | 0;
+  if (isOut(q1x, q1y)) return true;
+  const q3x = (ax * 0.25 + bx * 0.75) | 0, q3y = (ay * 0.25 + by * 0.75) | 0;
+  if (isOut(q3x, q3y)) return true;
   return false;
 }
 
@@ -1578,7 +1582,7 @@ function generateCrossedEtchingTour(coralToneMap, step232Stencil, silhouetteMask
       idxA.push(i);
     } else if (tD >= 0.46) {
       idxC.push(i);
-    } else {
+    } else if (tD >= 0.16) {
       idxB.push(i);
     }
   }
@@ -1858,6 +1862,9 @@ function generateDendriticCoralPortrait(toneMap, silhouetteMask, smoothSilMap, W
         const jy = y + (rand() - 0.5) * 1.4;
         const ji = Math.min(H - 1, Math.max(0, jy | 0)) * W + Math.min(W - 1, Math.max(0, jx | 0));
         if (!silhouetteMask[ji]) continue;
+        const darkVal = 1.0 - toneMap[ji];
+        const edgeVal = Math.hypot(gradX[ji], gradY[ji]);
+        if (darkVal < 0.065 && edgeVal < 0.035) continue;
         const dReq = wMap[ji] * 1.92;
         if (canPlace(jx, jy, dReq, factor)) {
           addVertex(jx, jy, dReq, 0);
@@ -2326,9 +2333,27 @@ function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask,
 
   for (let r = 1; r < rows - 1; r++) {
     const cy = r * dyHex;
+    let firstC = -1, lastC = -1;
+    for (let c = 1; c < cols - 1; c++) {
+      const cx = c * dxHex + ((r & 1) ? dxHex * 0.5 : 0);
+      if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+      const dark = Math.max(0, 1.0 - (coralToneMap ? coralToneMap[idx] : 1.0));
+      const lineDark = Math.max(0, 1.0 - (step232Stencil ? step232Stencil[idx] : 1.0));
+      if (Math.min(1.0, dark * 0.65 + lineDark * 0.95) >= 0.065) {
+        if (firstC === -1) firstC = c;
+        lastC = c;
+      }
+    }
+    if (firstC === -1) continue;
+
     const l2r = (r & 1) === 0;
-    for (let s = 1; s < cols - 1; s++) {
-      const c = l2r ? s : (cols - 1 - s);
+    const startC = l2r ? firstC : lastC;
+    const endC = l2r ? lastC : firstC;
+    const stepC = l2r ? 1 : -1;
+
+    for (let c = startC; l2r ? c <= endC : c >= endC; c += stepC) {
       const cx = c * dxHex + ((r & 1) ? dxHex * 0.5 : 0);
       if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
 
@@ -2583,8 +2608,10 @@ function generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TA
   let totalWeight = 0;
   for (let i = 0; i < len; i++) {
     if (silhouetteMask[i]) {
+      const dark = Math.max(0, 1.0 - coralToneMap[i]);
+      if (dark < 0.065) continue;
       const r = rMap[i];
-      const w = 1.0 / (r * r);
+      const w = Math.pow(dark, 1.25) / (r * r);
       err[i] = w;
       totalWeight += w;
     }
@@ -2596,7 +2623,7 @@ function generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TA
     for (let s = 5; s < W - 5; s++) {
       const x = l2r ? s : (W - 1 - s);
       const idx = y * W + x;
-      if (!silhouetteMask[idx]) continue;
+      if (!silhouetteMask[idx] || (coralToneMap[idx] > 0.935 && step232Stencil[idx] > 0.90)) continue;
 
       const val = err[idx];
       let quantErr = val;
@@ -2702,9 +2729,27 @@ function generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask
 
   for (let r = 1; r < rows - 1; r++) {
     const cy = r * dH;
+    let firstC = -1, lastC = -1;
+    for (let c = 1; c < cols - 1; c++) {
+      const cx = c * dW + ((r & 1) ? dW * 0.5 : 0);
+      if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+      const dark = Math.max(0, 1.0 - (coralToneMap ? coralToneMap[idx] : 1.0));
+      const lineDark = Math.max(0, 1.0 - (step232Stencil ? step232Stencil[idx] : 1.0));
+      if (Math.min(1.0, dark * 0.65 + lineDark * 0.95) >= 0.065) {
+        if (firstC === -1) firstC = c;
+        lastC = c;
+      }
+    }
+    if (firstC === -1) continue;
+
     const l2r = (r & 1) === 0;
-    for (let s = 1; s < cols - 1; s++) {
-      const c = l2r ? s : (cols - 1 - s);
+    const startC = l2r ? firstC : lastC;
+    const endC = l2r ? lastC : firstC;
+    const stepC = l2r ? 1 : -1;
+
+    for (let c = startC; l2r ? c <= endC : c >= endC; c += stepC) {
       const cx = c * dW + ((r & 1) ? dW * 0.5 : 0);
       if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
 
@@ -2783,9 +2828,27 @@ function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteM
 
   for (let r = 1; r < rows - 1; r++) {
     const cy = r * dy;
+    let firstC = -1, lastC = -1;
+    for (let c = 1; c < cols - 1; c++) {
+      const cx = c * dx + ((r & 1) ? dx * 0.5 : 0);
+      if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+      const dark = Math.max(0, 1.0 - (coralToneMap ? coralToneMap[idx] : 1.0));
+      const lineDark = Math.max(0, 1.0 - (step232Stencil ? step232Stencil[idx] : 1.0));
+      if (Math.min(1.0, dark * 0.65 + lineDark * 0.95) >= 0.065) {
+        if (firstC === -1) firstC = c;
+        lastC = c;
+      }
+    }
+    if (firstC === -1) continue;
+
     const l2r = (r & 1) === 0;
-    for (let s = 1; s < cols - 1; s++) {
-      const c = l2r ? s : (cols - 1 - s);
+    const startC = l2r ? firstC : lastC;
+    const endC = l2r ? lastC : firstC;
+    const stepC = l2r ? 1 : -1;
+
+    for (let c = startC; l2r ? c <= endC : c >= endC; c += stepC) {
       const cx = c * dx + ((r & 1) ? dx * 0.5 : 0);
       if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
 
@@ -2870,16 +2933,21 @@ function generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_
     for (let x = 5; x < W - 5; x += 2) {
       const idx = y * W + x;
       if (silhouetteMask[idx]) {
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (y < minY) minY = y;
-        if (y > maxY) maxY = y;
-        const d = Math.pow(1.0 - coralToneMap[idx], 1.5);
-        sumX += x * (0.15 + d);
-        sumY += y * (0.15 + d);
-        sumW += (0.15 + d);
+        const d = Math.pow(Math.max(0, 1.0 - coralToneMap[idx]), 1.5);
+        if (d > 0.05) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+        sumX += x * d;
+        sumY += y * d;
+        sumW += d;
       }
     }
+  }
+  if (maxX <= minX || maxY <= minY) {
+    minX = W * 0.2; maxX = W * 0.8; minY = H * 0.15; maxY = H * 0.85;
   }
 
   const baseCx = sumW > 0 ? sumX / sumW : W * 0.5;
@@ -2915,7 +2983,8 @@ function generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_
     if (!silhouetteMask[idx]) return 0;
 
     const tone = coralToneMap[idx];
-    const darkness = 1.0 - tone;
+    const darkness = Math.max(0, 1.0 - tone);
+    if (darkness < 0.055) return 0;
 
     const rRatio = r / maxRadius;
     const spiral55 = Math.cos(55.0 * theta - rRatio * 55.0 * PHI * Math.PI);
@@ -2923,7 +2992,7 @@ function generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_
     const fibWave = 0.5 + 0.5 * (spiral55 * 0.65 + spiral89 * 0.35);
 
     const baseDark = Math.pow(darkness, 1.35);
-    const spiralBoost = (0.04 + 0.38 * darkness) * Math.pow(fibWave, 1.6);
+    const spiralBoost = (0.38 * darkness) * Math.pow(fibWave, 1.6);
     return Math.min(1.0, baseDark * 0.85 + spiralBoost);
   };
 
@@ -3121,13 +3190,11 @@ self.onmessage = function(e) {
   }
 
   let rawX, rawY;
-  let useSilPenalty = null;
+  let useSilPenalty = coralToneMap;
   if (engineMode === 'coral_tsp') {
     ({ rawX, rawY } = generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TARGET_NODES, MIN_R, MAX_R));
-    useSilPenalty = silhouetteMask;
   } else if (engineMode === 'golden') {
     ({ rawX, rawY } = generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES));
-    useSilPenalty = silhouetteMask;
   } else {
     // stencil_clean
     ({ rawX, rawY } = generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, MAX_R));
