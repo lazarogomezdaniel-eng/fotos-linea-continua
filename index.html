@@ -197,11 +197,11 @@
           <label>Modo de Color</label>
           <select id="colorMode">
             <option value="mono" selected>⚫ Monocromo</option>
+            <option value="organic_flow">🌊 Flujo Orgánico</option>
             <option value="rainbow_bands">🏳️‍🌈 Rainbow (Franjas Verticales)</option>
             <option value="rainbow">🌈 Rainbow (Hilo Continuo)</option>
             <option value="line_strand">🧵 Tramos de Línea (Hilo Continuo)</option>
             <option value="photo_exact">📸 Color Exacto de la Foto</option>
-            <option value="organic_flow">🌊 Flujo Orgánico</option>
             <option value="organic_spatial">🌀 Ondas 2D</option>
             <option value="tonal_blend">🌡️ Fusión Tonal</option>
             <option value="photo_fusion">🖼️ Foto + Mezcla</option>
@@ -4413,76 +4413,232 @@ function loadFromImageElement(img) {
 
 function initDemoPortrait() {
   const dCanvas = document.createElement('canvas');
-  dCanvas.width = 680; dCanvas.height = 820;
+  dCanvas.width = 720; dCanvas.height = 880;
   const dCtx = dCanvas.getContext('2d');
 
-  dCtx.fillStyle = '#ffffff';
-  dCtx.fillRect(0, 0, 680, 820);
+  // Fondo de estudio fotográfico suave
+  const bgGrad = dCtx.createRadialGradient(360, 440, 60, 360, 440, 520);
+  bgGrad.addColorStop(0, '#f8fafc');
+  bgGrad.addColorStop(0.65, '#e2e8f0');
+  bgGrad.addColorStop(1, '#cbd5e1');
+  dCtx.fillStyle = bgGrad;
+  dCtx.fillRect(0, 0, 720, 880);
 
-  const cx = 340, cy = 390;
+  const cx = 360, cy = 410;
 
-  dCtx.fillStyle = '#181818';
+  // 1. Masa de cabello voluptuosa y orgánica (fondo)
+  dCtx.fillStyle = '#14171f';
   dCtx.beginPath();
-  dCtx.ellipse(cx, cy - 30, 155, 200, 0, 0, Math.PI * 2);
+  dCtx.ellipse(cx, cy - 35, 195, 230, 0, 0, Math.PI * 2);
   dCtx.fill();
 
-  dCtx.fillStyle = '#202020';
+  // Mechones de pelo laterales que caen con curvas elegantes
   dCtx.beginPath();
-  dCtx.ellipse(cx, cy + 270, 210, 130, 0, Math.PI, Math.PI * 2);
+  dCtx.moveTo(cx - 180, cy - 20);
+  dCtx.bezierCurveTo(cx - 230, cy + 120, cx - 190, cy + 280, cx - 120, cy + 380);
+  dCtx.bezierCurveTo(cx - 80, cy + 340, cx - 110, cy + 220, cx - 130, cy + 100);
   dCtx.fill();
 
-  const faceGrad = dCtx.createLinearGradient(cx - 110, cy - 40, cx + 115, cy + 60);
-  faceGrad.addColorStop(0, '#f2f2f2');
-  faceGrad.addColorStop(0.55, '#c4c4c4');
-  faceGrad.addColorStop(1, '#363636');
+  dCtx.beginPath();
+  dCtx.moveTo(cx + 180, cy - 20);
+  dCtx.bezierCurveTo(cx + 230, cy + 120, cx + 190, cy + 280, cx + 120, cy + 380);
+  dCtx.bezierCurveTo(cx + 80, cy + 340, cx + 110, cy + 220, cx + 130, cy + 100);
+  dCtx.fill();
+
+  // 2. Cuello y hombros con claroscuro suave
+  const neckGrad = dCtx.createLinearGradient(cx - 70, cy + 150, cx + 70, cy + 280);
+  neckGrad.addColorStop(0, '#ebd5c1');
+  neckGrad.addColorStop(0.6, '#d4bba4');
+  neckGrad.addColorStop(1, '#8c6e58');
+  dCtx.fillStyle = neckGrad;
+  dCtx.beginPath();
+  dCtx.moveTo(cx - 62, cy + 130);
+  dCtx.quadraticCurveTo(cx - 70, cy + 260, cx - 190, cy + 380);
+  dCtx.lineTo(cx + 190, cy + 380);
+  dCtx.quadraticCurveTo(cx + 70, cy + 260, cx + 62, cy + 130);
+  dCtx.fill();
+
+  // Sombra proyectada bajo la barbilla
+  dCtx.fillStyle = 'rgba(40, 24, 18, 0.45)';
+  dCtx.beginPath();
+  dCtx.ellipse(cx, cy + 158, 68, 26, 0, 0, Math.PI * 2);
+  dCtx.fill();
+
+  // 3. Estructura facial con iluminación volumétrica Rembrandt (luz principal desde la izquierda)
+  const faceGrad = dCtx.createRadialGradient(cx - 35, cy - 10, 25, cx, cy + 25, 160);
+  faceGrad.addColorStop(0, '#fff3eb');
+  faceGrad.addColorStop(0.42, '#f2dbc7');
+  faceGrad.addColorStop(0.78, '#c9a58b');
+  faceGrad.addColorStop(1, '#5a3d2c');
   dCtx.fillStyle = faceGrad;
   dCtx.beginPath();
-  dCtx.ellipse(cx, cy + 5, 112, 145, 0, 0, Math.PI * 2);
+  dCtx.moveTo(cx - 128, cy - 30);
+  dCtx.bezierCurveTo(cx - 132, cy + 70, cx - 95, cy + 135, cx, cy + 162);
+  dCtx.bezierCurveTo(cx + 95, cy + 135, cx + 132, cy + 70, cx + 128, cy - 30);
+  dCtx.bezierCurveTo(cx + 125, cy - 140, cx - 125, cy - 140, cx - 128, cy - 30);
   dCtx.fill();
 
-  dCtx.strokeStyle = '#161616';
-  dCtx.lineWidth = 7;
-  dCtx.lineCap = 'round';
+  // Pómulo suave y relieve de mejilla
+  const cheekGrad = dCtx.createRadialGradient(cx - 55, cy + 35, 8, cx - 55, cy + 35, 55);
+  cheekGrad.addColorStop(0, 'rgba(235, 140, 130, 0.28)');
+  cheekGrad.addColorStop(1, 'rgba(235, 140, 130, 0.0)');
+  dCtx.fillStyle = cheekGrad;
   dCtx.beginPath();
-  dCtx.moveTo(cx - 75, cy - 28);
-  dCtx.quadraticCurveTo(cx - 48, cy - 42, cx - 20, cy - 30);
-  dCtx.moveTo(cx + 20, cy - 30);
-  dCtx.quadraticCurveTo(cx + 48, cy - 42, cx + 75, cy - 28);
+  dCtx.arc(cx - 55, cy + 35, 55, 0, Math.PI * 2);
+  dCtx.fill();
+
+  // 4. Cejas naturales estilizadas
+  dCtx.strokeStyle = '#231815';
+  dCtx.lineCap = 'round';
+  dCtx.lineWidth = 5.2;
+  dCtx.beginPath();
+  dCtx.moveTo(cx - 92, cy - 34);
+  dCtx.bezierCurveTo(cx - 68, cy - 50, cx - 38, cy - 44, cx - 16, cy - 31);
   dCtx.stroke();
 
-  for (const dir of [-1, 1]) {
-    const ex = cx + dir * 46, ey = cy - 8;
-    dCtx.strokeStyle = '#141414';
-    dCtx.lineWidth = 3.5;
-    dCtx.beginPath();
-    dCtx.ellipse(ex, ey, 22, 11, 0, 0, Math.PI * 2);
-    dCtx.stroke();
+  dCtx.beginPath();
+  dCtx.moveTo(cx + 16, cy - 31);
+  dCtx.bezierCurveTo(cx + 38, cy - 44, cx + 68, cy - 50, cx + 92, cy - 34);
+  dCtx.stroke();
 
-    dCtx.fillStyle = '#101010';
+  // 5. Ojos almendrados y expresivos con pupila, iris y brillo de luz
+  for (const dir of [-1, 1]) {
+    const ex = cx + dir * 52;
+    const ey = cy - 10;
+
+    // Sombra del párpado superior
+    dCtx.fillStyle = 'rgba(75, 45, 35, 0.25)';
     dCtx.beginPath();
-    dCtx.arc(ex, ey, 8, 0, Math.PI * 2);
+    dCtx.ellipse(ex, ey - 4, 28, 12, 0, 0, Math.PI * 2);
     dCtx.fill();
 
+    // Blanco del ojo
+    dCtx.fillStyle = '#faf8f5';
+    dCtx.beginPath();
+    dCtx.moveTo(ex - 26, ey);
+    dCtx.quadraticCurveTo(ex, ey - 15, ex + 26, ey);
+    dCtx.quadraticCurveTo(ex, ey + 13, ex - 26, ey);
+    dCtx.fill();
+
+    // Iris cálido avellana/verde
+    const irisGrad = dCtx.createRadialGradient(ex - 2, ey - 2, 2, ex, ey, 12);
+    irisGrad.addColorStop(0, '#42687c');
+    irisGrad.addColorStop(0.65, '#28414f');
+    irisGrad.addColorStop(1, '#111b22');
+    dCtx.fillStyle = irisGrad;
+    dCtx.beginPath();
+    dCtx.arc(ex, ey - 1, 10.5, 0, Math.PI * 2);
+    dCtx.fill();
+
+    // Pupila profunda
+    dCtx.fillStyle = '#090d12';
+    dCtx.beginPath();
+    dCtx.arc(ex, ey - 1, 5.2, 0, Math.PI * 2);
+    dCtx.fill();
+
+    // Brillo de luz vivo (catchlight)
     dCtx.fillStyle = '#ffffff';
     dCtx.beginPath();
-    dCtx.arc(ex - 3, ey - 3, 2.5, 0, Math.PI * 2);
+    dCtx.arc(ex - 3.5, ey - 4.5, 2.6, 0, Math.PI * 2);
     dCtx.fill();
+    dCtx.beginPath();
+    dCtx.arc(ex + 3.0, ey + 1.5, 1.2, 0, Math.PI * 2);
+    dCtx.fill();
+
+    // Pestañas y contorno superior marcado
+    dCtx.strokeStyle = '#150f0e';
+    dCtx.lineWidth = 3.6;
+    dCtx.beginPath();
+    dCtx.moveTo(ex - 27, ey + 1);
+    dCtx.quadraticCurveTo(ex, ey - 16, ex + 27, ey - 2);
+    dCtx.stroke();
+
+    // Pliegue del párpado superior
+    dCtx.strokeStyle = 'rgba(70, 42, 32, 0.45)';
+    dCtx.lineWidth = 1.8;
+    dCtx.beginPath();
+    dCtx.moveTo(ex - 23, ey - 14);
+    dCtx.quadraticCurveTo(ex, ey - 21, ex + 22, ey - 13);
+    dCtx.stroke();
   }
 
-  dCtx.strokeStyle = '#2b2b2b';
-  dCtx.lineWidth = 3.2;
+  // 6. Nariz esculpida con sombreado lateral natural
+  // Sombra del caballete
+  dCtx.strokeStyle = 'rgba(95, 60, 45, 0.42)';
+  dCtx.lineWidth = 2.4;
   dCtx.beginPath();
-  dCtx.moveTo(cx - 4, cy - 10);
-  dCtx.lineTo(cx - 8, cy + 42);
-  dCtx.quadraticCurveTo(cx, cy + 52, cx + 14, cy + 42);
+  dCtx.moveTo(cx - 15, cy - 25);
+  dCtx.quadraticCurveTo(cx - 12, cy + 20, cx - 16, cy + 52);
   dCtx.stroke();
 
-  dCtx.strokeStyle = '#202020';
-  dCtx.lineWidth = 4;
+  // Punta y aletas de la nariz
+  dCtx.fillStyle = '#2d1810';
   dCtx.beginPath();
-  dCtx.moveTo(cx - 38, cy + 82);
-  dCtx.quadraticCurveTo(cx, cy + 74, cx + 38, cy + 82);
-  dCtx.quadraticCurveTo(cx, cy + 100, cx - 38, cy + 82);
+  // Fosa nasal izquierda
+  dCtx.ellipse(cx - 16, cy + 54, 7, 3.2, -0.2, 0, Math.PI * 2);
+  // Fosa nasal derecha
+  dCtx.ellipse(cx + 16, cy + 54, 7, 3.2, 0.2, 0, Math.PI * 2);
+  dCtx.fill();
+
+  dCtx.strokeStyle = 'rgba(95, 60, 45, 0.55)';
+  dCtx.lineWidth = 2.6;
+  dCtx.beginPath();
+  dCtx.arc(cx, cy + 49, 13, 0.15 * Math.PI, 0.85 * Math.PI);
+  dCtx.stroke();
+
+  // 7. Labios volumétricos y bien definidos
+  // Labio superior
+  const lipTopGrad = dCtx.createLinearGradient(cx, cy + 82, cx, cy + 96);
+  lipTopGrad.addColorStop(0, '#9e3b3b');
+  lipTopGrad.addColorStop(1, '#5e1b1e');
+  dCtx.fillStyle = lipTopGrad;
+  dCtx.beginPath();
+  dCtx.moveTo(cx - 44, cy + 95);
+  dCtx.quadraticCurveTo(cx - 22, cy + 81, cx - 7, cy + 86);
+  dCtx.quadraticCurveTo(cx, cy + 89, cx + 7, cy + 86);
+  dCtx.quadraticCurveTo(cx + 22, cy + 81, cx + 44, cy + 95);
+  dCtx.quadraticCurveTo(cx, cy + 99, cx - 44, cy + 95);
+  dCtx.fill();
+
+  // Línea de separación y comisuras de los labios
+  dCtx.strokeStyle = '#2d080b';
+  dCtx.lineWidth = 2.8;
+  dCtx.beginPath();
+  dCtx.moveTo(cx - 45, cy + 95);
+  dCtx.quadraticCurveTo(cx - 18, cy + 93, cx, cy + 98);
+  dCtx.quadraticCurveTo(cx + 18, cy + 93, cx + 45, cy + 95);
+  dCtx.stroke();
+
+  // Labio inferior con brillo central
+  const lipBotGrad = dCtx.createLinearGradient(cx, cy + 96, cx, cy + 122);
+  lipBotGrad.addColorStop(0, '#c75357');
+  lipBotGrad.addColorStop(0.6, '#a83c40');
+  lipBotGrad.addColorStop(1, '#661b1e');
+  dCtx.fillStyle = lipBotGrad;
+  dCtx.beginPath();
+  dCtx.moveTo(cx - 43, cy + 96);
+  dCtx.quadraticCurveTo(cx, cy + 100, cx + 43, cy + 96);
+  dCtx.quadraticCurveTo(cx + 32, cy + 120, cx, cy + 122);
+  dCtx.quadraticCurveTo(cx - 32, cy + 120, cx - 43, cy + 96);
+  dCtx.fill();
+
+  // Sombra bajo el labio inferior que define la barbilla
+  dCtx.fillStyle = 'rgba(70, 38, 26, 0.38)';
+  dCtx.beginPath();
+  dCtx.ellipse(cx, cy + 130, 24, 7, 0, 0, Math.PI * 2);
+  dCtx.fill();
+
+  // 8. Mechones frontales de cabello que caen delicadamente
+  dCtx.strokeStyle = '#181b24';
+  dCtx.lineWidth = 6;
+  dCtx.beginPath();
+  dCtx.moveTo(cx - 130, cy - 110);
+  dCtx.bezierCurveTo(cx - 100, cy - 70, cx - 110, cy - 20, cx - 135, cy + 40);
+  dCtx.stroke();
+
+  dCtx.beginPath();
+  dCtx.moveTo(cx + 125, cy - 110);
+  dCtx.bezierCurveTo(cx + 90, cy - 70, cx + 105, cy - 20, cx + 135, cy + 40);
   dCtx.stroke();
 
   const img = new Image();
