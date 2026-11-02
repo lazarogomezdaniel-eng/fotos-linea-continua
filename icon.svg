@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#181d2c"/>
+      <stop offset="100%" stop-color="#0b0d13"/>
+    </radialGradient>
+    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00d2ff"/>
+      <stop offset="50%" stop-color="#9b5de5"/>
+      <stop offset="100%" stop-color="#ff4d6d"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  <circle cx="256" cy="256" r="236" fill="none" stroke="#252d42" stroke-width="4"/>
+  <!-- Continuous line flower / panot icon path -->
+  <path d="M 256 196
+           C 220 120, 120 120, 120 220
+           C 120 280, 196 256, 196 256
+           C 120 292, 120 392, 220 392
+           C 280 392, 256 316, 256 316
+           C 292 392, 392 392, 392 292
+           C 392 232, 316 256, 316 256
+           C 392 220, 392 120, 292 120
+           C 232 120, 256 196, 256 196 Z"
+        fill="none" stroke="url(#lineGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="256" r="28" fill="none" stroke="#00d2ff" stroke-width="10"/>
+</svg>

@@ -6,6 +6,12 @@
   <meta name="theme-color" content="#0b0d13">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Línea Continua">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
   <title>Estudio de Línea Continua — Panots de Barcelona · Coral · Calco Tatuador · Áurea φ · Fractal</title>
   <style>
     :root {
@@ -139,8 +145,11 @@
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <div>
         <h2>✒️ Estudio de Línea Continua</h2>
-        <div class="subtitle">11 Motores Completos + Color Orgánico · PC y Móvil</div>
+        <div class="subtitle">13 Motores Completos + Color Orgánico · PC y Móvil</div>
       </div>
+      <button id="btnInstallApp" style="display:none; padding:4px 9px; font-size:11px; background:#1e5236; border:1px solid #1fd88a; color:#fff;" title="Instalar aplicación en tu pantalla de inicio o escritorio">
+        📲 Instalar
+      </button>
     </div>
     
     <label class="file-btn">
@@ -4734,6 +4743,56 @@ btnRec.onclick = () => {
 };
 
 initDemoPortrait();
+
+// =========================================================
+// PWA: Service Worker e Instalación en Pantalla de Inicio
+// =========================================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+let deferredPrompt = null;
+const btnInstallApp = document.getElementById('btnInstallApp');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (btnInstallApp) {
+    btnInstallApp.style.display = 'inline-flex';
+  }
+});
+
+// En Safari / iOS también mostramos el botón si no está en modo standalone
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+if (!isStandalone && btnInstallApp) {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isMacSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  if (isIOS || isMacSafari) {
+    btnInstallApp.style.display = 'inline-flex';
+  }
+}
+
+if (btnInstallApp) {
+  btnInstallApp.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        btnInstallApp.style.display = 'none';
+      }
+      deferredPrompt = null;
+    } else {
+      alert("Para instalar en Safari / iPhone / Mac:\n1. Pulsa el botón Compartir ⎋ (o menú Archivo en Mac)\n2. Selecciona 'Añadir a pantalla de inicio' ➕ (o 'Añadir al Dock').");
+    }
+  });
+}
+
+window.addEventListener('appinstalled', () => {
+  if (btnInstallApp) btnInstallApp.style.display = 'none';
+  deferredPrompt = null;
+});
 </script>
 </body>
 </html>
