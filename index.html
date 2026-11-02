@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b0d13">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Estudio de Línea Continua — Coral @algorigraph · Calco Tatuador · Áurea φ · Fractal</title>
+  <title>Estudio de Línea Continua — Panots de Barcelona · Coral · Calco Tatuador · Áurea φ · Fractal</title>
   <style>
     :root {
       --bg-dark: #0b0d13;
@@ -139,7 +139,7 @@
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <div>
         <h2>✒️ Estudio de Línea Continua</h2>
-        <div class="subtitle">10 Motores Completos + Color Orgánico · PC y Móvil</div>
+        <div class="subtitle">11 Motores Completos + Color Orgánico · PC y Móvil</div>
       </div>
     </div>
     
@@ -150,21 +150,22 @@
 
     <!-- Selector de Algoritmo / Estilo de Línea Continua (TODOS LOS MODOS CONSERVADOS + NUEVOS) -->
     <div class="panel-section">
-      <div class="panel-title"><span>Modo / Algoritmo de Línea (10 Modos)</span> <span>⚡</span></div>
+      <div class="panel-title"><span>Modo / Algoritmo de Línea (11 Modos)</span> <span>⚡</span></div>
       <select id="engineMode">
-        <option value="coral">🧠 1. Coral Cerebral Dendrítico (@algorigraph · 100% Relleno)</option>
+        <option value="coral">🧠 1. Coral Cerebral Dendrítico (100% Relleno de Silueta)</option>
         <option value="coral_tsp">🌊 2. Coral Orgánico TSP (Stippling + 2-Opt + Chaikin)</option>
         <option value="stencil_clean">✏️ 3. Calco a Lápiz Tatuador Sin Cruces (Paso 232 · 2-Opt)</option>
         <option value="stencil_cross">✍️ 4. Calco a Lápiz CON CRUCES (Boceto de Trazos Cruzados)</option>
         <option value="live_growth">🌱 5. Crecimiento en Vivo CON CRUCES (1ª Versión Original)</option>
         <option value="golden">🌻 6. Proporción Áurea φ = 1.618 (Filotaxis 137.508°)</option>
         <option value="fractal">❄️ 7. Curva Fractal Adaptativa (Hilbert Multiescala 2ⁿ)</option>
-        <option value="hex_spiral">🌀 8. Mosaico Hex-Espiral Geométrico (@fabian.jimenez)</option>
-        <option value="iso_diamond">💎 9. Mosaico Rombos Isométricos 3D (@fabian.jimenez)</option>
-        <option value="pursuit_vortex">🌪️ 10. Vórtice Geométrico en Espiral (@fabian.jimenez)</option>
+        <option value="hex_spiral">🌀 8. Mosaico Hex-Espiral Geométrico</option>
+        <option value="iso_diamond">💎 9. Mosaico Rombos Isométricos 3D</option>
+        <option value="pursuit_vortex">🌪️ 10. Vórtice Geométrico en Espiral</option>
+        <option value="panot_bcn">🌸 11. Panots de Barcelona (Flor del Eixample Modernista)</option>
       </select>
       <div id="modeDesc" class="mode-badge">
-        🧠 Coral @algorigraph: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros en U de extremo a extremo.
+        🧠 Coral: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros en U de extremo a extremo.
       </div>
       <div style="margin-top:2px;">
         <label style="margin-bottom:2px;">Vista del Lienzo</label>
@@ -205,7 +206,7 @@
             </optgroup>
             <optgroup label="🌈 Paletas de Autor">
               <option value="iris" selected>🌈 Iris Orgánico</option>
-              <option value="fabian">✨ Plata/Cian/Ámbar</option>
+              <option value="cyan_amber">✨ Plata/Cian/Ámbar</option>
               <option value="sunset">🌅 Atardecer</option>
               <option value="ocean">🌊 Bioluminiscencia</option>
               <option value="forest">🍃 Bosque Boreal</option>
@@ -451,11 +452,11 @@ function computeHarmonyColors(harmony, baseHue) {
 }
 
 const PALETTE_PRESETS = {
-  iris:   ['#ff4d6d', '#00d2ff', '#9b5de5'],
-  fabian: ['#56cfe1', '#e0fbfc', '#f4a261'],
-  sunset: ['#e63946', '#ffb703', '#8338ec'],
-  ocean:  ['#00f5d4', '#00bbf9', '#5e60ce'],
-  forest: ['#2a9d8f', '#e9c46a', '#e76f51']
+  iris:        ['#ff4d6d', '#00d2ff', '#9b5de5'],
+  cyan_amber:  ['#56cfe1', '#e0fbfc', '#f4a261'],
+  sunset:      ['#e63946', '#ffb703', '#8338ec'],
+  ocean:       ['#00f5d4', '#00bbf9', '#5e60ce'],
+  forest:      ['#2a9d8f', '#e9c46a', '#e76f51']
 };
 
 const BG_COLORS = {
@@ -481,16 +482,17 @@ let liveNodesY = null;
 let liveNodeCount = 0;
 
 const MODE_DESCRIPTIONS = {
-  coral: '🧠 Coral Cerebral Dendrítico (@algorigraph): Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros redondeados en U sin dejar huecos vacíos.',
-  coral_tsp: '🌊 Coral Orgánico TSP (Versión Anterior): Stippling adaptativo por tono + repulsión + ruta continua 2-Opt libre de cruces + curvas Chaikin.',
+  coral: '🧠 Coral Cerebral Dendrítico: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros redondeados en U sin dejar huecos vacíos.',
+  coral_tsp: '🌊 Coral Orgánico TSP: Stippling adaptativo por tono + repulsión + ruta continua 2-Opt libre de cruces + curvas Chaikin.',
   stencil_clean: '✏️ Calco a Lápiz Tatuador Sin Cruces (Paso 232): Algoritmo exacto de calco a lápiz por inversión de capa + línea continua 100% libre de cruces (2-Opt).',
   stencil_cross: '✍️ Calco a Lápiz CON CRUCES: Mantiene el calco a lápiz del tatuador pero enlaza los trazos permitiendo cruces y sombreado cruzado rápido.',
   live_growth: '🌱 Crecimiento Diferencial en Vivo CON CRUCES: El trazo nace en el centro del rostro y teje en vivo sobre los rasgos cruzando líneas con alta calidad.',
   golden: '🌻 Proporción Áurea (φ = 1.61803): Distribuye los nodos en espiral de Fermat con el ángulo áureo exacto (137.50776°) y brazos espirales de Fibonacci (55/89).',
   fractal: '❄️ Curva Fractal Adaptativa (Hilbert 2ⁿ): Subdivide recursivamente el retrato en una curva fractal autosemejante más densa en ojos y sombras, con 0 cruces.',
-  hex_spiral: '🌀 Mosaico Hex-Espiral (@fabian.jimenez): Teje una red continua de espirales hexagonales e isométricas cuya densidad de vueltas esculpe las sombras del retrato.',
-  iso_diamond: '💎 Mosaico Rombos Isométricos 3D (@fabian.jimenez): Celdas de rombos/cubos 3D con pliegues concéntricos modulados por las luces y sombras del retrato.',
-  pursuit_vortex: '🌪️ Vórtice Geométrico en Espiral (@fabian.jimenez): Celdas poligonales con giro progresivo (curvas de persecución) que esculpen el volumen facial.'
+  hex_spiral: '🌀 Mosaico Hex-Espiral: Teje una red continua de espirales hexagonales e isométricas cuya densidad de vueltas esculpe las sombras del retrato.',
+  iso_diamond: '💎 Mosaico Rombos Isométricos 3D: Celdas de rombos/cubos 3D con pliegues concéntricos modulados por las luces y sombras del retrato.',
+  pursuit_vortex: '🌪️ Vórtice Geométrico en Espiral: Celdas poligonales con giro progresivo (curvas de persecución) que esculpen el volumen facial.',
+  panot_bcn: '🌸 Panots de Barcelona: Teje una red continua de la icónica Flor de Barcelona (panots del Eixample), donde los pétalos concéntricos esculpen las facciones y contrastes.'
 };
 
 const MODE_PRESETS = {
@@ -503,7 +505,8 @@ const MODE_PRESETS = {
   fractal:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1 },
   hex_spiral:     { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1 },
   iso_diamond:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0 },
-  pursuit_vortex: { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1 }
+  pursuit_vortex: { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1 },
+  panot_bcn:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1 }
 };
 
 function syncSlidersFromState() {
@@ -1751,7 +1754,7 @@ function workerBlur(src, width, height, radius) {
 }
 
 /**
- * MODO 1: MOTOR CORAL CEREBRAL @algorigraph (100% RELLENO DE CANALES PARALELOS + GIROS EN U):
+ * MODO 1: MOTOR CORAL CEREBRAL (100% RELLENO DE CANALES PARALELOS + GIROS EN U):
  * 1. Empaqueta centros de espuma en el 100% de la silueta con diámetro D(x,y) = 2 * w(x,y) (cero huecos vacíos).
  * 2. Relaja los centros con 14 pasadas de repulsión de espuma de Lloyd.
  * 3. Construye un Grafo Planar de Gabriel y un Árbol Generador Orgánico (grado máx 3) alineado con las isofotas del retrato.
@@ -2319,7 +2322,7 @@ function generateDendriticCoralPortrait(toneMap, silhouetteMask, smoothSilMap, W
 }
 
 /**
- * MODO 8: MOSAICO HEX-ESPIRAL GEOMÉTRICO (@fabian.jimenez):
+ * MODO 8: MOSAICO HEX-ESPIRAL GEOMÉTRICO:
  * Teje una red continua de celdas hexagonales/isométricas donde la densidad de espirales concéntricas
  * y el anclaje a las crestas de contraste esculpen los rasgos faciales con alta nitidez y fidelidad.
  */
@@ -2713,7 +2716,7 @@ function generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TA
 }
 
 /**
- * MODO 9: MOSAICO DE ROMBOS ISOMÉTRICOS 3D (@fabian.jimenez):
+ * MODO 9: MOSAICO DE ROMBOS ISOMÉTRICOS 3D:
  * Red continua de facetas isométricas (rombos 60°/120°) con pliegues concéntricos
  * adaptados a los rasgos y claroscuros del retrato.
  */
@@ -2812,7 +2815,7 @@ function generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask
 }
 
 /**
- * MODO 10: VÓRTICE GEOMÉTRICO EN ESPIRAL (@fabian.jimenez):
+ * MODO 10: VÓRTICE GEOMÉTRICO EN ESPIRAL:
  * Celdas poligonales con curvas de persecución que convergen en vórtices
  * modulados por los rasgos, pupilas y claroscuros del retrato.
  */
@@ -2912,6 +2915,135 @@ function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteM
 
       outX.push(px + Math.cos(exitAng) * rad);
       outY.push(py + Math.sin(exitAng) * rad);
+    }
+  }
+
+  return {
+    ptsX: new Float32Array(outX),
+    ptsY: new Float32Array(outY)
+  };
+}
+
+/**
+ * MODO 11: PANOTS DE BARCELONA (FLOR DEL EIXAMPLE MODERNISTA):
+ * Teje una red continua de baldosas con la icónica Flor de Barcelona (panot de 4 pétalos),
+ * donde los pétalos concéntricos y las juntas cuadradas esculpen las facciones y claroscuros.
+ */
+function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000) {
+  const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
+  const tileSize = Math.max(7.5, Math.min(20.0, MIN_R * 5.2 * nodeScale));
+  const halfS = tileSize * 0.5;
+
+  const outX = [];
+  const outY = [];
+  const rows = Math.ceil(H / tileSize);
+  const cols = Math.ceil(W / tileSize);
+
+  for (let r = 0; r < rows; r++) {
+    const cy = r * tileSize + halfS;
+    if (cy < 4 || cy >= H - 4) continue;
+
+    let firstC = -1, lastC = -1;
+    for (let c = 0; c < cols; c++) {
+      const cx = c * tileSize + halfS;
+      if (cx < 4 || cx >= W - 4) continue;
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+      const dark = Math.max(0, 1.0 - (coralToneMap ? coralToneMap[idx] : 1.0));
+      const lineDark = Math.max(0, 1.0 - (step232Stencil ? step232Stencil[idx] : 1.0));
+      if (Math.min(1.0, dark * 0.65 + lineDark * 0.95) >= 0.055) {
+        if (firstC === -1) firstC = c;
+        lastC = c;
+      }
+    }
+    if (firstC === -1) continue;
+
+    const l2r = (r & 1) === 0;
+    const startC = l2r ? firstC : lastC;
+    const endC = l2r ? lastC : firstC;
+    const stepC = l2r ? 1 : -1;
+
+    for (let c = startC; l2r ? c <= endC : c >= endC; c += stepC) {
+      const cx = c * tileSize + halfS;
+      if (cx < 4 || cx >= W - 4) continue;
+
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+
+      const tone = coralToneMap ? coralToneMap[idx] : 0.5;
+      const s232 = step232Stencil ? step232Stencil[idx] : 1.0;
+      const dark = Math.max(0, 1.0 - tone);
+      const lineDark = Math.max(0, 1.0 - s232);
+      const effDark = Math.min(1.0, dark * 0.65 + lineDark * 0.95);
+
+      let px = cx, py = cy;
+      if (effDark > 0.08 && idx > W && idx < W * (H - 1) - 1) {
+        const gx = (coralToneMap[idx + 1] - coralToneMap[idx - 1]) * 0.5 + (step232Stencil[idx + 1] - step232Stencil[idx - 1]) * 0.5;
+        const gy = (coralToneMap[idx + W] - coralToneMap[idx - W]) * 0.5 + (step232Stencil[idx + W] - step232Stencil[idx - W]) * 0.5;
+        const pull = Math.min(2.2, effDark * 1.8);
+        px = Math.max(4, Math.min(W - 4, px - gx * pull));
+        py = Math.max(4, Math.min(H - 4, py - gy * pull));
+      }
+
+      const enterX = l2r ? px - halfS : px + halfS;
+      const exitX = l2r ? px + halfS : px - halfS;
+
+      if (effDark < 0.08) {
+        outX.push(enterX, px, exitX);
+        outY.push(py, py, py);
+        continue;
+      }
+
+      const rMax = halfS * 0.90;
+      const rMin = rMax * 0.32;
+      const startAngle = l2r ? Math.PI : 0;
+
+      outX.push(enterX);
+      outY.push(py);
+
+      // Marco perimetral del panot en zonas de sombra para marcar el embaldosado
+      if (effDark > 0.20) {
+        const pad = halfS * 0.92;
+        const rc = halfS * 0.12;
+        if (l2r) {
+          outX.push(px - pad, px - pad, px - pad + rc, px + pad - rc, px + pad, px + pad, px + pad - rc, px - pad + rc, px - pad);
+          outY.push(py, py - pad + rc, py - pad, py - pad, py - pad + rc, py + pad - rc, py + pad, py + pad, py + pad - rc);
+        } else {
+          outX.push(px + pad, px + pad, px + pad - rc, px - pad + rc, px - pad, px - pad, px - pad + rc, px + pad - rc, px + pad);
+          outY.push(py, py - pad + rc, py - pad, py - pad, py - pad + rc, py + pad - rc, py + pad, py + pad, py + pad - rc);
+        }
+      }
+
+      const turns = Math.min(4, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.25) * 4.2)));
+
+      // Pétalos florales concéntricos de la Flor de Barcelona
+      for (let t = 0; t < turns; t++) {
+        const s = 1.0 - (t / Math.max(1, turns)) * 0.64;
+        const numSamples = 16;
+        const dirSign = (t & 1) === 0 ? 1 : -1;
+        for (let k = 0; k <= numSamples; k++) {
+          const u = k / numSamples;
+          const theta = startAngle + dirSign * u * Math.PI * 2;
+          const c4 = Math.cos(4 * theta);
+          const petalFactor = Math.pow(Math.max(0, 0.5 + 0.5 * c4), 0.62);
+          const r = (rMin + (rMax - rMin) * petalFactor) * s;
+          outX.push(px + Math.cos(theta) * r);
+          outY.push(py + Math.sin(theta) * r);
+        }
+      }
+
+      // Núcleo circular central (pistilo del panot)
+      const coreR = rMin * 0.60;
+      const coreSteps = 8;
+      for (let k = 0; k <= coreSteps; k++) {
+        const u = k / coreSteps;
+        const theta = startAngle + u * Math.PI * 2;
+        outX.push(px + Math.cos(theta) * coreR);
+        outY.push(py + Math.sin(theta) * coreR);
+      }
+
+      outX.push(exitX);
+      outY.push(py);
     }
   }
 
@@ -3172,6 +3304,17 @@ self.onmessage = function(e) {
     return;
   }
 
+  if (engineMode === 'panot_bcn') {
+    let { ptsX, ptsY } = generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES);
+    if (CHAIKIN_PASSES > 0) {
+      ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+    }
+    const outX = new Float32Array(ptsX);
+    const outY = new Float32Array(ptsY);
+    self.postMessage({ jobId, ptsX: outX, ptsY: outY, pass: 1, totalPasses: 1, done: true }, [outX.buffer, outY.buffer]);
+    return;
+  }
+
   if (engineMode === 'fractal') {
     let { ptsX, ptsY } = generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES);
     if (CHAIKIN_PASSES > 0) {
@@ -3399,7 +3542,7 @@ function getOrganicLineColor(i, totalLen, x, y) {
       Math.cos((y / H) * COLOR_SCALE * 3.2 - colorPhase * 0.5) * 1.35;
     phaseVal = u + spatialCurl + colorPhase;
   } else if (COLOR_MODE === 'organic_spatial') {
-    // Simetría bilateral + ondas concéntricas orgánicas estilo @fabian.jimenez.art
+    // Simetría bilateral + ondas concéntricas orgánicas bidimensionales
     const symX = Math.abs(x - W * 0.5) / (W * 0.5);
     const normY = (y - H * 0.45) / (H * 0.5);
     const rad = Math.hypot(symX, normY);
