@@ -150,7 +150,7 @@
 
     <!-- Selector de Algoritmo / Estilo de Línea Continua (TODOS LOS MODOS CONSERVADOS + NUEVOS) -->
     <div class="panel-section">
-      <div class="panel-title"><span>Modo / Algoritmo de Línea (11 Modos)</span> <span>⚡</span></div>
+      <div class="panel-title"><span>Modo / Algoritmo de Línea (12 Modos)</span> <span>⚡</span></div>
       <select id="engineMode">
         <option value="coral">🧠 1. Coral Cerebral Dendrítico (100% Relleno de Silueta)</option>
         <option value="coral_tsp">🌊 2. Coral Orgánico TSP (Stippling + 2-Opt + Chaikin)</option>
@@ -162,7 +162,8 @@
         <option value="hex_spiral">🌀 8. Mosaico Hex-Espiral Geométrico</option>
         <option value="iso_diamond">💎 9. Mosaico Rombos Isométricos 3D</option>
         <option value="pursuit_vortex">🌪️ 10. Vórtice Geométrico en Espiral</option>
-        <option value="panot_bcn">🌸 11. Panots de Barcelona (Flor del Eixample Modernista)</option>
+        <option value="panot_bcn">🧱 11. Panots de Barcelona (Baldosa Hidráulica con Marco)</option>
+        <option value="flor_bcn">🌸 12. Flor de Barcelona (Silueta Floral Pura · Solo la Flor)</option>
       </select>
       <div id="modeDesc" class="mode-badge">
         🧠 Coral: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros en U de extremo a extremo.
@@ -492,7 +493,8 @@ const MODE_DESCRIPTIONS = {
   hex_spiral: '🌀 Mosaico Hex-Espiral: Teje una red continua de espirales hexagonales e isométricas cuya densidad de vueltas esculpe las sombras del retrato.',
   iso_diamond: '💎 Mosaico Rombos Isométricos 3D: Celdas de rombos/cubos 3D con pliegues concéntricos modulados por las luces y sombras del retrato.',
   pursuit_vortex: '🌪️ Vórtice Geométrico en Espiral: Celdas poligonales con giro progresivo (curvas de persecución) que esculpen el volumen facial.',
-  panot_bcn: '🌸 Panots de Barcelona: Teje una red continua de la icónica Flor de Barcelona (panots del Eixample), donde los pétalos concéntricos esculpen las facciones y contrastes.'
+  panot_bcn:      '🧱 Panots de Barcelona: Teje una red continua de baldosas completas con marco perimetral y la icónica Flor de Barcelona en bajorrelieve.',
+  flor_bcn:       '🌸 Flor de Barcelona: Silueta floral pura sin marco de baldosa. Traza exclusivamente la icónica flor modernista de 4 pétalos con pistilo central y relieves concéntricos adaptados a las facciones.'
 };
 
 const MODE_PRESETS = {
@@ -506,7 +508,8 @@ const MODE_PRESETS = {
   hex_spiral:     { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1 },
   iso_diamond:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0 },
   pursuit_vortex: { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1 },
-  panot_bcn:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1 }
+  panot_bcn:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1 },
+  flor_bcn:       { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.60, bgClean: 0.000, minR: 1.8, maxR: 6.5, chaikin: 1 }
 };
 
 function syncSlidersFromState() {
@@ -2925,13 +2928,14 @@ function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteM
 }
 
 /**
- * MODO 11: PANOTS DE BARCELONA (FLOR DEL EIXAMPLE MODERNISTA):
- * Teje una red continua de baldosas con la icónica Flor de Barcelona (panot de 4 pétalos),
- * donde los pétalos concéntricos y las juntas cuadradas esculpen las facciones y claroscuros.
+/**
+ * MODO 11: PANOTS DE BARCELONA (BALDOSA HIDRÁULICA CON MARCO):
+ * Teje una red continua de baldosas completas con marco perimetral biselado y la icónica Flor de Barcelona
+ * en bajorrelieve (4 pétalos diagonales en esquinas y pistilo central).
  */
 function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000) {
   const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
-  const tileSize = Math.max(7.5, Math.min(20.0, MIN_R * 5.2 * nodeScale));
+  const tileSize = Math.max(8.0, Math.min(22.0, MIN_R * 5.2 * nodeScale));
   const halfS = tileSize * 0.5;
 
   const outX = [];
@@ -2994,15 +2998,15 @@ function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouette
         continue;
       }
 
-      const rMax = halfS * 0.90;
-      const rMin = rMax * 0.32;
+      const rMax = halfS * 0.92;
+      const rMin = rMax * 0.35;
       const startAngle = l2r ? Math.PI : 0;
 
       outX.push(enterX);
       outY.push(py);
 
-      // Marco perimetral del panot en zonas de sombra para marcar el embaldosado
-      if (effDark > 0.20) {
+      // Marco perimetral cuadrado del panot en sombras profundas para marcar las llagas del embaldosado
+      if (effDark > 0.42) {
         const pad = halfS * 0.92;
         const rc = halfS * 0.12;
         if (l2r) {
@@ -3014,36 +3018,182 @@ function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouette
         }
       }
 
-      const turns = Math.min(4, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.25) * 4.2)));
+      const turns = Math.min(3, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.25) * 3.5)));
 
-      // Pétalos florales concéntricos de la Flor de Barcelona
+      // Pétalos florales concéntricos de la Flor de Barcelona (45°, 135°, 225°, 315°)
       for (let t = 0; t < turns; t++) {
-        const s = 1.0 - (t / Math.max(1, turns)) * 0.64;
-        const numSamples = 16;
+        const s = 1.0 - (t / Math.max(1, turns)) * 0.55;
+        const numSamples = 24;
         const dirSign = (t & 1) === 0 ? 1 : -1;
         for (let k = 0; k <= numSamples; k++) {
           const u = k / numSamples;
           const theta = startAngle + dirSign * u * Math.PI * 2;
-          const c4 = Math.cos(4 * theta);
-          const petalFactor = Math.pow(Math.max(0, 0.5 + 0.5 * c4), 0.62);
+          const c4 = -Math.cos(4 * theta);
+          const petalFactor = Math.pow(Math.max(0, 0.5 + 0.5 * c4), 0.55);
           const r = (rMin + (rMax - rMin) * petalFactor) * s;
           outX.push(px + Math.cos(theta) * r);
           outY.push(py + Math.sin(theta) * r);
         }
       }
 
-      // Núcleo circular central (pistilo del panot)
-      const coreR = rMin * 0.60;
-      const coreSteps = 8;
+      // Núcleo circular central (pistilo del panot con salida limpia)
+      const coreR = rMin * 0.65;
+      const coreSteps = 16;
+      const targetEndAngle = l2r ? (startAngle + Math.PI * 3) : (startAngle - Math.PI * 3);
       for (let k = 0; k <= coreSteps; k++) {
         const u = k / coreSteps;
-        const theta = startAngle + u * Math.PI * 2;
+        const theta = startAngle + u * (targetEndAngle - startAngle);
         outX.push(px + Math.cos(theta) * coreR);
         outY.push(py + Math.sin(theta) * coreR);
       }
 
       outX.push(exitX);
       outY.push(py);
+    }
+  }
+
+  return {
+    ptsX: new Float32Array(outX),
+    ptsY: new Float32Array(outY)
+  };
+}
+
+/**
+ * MODO 12: FLOR DE BARCELONA (SILUETA FLORAL PURA · SOLO LA FLOR):
+ * Esculpe el rostro exclusivamente con la icónica Flor de Barcelona (4 pétalos modernistas y pistilo central).
+ * Sin marco cuadrado ni baldosa: 100% silueta floral continua con relieves concéntricos según el claroscuro.
+ */
+function generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 20000) {
+  const nodeScale = Math.sqrt(20000 / Math.max(4000, TARGET_NODES));
+  const flowerSpacing = Math.max(9.0, Math.min(28.0, MIN_R * 5.4 * nodeScale));
+  const halfS = flowerSpacing * 0.5;
+
+  const outX = [];
+  const outY = [];
+  const rows = Math.ceil(H / flowerSpacing);
+  const cols = Math.ceil(W / flowerSpacing);
+
+  let activeRowIndex = 0;
+  let prevExitX = null;
+
+  for (let r = 0; r < rows; r++) {
+    const cy = r * flowerSpacing + halfS;
+    if (cy < 4 || cy >= H - 4) continue;
+
+    let firstC = -1, lastC = -1;
+    for (let c = 0; c < cols; c++) {
+      const cx = c * flowerSpacing + halfS;
+      if (cx < 4 || cx >= W - 4) continue;
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+      const dark = Math.max(0, 1.0 - (coralToneMap ? coralToneMap[idx] : 1.0));
+      const lineDark = Math.max(0, 1.0 - (step232Stencil ? step232Stencil[idx] : 1.0));
+      if (Math.min(1.0, dark * 0.65 + lineDark * 0.95) >= 0.05) {
+        if (firstC === -1) firstC = c;
+        lastC = c;
+      }
+    }
+    if (firstC === -1) continue;
+
+    const l2r = (activeRowIndex & 1) === 0;
+    activeRowIndex++;
+
+    const startC = l2r ? firstC : lastC;
+    const endC = l2r ? lastC : firstC;
+    const stepC = l2r ? 1 : -1;
+
+    // Conexión escalonada suave entre filas para seguir el borde de la silueta sin diagonales invasivas
+    const firstCellCx = startC * flowerSpacing + halfS;
+    const firstEnterX = l2r ? firstCellCx - halfS : firstCellCx + halfS;
+    if (prevExitX !== null) {
+      outX.push(prevExitX, firstEnterX);
+      outY.push(cy, cy);
+    }
+
+    for (let c = startC; l2r ? c <= endC : c >= endC; c += stepC) {
+      const cx = c * flowerSpacing + halfS;
+      if (cx < 4 || cx >= W - 4) continue;
+
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+
+      const tone = coralToneMap ? coralToneMap[idx] : 0.5;
+      const s232 = step232Stencil ? step232Stencil[idx] : 1.0;
+      const dark = Math.max(0, 1.0 - tone);
+      const lineDark = Math.max(0, 1.0 - s232);
+      const effDark = Math.min(1.0, dark * 0.65 + lineDark * 0.95);
+
+      // Anclaje a las crestas de contraste (fidelidad a ojos, nariz, boca)
+      let px = cx, py = cy;
+      if (effDark > 0.08 && idx > W && idx < W * (H - 1) - 1) {
+        const gx = (coralToneMap[idx + 1] - coralToneMap[idx - 1]) * 0.5 + (step232Stencil[idx + 1] - step232Stencil[idx - 1]) * 0.5;
+        const gy = (coralToneMap[idx + W] - coralToneMap[idx - W]) * 0.5 + (step232Stencil[idx + W] - step232Stencil[idx - W]) * 0.5;
+        const pull = Math.min(2.5, effDark * 2.0);
+        px = Math.max(4, Math.min(W - 4, px - gx * pull));
+        py = Math.max(4, Math.min(H - 4, py - gy * pull));
+      }
+
+      const rMax = halfS * 0.95;
+      const rMin = rMax * 0.35;
+      const enterX = l2r ? px - halfS : px + halfS;
+      const exitX = l2r ? px + halfS : px - halfS;
+
+      outX.push(enterX);
+      outY.push(py);
+
+      // Luces altas: paso limpio para mantener el contraste del rostro
+      if (effDark < 0.08) {
+        outX.push(px, exitX);
+        outY.push(py, py);
+        prevExitX = exitX;
+        continue;
+      }
+
+      const startAngle = l2r ? Math.PI : 0;
+      const numSamples = 28;
+
+      // 1. Contorno exterior de los 4 pétalos en las 4 esquinas (45°, 135°, 225°, 315°)
+      for (let k = 0; k <= numSamples; k++) {
+        const u = k / numSamples;
+        const theta = startAngle + u * Math.PI * 2;
+        const c4 = -Math.cos(4 * theta);
+        const petalFactor = Math.pow(Math.max(0, 0.5 + 0.5 * c4), 0.55);
+        const r = rMin + (rMax - rMin) * petalFactor;
+        outX.push(px + Math.cos(theta) * r);
+        outY.push(py + Math.sin(theta) * r);
+      }
+
+      // 2. Relieves florales concéntricos según el claroscuro (de 1 a 3 bucles interiores de pétalos)
+      const innerTurns = Math.min(3, Math.max(1, Math.round(Math.pow(effDark, 1.1) * 3.4)));
+      for (let t = 0; t < innerTurns; t++) {
+        const s = 0.72 - (t / Math.max(1, innerTurns)) * 0.44;
+        const dir = (t & 1) === 0 ? -1 : 1;
+        for (let k = 0; k <= numSamples; k++) {
+          const u = k / numSamples;
+          const theta = startAngle + dir * u * Math.PI * 2;
+          const c4 = -Math.cos(4 * theta);
+          const petalFactor = Math.pow(Math.max(0, 0.5 + 0.5 * c4), 0.55);
+          const r = rMin * 0.85 + (rMax * s - rMin * 0.85) * petalFactor;
+          outX.push(px + Math.cos(theta) * r);
+          outY.push(py + Math.sin(theta) * r);
+        }
+      }
+
+      // 3. Pistilo circular central (recorre 1.5 vueltas para salir directamente hacia exitX sin cruzar el centro)
+      const coreR = rMin * 0.65;
+      const coreSteps = 16;
+      const targetEndAngle = l2r ? (startAngle + Math.PI * 3) : (startAngle - Math.PI * 3);
+      for (let k = 0; k <= coreSteps; k++) {
+        const u = k / coreSteps;
+        const theta = startAngle + u * (targetEndAngle - startAngle);
+        outX.push(px + Math.cos(theta) * coreR);
+        outY.push(py + Math.sin(theta) * coreR);
+      }
+
+      // Salida hacia la siguiente flor de la fila
+      outX.push(exitX);
+      outY.push(py);
+      prevExitX = exitX;
     }
   }
 
@@ -3306,6 +3456,17 @@ self.onmessage = function(e) {
 
   if (engineMode === 'panot_bcn') {
     let { ptsX, ptsY } = generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES);
+    if (CHAIKIN_PASSES > 0) {
+      ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+    }
+    const outX = new Float32Array(ptsX);
+    const outY = new Float32Array(ptsY);
+    self.postMessage({ jobId, ptsX: outX, ptsY: outY, pass: 1, totalPasses: 1, done: true }, [outX.buffer, outY.buffer]);
+    return;
+  }
+
+  if (engineMode === 'flor_bcn') {
+    let { ptsX, ptsY } = generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
