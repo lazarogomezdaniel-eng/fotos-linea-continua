@@ -4416,229 +4416,263 @@ function initDemoPortrait() {
   dCanvas.width = 720; dCanvas.height = 880;
   const dCtx = dCanvas.getContext('2d');
 
-  // Fondo de estudio fotográfico suave
-  const bgGrad = dCtx.createRadialGradient(360, 440, 60, 360, 440, 520);
-  bgGrad.addColorStop(0, '#f8fafc');
-  bgGrad.addColorStop(0.65, '#e2e8f0');
-  bgGrad.addColorStop(1, '#cbd5e1');
+  // Fondo de estudio fotográfico chiaroscuro elegante
+  const bgGrad = dCtx.createRadialGradient(360, 420, 60, 360, 420, 540);
+  bgGrad.addColorStop(0, '#f1f5f9');
+  bgGrad.addColorStop(0.6, '#cbd5e1');
+  bgGrad.addColorStop(1, '#94a3b8');
   dCtx.fillStyle = bgGrad;
   dCtx.fillRect(0, 0, 720, 880);
 
-  const cx = 360, cy = 410;
+  const cx = 360, cy = 405;
 
-  // 1. Masa de cabello voluptuosa y orgánica (fondo)
-  dCtx.fillStyle = '#14171f';
+  // 1. Cabello masculino moderno con volumen y textura (corte pompadour / degradado con estilo)
+  dCtx.fillStyle = '#11141c';
   dCtx.beginPath();
-  dCtx.ellipse(cx, cy - 35, 195, 230, 0, 0, Math.PI * 2);
+  dCtx.moveTo(cx - 150, cy - 30);
+  dCtx.bezierCurveTo(cx - 165, cy - 140, cx - 110, cy - 240, cx - 20, cy - 260);
+  dCtx.bezierCurveTo(cx + 60, cy - 270, cx + 155, cy - 210, cx + 158, cy - 110);
+  dCtx.bezierCurveTo(cx + 160, cy - 20, cx + 145, cy + 30, cx + 130, cy + 60);
+  dCtx.lineTo(cx - 130, cy + 60);
   dCtx.fill();
 
-  // Mechones de pelo laterales que caen con curvas elegantes
+  // Mechones de cabello en relieve superior
+  const hairGrad = dCtx.createLinearGradient(cx - 90, cy - 250, cx + 90, cy - 120);
+  hairGrad.addColorStop(0, '#2d3345');
+  hairGrad.addColorStop(0.5, '#191d28');
+  hairGrad.addColorStop(1, '#0d0f15');
+  dCtx.fillStyle = hairGrad;
   dCtx.beginPath();
-  dCtx.moveTo(cx - 180, cy - 20);
-  dCtx.bezierCurveTo(cx - 230, cy + 120, cx - 190, cy + 280, cx - 120, cy + 380);
-  dCtx.bezierCurveTo(cx - 80, cy + 340, cx - 110, cy + 220, cx - 130, cy + 100);
+  dCtx.moveTo(cx - 135, cy - 120);
+  dCtx.bezierCurveTo(cx - 110, cy - 225, cx - 10, cy - 245, cx + 45, cy - 235);
+  dCtx.bezierCurveTo(cx + 115, cy - 220, cx + 140, cy - 150, cx + 125, cy - 90);
+  dCtx.bezierCurveTo(cx + 60, cy - 130, cx - 60, cy - 140, cx - 135, cy - 120);
   dCtx.fill();
 
-  dCtx.beginPath();
-  dCtx.moveTo(cx + 180, cy - 20);
-  dCtx.bezierCurveTo(cx + 230, cy + 120, cx + 190, cy + 280, cx + 120, cy + 380);
-  dCtx.bezierCurveTo(cx + 80, cy + 340, cx + 110, cy + 220, cx + 130, cy + 100);
-  dCtx.fill();
-
-  // 2. Cuello y hombros con claroscuro suave
-  const neckGrad = dCtx.createLinearGradient(cx - 70, cy + 150, cx + 70, cy + 280);
-  neckGrad.addColorStop(0, '#ebd5c1');
-  neckGrad.addColorStop(0.6, '#d4bba4');
-  neckGrad.addColorStop(1, '#8c6e58');
+  // 2. Cuello atlético masculino y hombros
+  const neckGrad = dCtx.createLinearGradient(cx - 90, cy + 150, cx + 90, cy + 320);
+  neckGrad.addColorStop(0, '#e5c4a7');
+  neckGrad.addColorStop(0.55, '#c99f7d');
+  neckGrad.addColorStop(1, '#78543b');
   dCtx.fillStyle = neckGrad;
   dCtx.beginPath();
-  dCtx.moveTo(cx - 62, cy + 130);
-  dCtx.quadraticCurveTo(cx - 70, cy + 260, cx - 190, cy + 380);
-  dCtx.lineTo(cx + 190, cy + 380);
-  dCtx.quadraticCurveTo(cx + 70, cy + 260, cx + 62, cy + 130);
+  dCtx.moveTo(cx - 78, cy + 130);
+  dCtx.quadraticCurveTo(cx - 88, cy + 280, cx - 225, cy + 400);
+  dCtx.lineTo(cx + 225, cy + 400);
+  dCtx.quadraticCurveTo(cx + 88, cy + 280, cx + 78, cy + 130);
   dCtx.fill();
 
-  // Sombra proyectada bajo la barbilla
-  dCtx.fillStyle = 'rgba(40, 24, 18, 0.45)';
+  // Músculo esternocleidomastoideo y nuez de Adán (claroscuro masculino)
+  dCtx.strokeStyle = 'rgba(75, 45, 30, 0.40)';
+  dCtx.lineWidth = 3.5;
   dCtx.beginPath();
-  dCtx.ellipse(cx, cy + 158, 68, 26, 0, 0, Math.PI * 2);
+  dCtx.moveTo(cx - 38, cy + 195);
+  dCtx.quadraticCurveTo(cx - 20, cy + 265, cx - 45, cy + 330);
+  dCtx.moveTo(cx + 28, cy + 215);
+  dCtx.quadraticCurveTo(cx + 12, cy + 275, cx + 38, cy + 330);
+  dCtx.stroke();
+
+  // Sombra de la nuez de Adán
+  dCtx.fillStyle = 'rgba(70, 40, 25, 0.35)';
+  dCtx.beginPath();
+  dCtx.ellipse(cx, cy + 225, 16, 10, 0, 0, Math.PI * 2);
   dCtx.fill();
 
-  // 3. Estructura facial con iluminación volumétrica Rembrandt (luz principal desde la izquierda)
-  const faceGrad = dCtx.createRadialGradient(cx - 35, cy - 10, 25, cx, cy + 25, 160);
-  faceGrad.addColorStop(0, '#fff3eb');
-  faceGrad.addColorStop(0.42, '#f2dbc7');
-  faceGrad.addColorStop(0.78, '#c9a58b');
-  faceGrad.addColorStop(1, '#5a3d2c');
+  // Sombra angular proyectada bajo la mandíbula
+  dCtx.fillStyle = 'rgba(35, 18, 12, 0.52)';
+  dCtx.beginPath();
+  dCtx.moveTo(cx - 105, cy + 115);
+  dCtx.lineTo(cx, cy + 182);
+  dCtx.lineTo(cx + 105, cy + 115);
+  dCtx.quadraticCurveTo(cx, cy + 195, cx - 105, cy + 115);
+  dCtx.fill();
+
+  // 3. Estructura facial masculina: mandíbula marcada, pómulos angulosos y barbilla cuadrada
+  const faceGrad = dCtx.createRadialGradient(cx - 40, cy - 20, 30, cx, cy + 20, 175);
+  faceGrad.addColorStop(0, '#fef0e3');
+  faceGrad.addColorStop(0.40, '#ebd0b9');
+  faceGrad.addColorStop(0.75, '#be9474');
+  faceGrad.addColorStop(1, '#5c3a25');
   dCtx.fillStyle = faceGrad;
   dCtx.beginPath();
-  dCtx.moveTo(cx - 128, cy - 30);
-  dCtx.bezierCurveTo(cx - 132, cy + 70, cx - 95, cy + 135, cx, cy + 162);
-  dCtx.bezierCurveTo(cx + 95, cy + 135, cx + 132, cy + 70, cx + 128, cy - 30);
-  dCtx.bezierCurveTo(cx + 125, cy - 140, cx - 125, cy - 140, cx - 128, cy - 30);
+  dCtx.moveTo(cx - 122, cy - 50);
+  dCtx.bezierCurveTo(cx - 128, cy + 40, cx - 110, cy + 95, cx - 52, cy + 148);
+  dCtx.lineTo(cx - 26, cy + 160);
+  dCtx.lineTo(cx + 26, cy + 160);
+  dCtx.lineTo(cx + 52, cy + 148);
+  dCtx.bezierCurveTo(cx + 110, cy + 95, cx + 128, cy + 40, cx + 122, cy - 50);
+  dCtx.bezierCurveTo(cx + 118, cy - 145, cx - 118, cy - 145, cx - 122, cy - 50);
   dCtx.fill();
 
-  // Pómulo suave y relieve de mejilla
-  const cheekGrad = dCtx.createRadialGradient(cx - 55, cy + 35, 8, cx - 55, cy + 35, 55);
-  cheekGrad.addColorStop(0, 'rgba(235, 140, 130, 0.28)');
-  cheekGrad.addColorStop(1, 'rgba(235, 140, 130, 0.0)');
+  // Barba recortada / sombra de barba de 3 días (diseño que aporta definición y textura increíble al trazo)
+  dCtx.fillStyle = 'rgba(25, 20, 22, 0.26)';
+  dCtx.beginPath();
+  dCtx.moveTo(cx - 118, cy + 40);
+  dCtx.bezierCurveTo(cx - 115, cy + 105, cx - 55, cy + 155, cx - 28, cy + 166);
+  dCtx.lineTo(cx + 28, cy + 166);
+  dCtx.bezierCurveTo(cx + 55, cy + 155, cx + 115, cy + 105, cx + 118, cy + 40);
+  dCtx.quadraticCurveTo(cx + 80, cy + 90, cx, cy + 120);
+  dCtx.quadraticCurveTo(cx - 80, cy + 90, cx - 118, cy + 40);
+  dCtx.fill();
+
+  // Pómulo angulado masculino con sombra
+  const cheekGrad = dCtx.createRadialGradient(cx - 65, cy + 25, 10, cx - 65, cy + 25, 60);
+  cheekGrad.addColorStop(0, 'rgba(220, 140, 115, 0.22)');
+  cheekGrad.addColorStop(1, 'rgba(220, 140, 115, 0.0)');
   dCtx.fillStyle = cheekGrad;
   dCtx.beginPath();
-  dCtx.arc(cx - 55, cy + 35, 55, 0, Math.PI * 2);
+  dCtx.arc(cx - 65, cy + 25, 60, 0, Math.PI * 2);
   dCtx.fill();
 
-  // 4. Cejas naturales estilizadas
-  dCtx.strokeStyle = '#231815';
+  // 4. Cejas masculinas pobladas y rectas (mirada intensa)
+  dCtx.strokeStyle = '#181416';
   dCtx.lineCap = 'round';
-  dCtx.lineWidth = 5.2;
+  dCtx.lineWidth = 7.5;
   dCtx.beginPath();
-  dCtx.moveTo(cx - 92, cy - 34);
-  dCtx.bezierCurveTo(cx - 68, cy - 50, cx - 38, cy - 44, cx - 16, cy - 31);
+  dCtx.moveTo(cx - 96, cy - 35);
+  dCtx.lineTo(cx - 48, cy - 44);
+  dCtx.lineTo(cx - 14, cy - 36);
   dCtx.stroke();
 
   dCtx.beginPath();
-  dCtx.moveTo(cx + 16, cy - 31);
-  dCtx.bezierCurveTo(cx + 38, cy - 44, cx + 68, cy - 50, cx + 92, cy - 34);
+  dCtx.moveTo(cx + 14, cy - 36);
+  dCtx.lineTo(cx + 48, cy - 44);
+  dCtx.lineTo(cx + 96, cy - 35);
   dCtx.stroke();
 
-  // 5. Ojos almendrados y expresivos con pupila, iris y brillo de luz
+  // 5. Ojos masculinos profundos y seguros con pupila e iris detallados
   for (const dir of [-1, 1]) {
-    const ex = cx + dir * 52;
-    const ey = cy - 10;
+    const ex = cx + dir * 54;
+    const ey = cy - 14;
 
-    // Sombra del párpado superior
-    dCtx.fillStyle = 'rgba(75, 45, 35, 0.25)';
+    // Sombra del arco supraciliar masculino (sombra profunda en la cuenca ocular)
+    dCtx.fillStyle = 'rgba(50, 30, 20, 0.32)';
     dCtx.beginPath();
-    dCtx.ellipse(ex, ey - 4, 28, 12, 0, 0, Math.PI * 2);
+    dCtx.ellipse(ex, ey - 6, 32, 14, 0, 0, Math.PI * 2);
     dCtx.fill();
 
     // Blanco del ojo
-    dCtx.fillStyle = '#faf8f5';
+    dCtx.fillStyle = '#f8fafc';
     dCtx.beginPath();
     dCtx.moveTo(ex - 26, ey);
-    dCtx.quadraticCurveTo(ex, ey - 15, ex + 26, ey);
-    dCtx.quadraticCurveTo(ex, ey + 13, ex - 26, ey);
+    dCtx.quadraticCurveTo(ex, ey - 12, ex + 26, ey);
+    dCtx.quadraticCurveTo(ex, ey + 11, ex - 26, ey);
     dCtx.fill();
 
-    // Iris cálido avellana/verde
+    // Iris verde/ámbar masculino
     const irisGrad = dCtx.createRadialGradient(ex - 2, ey - 2, 2, ex, ey, 12);
-    irisGrad.addColorStop(0, '#42687c');
-    irisGrad.addColorStop(0.65, '#28414f');
-    irisGrad.addColorStop(1, '#111b22');
+    irisGrad.addColorStop(0, '#53716d');
+    irisGrad.addColorStop(0.65, '#2f4945');
+    irisGrad.addColorStop(1, '#111d1c');
     dCtx.fillStyle = irisGrad;
     dCtx.beginPath();
-    dCtx.arc(ex, ey - 1, 10.5, 0, Math.PI * 2);
+    dCtx.arc(ex, ey, 10.5, 0, Math.PI * 2);
     dCtx.fill();
 
-    // Pupila profunda
-    dCtx.fillStyle = '#090d12';
+    // Pupila
+    dCtx.fillStyle = '#060a0f';
     dCtx.beginPath();
-    dCtx.arc(ex, ey - 1, 5.2, 0, Math.PI * 2);
+    dCtx.arc(ex, ey, 5.0, 0, Math.PI * 2);
     dCtx.fill();
 
-    // Brillo de luz vivo (catchlight)
+    // Catchlight reflejo de luz nítido
     dCtx.fillStyle = '#ffffff';
     dCtx.beginPath();
-    dCtx.arc(ex - 3.5, ey - 4.5, 2.6, 0, Math.PI * 2);
-    dCtx.fill();
-    dCtx.beginPath();
-    dCtx.arc(ex + 3.0, ey + 1.5, 1.2, 0, Math.PI * 2);
+    dCtx.arc(ex - 3.2, ey - 3.5, 2.4, 0, Math.PI * 2);
     dCtx.fill();
 
-    // Pestañas y contorno superior marcado
-    dCtx.strokeStyle = '#150f0e';
-    dCtx.lineWidth = 3.6;
+    // Párpado superior masculino firme y marcado
+    dCtx.strokeStyle = '#111216';
+    dCtx.lineWidth = 4.2;
     dCtx.beginPath();
-    dCtx.moveTo(ex - 27, ey + 1);
-    dCtx.quadraticCurveTo(ex, ey - 16, ex + 27, ey - 2);
+    dCtx.moveTo(ex - 27, ey);
+    dCtx.quadraticCurveTo(ex, ey - 13, ex + 27, ey);
     dCtx.stroke();
 
-    // Pliegue del párpado superior
-    dCtx.strokeStyle = 'rgba(70, 42, 32, 0.45)';
+    // Párpado inferior y pliegue de expresión
+    dCtx.strokeStyle = 'rgba(70, 42, 30, 0.45)';
     dCtx.lineWidth = 1.8;
     dCtx.beginPath();
-    dCtx.moveTo(ex - 23, ey - 14);
-    dCtx.quadraticCurveTo(ex, ey - 21, ex + 22, ey - 13);
+    dCtx.moveTo(ex - 24, ey + 4);
+    dCtx.quadraticCurveTo(ex, ey + 13, ex + 24, ey + 4);
     dCtx.stroke();
   }
 
-  // 6. Nariz esculpida con sombreado lateral natural
-  // Sombra del caballete
-  dCtx.strokeStyle = 'rgba(95, 60, 45, 0.42)';
-  dCtx.lineWidth = 2.4;
+  // 6. Nariz griega recta, fuerte y bien proporcionada
+  dCtx.strokeStyle = 'rgba(80, 45, 30, 0.48)';
+  dCtx.lineWidth = 3.2;
   dCtx.beginPath();
-  dCtx.moveTo(cx - 15, cy - 25);
-  dCtx.quadraticCurveTo(cx - 12, cy + 20, cx - 16, cy + 52);
+  dCtx.moveTo(cx - 14, cy - 32);
+  dCtx.lineTo(cx - 16, cy + 30);
+  dCtx.quadraticCurveTo(cx - 18, cy + 46, cx - 14, cy + 50);
   dCtx.stroke();
 
-  // Punta y aletas de la nariz
-  dCtx.fillStyle = '#2d1810';
+  // Fosas nasales y base de la nariz masculina
+  dCtx.fillStyle = '#241410';
   dCtx.beginPath();
-  // Fosa nasal izquierda
-  dCtx.ellipse(cx - 16, cy + 54, 7, 3.2, -0.2, 0, Math.PI * 2);
-  // Fosa nasal derecha
-  dCtx.ellipse(cx + 16, cy + 54, 7, 3.2, 0.2, 0, Math.PI * 2);
+  dCtx.ellipse(cx - 18, cy + 53, 8.5, 3.6, -0.25, 0, Math.PI * 2);
+  dCtx.ellipse(cx + 18, cy + 53, 8.5, 3.6, 0.25, 0, Math.PI * 2);
   dCtx.fill();
 
-  dCtx.strokeStyle = 'rgba(95, 60, 45, 0.55)';
-  dCtx.lineWidth = 2.6;
-  dCtx.beginPath();
-  dCtx.arc(cx, cy + 49, 13, 0.15 * Math.PI, 0.85 * Math.PI);
-  dCtx.stroke();
-
-  // 7. Labios volumétricos y bien definidos
-  // Labio superior
-  const lipTopGrad = dCtx.createLinearGradient(cx, cy + 82, cx, cy + 96);
-  lipTopGrad.addColorStop(0, '#9e3b3b');
-  lipTopGrad.addColorStop(1, '#5e1b1e');
-  dCtx.fillStyle = lipTopGrad;
-  dCtx.beginPath();
-  dCtx.moveTo(cx - 44, cy + 95);
-  dCtx.quadraticCurveTo(cx - 22, cy + 81, cx - 7, cy + 86);
-  dCtx.quadraticCurveTo(cx, cy + 89, cx + 7, cy + 86);
-  dCtx.quadraticCurveTo(cx + 22, cy + 81, cx + 44, cy + 95);
-  dCtx.quadraticCurveTo(cx, cy + 99, cx - 44, cy + 95);
-  dCtx.fill();
-
-  // Línea de separación y comisuras de los labios
-  dCtx.strokeStyle = '#2d080b';
+  dCtx.strokeStyle = 'rgba(80, 45, 30, 0.60)';
   dCtx.lineWidth = 2.8;
   dCtx.beginPath();
-  dCtx.moveTo(cx - 45, cy + 95);
-  dCtx.quadraticCurveTo(cx - 18, cy + 93, cx, cy + 98);
-  dCtx.quadraticCurveTo(cx + 18, cy + 93, cx + 45, cy + 95);
+  dCtx.arc(cx, cy + 48, 14, 0.15 * Math.PI, 0.85 * Math.PI);
   dCtx.stroke();
 
-  // Labio inferior con brillo central
-  const lipBotGrad = dCtx.createLinearGradient(cx, cy + 96, cx, cy + 122);
-  lipBotGrad.addColorStop(0, '#c75357');
-  lipBotGrad.addColorStop(0.6, '#a83c40');
-  lipBotGrad.addColorStop(1, '#661b1e');
+  // 7. Labios masculinos esculpidos y barbilla con hoyuelo
+  // Labio superior
+  const lipTopGrad = dCtx.createLinearGradient(cx, cy + 78, cx, cy + 93);
+  lipTopGrad.addColorStop(0, '#8c4848');
+  lipTopGrad.addColorStop(1, '#542022');
+  dCtx.fillStyle = lipTopGrad;
+  dCtx.beginPath();
+  dCtx.moveTo(cx - 44, cy + 91);
+  dCtx.quadraticCurveTo(cx - 20, cy + 81, cx - 6, cy + 83);
+  dCtx.quadraticCurveTo(cx, cy + 86, cx + 6, cy + 83);
+  dCtx.quadraticCurveTo(cx + 20, cy + 81, cx + 44, cy + 91);
+  dCtx.quadraticCurveTo(cx, cy + 93, cx - 44, cy + 91);
+  dCtx.fill();
+
+  // Separación de labios
+  dCtx.strokeStyle = '#22080a';
+  dCtx.lineWidth = 3.0;
+  dCtx.beginPath();
+  dCtx.moveTo(cx - 45, cy + 91);
+  dCtx.quadraticCurveTo(cx, cy + 94, cx + 45, cy + 91);
+  dCtx.stroke();
+
+  // Labio inferior masculino con sombra inferior rotunda
+  const lipBotGrad = dCtx.createLinearGradient(cx, cy + 92, cx, cy + 116);
+  lipBotGrad.addColorStop(0, '#af595d');
+  lipBotGrad.addColorStop(0.65, '#8c3d42');
+  lipBotGrad.addColorStop(1, '#5a1d20');
   dCtx.fillStyle = lipBotGrad;
   dCtx.beginPath();
-  dCtx.moveTo(cx - 43, cy + 96);
-  dCtx.quadraticCurveTo(cx, cy + 100, cx + 43, cy + 96);
-  dCtx.quadraticCurveTo(cx + 32, cy + 120, cx, cy + 122);
-  dCtx.quadraticCurveTo(cx - 32, cy + 120, cx - 43, cy + 96);
+  dCtx.moveTo(cx - 42, cy + 92);
+  dCtx.quadraticCurveTo(cx, cy + 95, cx + 42, cy + 92);
+  dCtx.quadraticCurveTo(cx + 28, cy + 114, cx, cy + 115);
+  dCtx.quadraticCurveTo(cx - 28, cy + 114, cx - 42, cy + 92);
   dCtx.fill();
 
-  // Sombra bajo el labio inferior que define la barbilla
-  dCtx.fillStyle = 'rgba(70, 38, 26, 0.38)';
+  // Sombra de barbilla y hoyuelo sutil
+  dCtx.fillStyle = 'rgba(60, 30, 20, 0.45)';
   dCtx.beginPath();
-  dCtx.ellipse(cx, cy + 130, 24, 7, 0, 0, Math.PI * 2);
+  dCtx.ellipse(cx, cy + 125, 26, 8, 0, 0, Math.PI * 2);
   dCtx.fill();
 
-  // 8. Mechones frontales de cabello que caen delicadamente
-  dCtx.strokeStyle = '#181b24';
-  dCtx.lineWidth = 6;
+  dCtx.strokeStyle = 'rgba(50, 25, 15, 0.40)';
+  dCtx.lineWidth = 2.0;
   dCtx.beginPath();
-  dCtx.moveTo(cx - 130, cy - 110);
-  dCtx.bezierCurveTo(cx - 100, cy - 70, cx - 110, cy - 20, cx - 135, cy + 40);
+  dCtx.arc(cx, cy + 148, 6, 0.2 * Math.PI, 0.8 * Math.PI);
   dCtx.stroke();
 
+  // Cuello de camiseta / ropa en la base para cerrar la composición limpiamente
+  dCtx.strokeStyle = '#252b3b';
+  dCtx.lineWidth = 4.0;
   dCtx.beginPath();
-  dCtx.moveTo(cx + 125, cy - 110);
-  dCtx.bezierCurveTo(cx + 90, cy - 70, cx + 105, cy - 20, cx + 135, cy + 40);
+  dCtx.moveTo(cx - 100, cy + 340);
+  dCtx.quadraticCurveTo(cx, cy + 380, cx + 100, cy + 340);
   dCtx.stroke();
 
   const img = new Image();
