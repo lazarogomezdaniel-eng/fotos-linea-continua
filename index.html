@@ -197,6 +197,7 @@
           <label>Modo de Color</label>
           <select id="colorMode">
             <option value="mono" selected>⚫ Monocromo</option>
+            <option value="rainbow">🌈 Rainbow</option>
             <option value="line_strand">🧵 Tramos de Línea (Hilo Continuo)</option>
             <option value="photo_exact">📸 Color Exacto de la Foto</option>
             <option value="organic_flow">🌊 Flujo Orgánico</option>
@@ -217,6 +218,7 @@
               <option value="monochrome">🌓 Monocromía de Valor</option>
             </optgroup>
             <optgroup label="🌈 Paletas de Autor">
+              <option value="rainbow">🌈 Rainbow</option>
               <option value="iris" selected>🌈 Iris Orgánico</option>
               <option value="cyan_amber">✨ Plata/Cian/Ámbar</option>
               <option value="sunset">🌅 Atardecer</option>
@@ -463,7 +465,17 @@ function computeHarmonyColors(harmony, baseHue) {
   }
 }
 
+const RAINBOW_STOPS = [
+  [228, 3, 3],     // Rojo
+  [255, 140, 0],   // Naranja
+  [255, 237, 0],   // Amarillo
+  [0, 128, 38],    // Verde
+  [0, 77, 255],    // Azul
+  [117, 7, 135]    // Violeta
+];
+
 const PALETTE_PRESETS = {
+  rainbow:     ['#e40303', '#ffed00', '#004dff'],
   iris:        ['#ff4d6d', '#00d2ff', '#9b5de5'],
   cyan_amber:  ['#56cfe1', '#e0fbfc', '#f4a261'],
   sunset:      ['#e63946', '#ffb703', '#8338ec'],
@@ -3960,7 +3972,25 @@ function getOrganicLineColor(i, totalLen, x, y) {
   const tone = coralToneMap ? coralToneMap[pIdx] : 0.5;
 
   let phaseVal = 0;
-  if (COLOR_MODE === 'line_strand') {
+  if (COLOR_MODE === 'rainbow') {
+    // 🌈 Rainbow: 6 tonos icónicos puros con transición continua a lo largo del hilo
+    const u = ((i / Math.max(1, totalLen)) * COLOR_SCALE + colorPhase * 0.159155) % 1.0;
+    const normU = u < 0 ? u + 1.0 : u;
+    const pos = normU * 6.0;
+    const idx0 = (pos | 0) % 6;
+    const idx1 = (idx0 + 1) % 6;
+    const f = pos - (pos | 0);
+    const sf = f * f * (3.0 - 2.0 * f);
+    const cA = RAINBOW_STOPS[idx0];
+    const cB = RAINBOW_STOPS[idx1];
+    let r = cA[0] + (cB[0] - cA[0]) * sf;
+    let g = cA[1] + (cB[1] - cA[1]) * sf;
+    let b = cA[2] + (cB[2] - cA[2]) * sf;
+    const shadeFactor = BG_THEME === 'dark'
+      ? (0.78 + 0.32 * (1.0 - tone * 0.4))
+      : (0.72 + 0.28 * (1.0 - (1.0 - tone) * 0.45));
+    return `rgb(${(r * shadeFactor) | 0},${(g * shadeFactor) | 0},${(b * shadeFactor) | 0})`;
+  } else if (COLOR_MODE === 'line_strand') {
     // 🧵 Tramos de Línea (Hilo Continuo): degradado 100% puro por recorrido de hilo (0 cuadrados, 0 ondas)
     phaseVal = (i / Math.max(1, totalLen)) * COLOR_SCALE * Math.PI * 2.0 + colorPhase;
   } else if (COLOR_MODE === 'organic_flow') {
@@ -4096,7 +4126,7 @@ function rebuildLineCache() {
     }
   } else {
     // Trazado multicolor orgánico por micro-segmentos continuos solapados (fluido en GPU a 60fps)
-    const chunkStep = (COLOR_MODE === 'photo_exact') ? 3 : (COLOR_MODE === 'line_strand' ? (isColorFlowing ? 12 : 6) : (isColorFlowing ? 36 : 18));
+    const chunkStep = (COLOR_MODE === 'photo_exact') ? 3 : ((COLOR_MODE === 'line_strand' || COLOR_MODE === 'rainbow') ? (isColorFlowing ? 12 : 6) : (isColorFlowing ? 36 : 18));
     for (let start = 1; start < totalLen - 1; start += chunkStep) {
       const end = Math.min(totalLen - 1, start + chunkStep);
       const midIdx = (start + end) >> 1;
