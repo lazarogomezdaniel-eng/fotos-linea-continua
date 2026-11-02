@@ -470,6 +470,7 @@ const BG_COLORS = {
 let ptsX = new Float32Array(0);
 let ptsY = new Float32Array(0);
 let statusPhase = 'Iniciando...';
+let REBUILD_SEED = 0;
 
 // Estado de Animación O(1)
 let isAnimatingDraw = false;
@@ -1002,14 +1003,13 @@ function startLiveDifferentialGrowthMode() {
   stopLiveGrowth();
   stopAnimation();
 
-  // Escala precisa de nodos para dibujo al grabado limpio y nítido (no invasivo)
-  const maxNodes = Math.min(32000, Math.max(4500, Math.round(TARGET_NODES * 0.65)));
+  // Escala precisa de nodos sensible a TARGET_NODES, MIN_R (Sombras) y MAX_R (Luces)
+  const rScale = Math.pow(2.8 / Math.max(0.8, MIN_R), 0.65) * Math.pow(9.0 / Math.max(3.0, MAX_R), 0.35);
+  const maxNodes = Math.min(42000, Math.max(2500, Math.round(TARGET_NODES * 0.65 * rScale)));
   const cap = maxNodes + 4000;
+  const shadeCut = Math.max(0.06, Math.min(0.45, 0.14 + (MAX_R / 25.0) * 0.22));
+  const shadowExp = Math.max(1.2, Math.min(2.8, 1.5 + (MIN_R / 4.0) * 0.7));
 
-  // 1. Extraer densidad selectiva de alta precisión:
-  // - Máxima prioridad a los contornos y aristas DoG (ojos, cejas, párpados, nariz, boca, labios, pelo, mandíbula)
-  // - Protección total de luces (frente, puente nasal, pómulos claros quedan limpios para no tapar la forma)
-  // - Sombreado direccional únicamente en sombras intermedias y profundas
   const len = W * H;
   const err = new Float32Array(len);
   let totalMass = 0;
@@ -1021,9 +1021,9 @@ function startLiveDifferentialGrowthMode() {
     // Aristas del calco DoG: nitidez absoluta en los rasgos faciales
     const edgeW = pDark > 0.07 ? Math.pow(pDark, 1.1) * 4.2 : 0;
 
-    // Sombreado selectivo: corte limpio para luces (solo sombrea donde tDark > 0.24)
-    const shadeTone = Math.max(0, tDark - 0.24);
-    const toneW = Math.pow(shadeTone, 2.2) * 2.6;
+    // Sombreado selectivo sensible a MAX_R (luces) y MIN_R (sombras)
+    const shadeTone = Math.max(0, tDark - shadeCut);
+    const toneW = Math.pow(shadeTone, shadowExp) * (3.4 / Math.max(0.8, MIN_R * 0.55));
 
     const w = edgeW + toneW;
     if (w > 0.015) {
@@ -1161,9 +1161,11 @@ function startLiveDifferentialGrowthMode() {
   const layerB = packLayer(idxB);
   const layerC = packLayer(idxC);
 
-  // Semilla de inicio para la Capa 1: centro de la mirada / rostro (W*0.5, H*0.42)
+  // Semilla de inicio para la Capa 1: centro de la mirada / rostro
   let startSeedA = 0, minSeedDistA = Infinity;
-  const focalX = W * 0.5, focalY = H * 0.42;
+  const seedAng = REBUILD_SEED * 2.39996;
+  const focalX = W * (0.5 + (REBUILD_SEED > 0 ? Math.cos(seedAng) * 0.08 : 0));
+  const focalY = H * (0.42 + (REBUILD_SEED > 0 ? Math.sin(seedAng) * 0.08 : 0));
   for (let i = 0; i < layerA.px.length; i++) {
     const d = Math.hypot(layerA.px[i] - focalX, layerA.py[i] - focalY);
     if (d < minSeedDistA) { minSeedDistA = d; startSeedA = i; }
@@ -1470,20 +1472,23 @@ function runFast2OptPass(ptsX, ptsY, oHead, oNext, segLen, oCols, oRows, optCell
   return swaps;
 }
 
-function generateCrossedEtchingTour(coralToneMap, step232Stencil, silhouetteMask, W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES) {
-  const maxNodes = Math.min(42000, Math.max(4500, Math.round(TARGET_NODES * 0.75)));
+function generateCrossedEtchingTour(coralToneMap, step232Stencil, silhouetteMask, W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0) {
+  const rScale = Math.pow(2.6 / Math.max(0.8, MIN_R), 0.65) * Math.pow(9.0 / Math.max(3.0, MAX_R), 0.35);
+  const maxNodes = Math.min(45000, Math.max(2500, Math.round(TARGET_NODES * 0.75 * rScale)));
   const cap = maxNodes + 4000;
   const len = W * H;
   const err = new Float32Array(len);
   let totalMass = 0;
+  const shadeCut = Math.max(0.06, Math.min(0.45, 0.14 + (MAX_R / 25.0) * 0.22));
+  const shadowExp = Math.max(1.2, Math.min(2.8, 1.5 + (MIN_R / 4.0) * 0.7));
 
   for (let i = 0; i < len; i++) {
     if (!silhouetteMask[i]) continue;
     const pDark = Math.max(0, 1.0 - step232Stencil[i]);
     const tDark = Math.max(0, 1.0 - coralToneMap[i]);
     const edgeW = pDark > 0.07 ? Math.pow(pDark, 1.1) * 4.2 : 0;
-    const shadeTone = Math.max(0, tDark - 0.24);
-    const toneW = Math.pow(shadeTone, 2.2) * 2.6;
+    const shadeTone = Math.max(0, tDark - shadeCut);
+    const toneW = Math.pow(shadeTone, shadowExp) * (3.4 / Math.max(0.8, MIN_R * 0.55));
     const w = edgeW + toneW;
     if (w > 0.015) {
       err[i] = w;
@@ -1613,7 +1618,9 @@ function generateCrossedEtchingTour(coralToneMap, step232Stencil, silhouetteMask
   const lA = pack(idxA), lB = pack(idxB), lC = pack(idxC);
 
   let startSeedA = 0, minSeedDistA = Infinity;
-  const focalX = W * 0.5, focalY = H * 0.42;
+  const seedAng = seed * 2.39996;
+  const focalX = W * (0.5 + (seed > 0 ? Math.cos(seedAng) * 0.12 : 0));
+  const focalY = H * (0.42 + (seed > 0 ? Math.sin(seedAng) * 0.12 : 0));
   for (let i = 0; i < lA.px.length; i++) {
     const d = Math.hypot(lA.px[i] - focalX, lA.py[i] - focalY);
     if (d < minSeedDistA) { minSeedDistA = d; startSeedA = i; }
@@ -1767,11 +1774,11 @@ function workerBlur(src, width, height, radius) {
  * 4. Traza el Contorno de Euler de Doble Pared con capuchones semicirculares de 180° en cada hoja y 0 bucles en esquinas cóncavas.
  * 5. Aplica 14 pasadas de Relajación Elástica de Paredes Paralelas.
  */
-function generateDendriticCoralPortrait(toneMap, silhouetteMask, smoothSilMap, W, H, minW = 1.48, maxW = 4.8, chaikinPasses = 2, TARGET_NODES = 24000) {
+function generateDendriticCoralPortrait(toneMap, silhouetteMask, smoothSilMap, W, H, minW = 1.48, maxW = 4.8, chaikinPasses = 2, TARGET_NODES = 24000, seed = 0) {
   const N = W * H;
   const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
-  const effMinW = Math.max(0.85, minW * nodeScale);
-  const effMaxW = Math.max(effMinW + 0.9, Math.min(7.5, maxW * nodeScale));
+  const effMinW = Math.max(0.75, minW * nodeScale);
+  const effMaxW = Math.max(effMinW + 0.7, Math.min(11.0, maxW * nodeScale));
 
   const smoothTone = workerBlur(toneMap, W, H, 2.0);
   const gradX = new Float32Array(N);
@@ -1854,10 +1861,10 @@ function generateDendriticCoralPortrait(toneMap, silhouetteMask, smoothSilMap, W
     }
   }
 
-  let seed = 1337;
+  let rngSeed = (1337 + seed * 7919) >>> 0;
   const rand = () => {
-    seed = (seed * 1664525 + 1013904223) >>> 0;
-    return seed / 4294967296;
+    rngSeed = (rngSeed * 1664525 + 1013904223) >>> 0;
+    return rngSeed / 4294967296;
   };
 
   for (let pass = 0; pass < 3; pass++) {
@@ -2332,22 +2339,27 @@ function generateDendriticCoralPortrait(toneMap, silhouetteMask, smoothSilMap, W
  * Teje una red continua de celdas hexagonales/isométricas donde la densidad de espirales concéntricas
  * y el anclaje a las crestas de contraste esculpen los rasgos faciales con alta nitidez y fidelidad.
  */
-function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000) {
+function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0) {
   const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
-  const cellR = Math.max(2.8, Math.min(9.5, MIN_R * 3.6 * nodeScale));
+  const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
+  const cellR = Math.max(2.6, Math.min(12.0, MIN_R * 3.4 * maxRScale * nodeScale));
   const dxHex = cellR * Math.sqrt(3);
   const dyHex = cellR * 1.5;
+  const offX = (seed % 7) * 0.14 * dxHex;
+  const offY = ((seed * 3) % 7) * 0.14 * dyHex;
 
   const outX = [];
   const outY = [];
   const rows = Math.ceil(H / dyHex) + 1;
   const cols = Math.ceil(W / dxHex) + 1;
+  const lightCut = Math.max(0.04, Math.min(0.20, 0.04 + (MAX_R / 35.0) * 0.12));
+  const maxTurns = Math.max(2, Math.min(8, Math.round(7.5 - MIN_R * 0.65)));
 
   for (let r = 1; r < rows - 1; r++) {
-    const cy = r * dyHex;
+    const cy = r * dyHex + offY;
     let firstC = -1, lastC = -1;
     for (let c = 1; c < cols - 1; c++) {
-      const cx = c * dxHex + ((r & 1) ? dxHex * 0.5 : 0);
+      const cx = c * dxHex + ((r & 1) ? dxHex * 0.5 : 0) + offX;
       if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
       const idx = (cy | 0) * W + (cx | 0);
       if (!silhouetteMask[idx]) continue;
@@ -2366,7 +2378,7 @@ function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask,
     const stepC = l2r ? 1 : -1;
 
     for (let c = startC; l2r ? c <= endC : c >= endC; c += stepC) {
-      const cx = c * dxHex + ((r & 1) ? dxHex * 0.5 : 0);
+      const cx = c * dxHex + ((r & 1) ? dxHex * 0.5 : 0) + offX;
       if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
 
       const idx = (cy | 0) * W + (cx | 0);
@@ -2391,7 +2403,7 @@ function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask,
       const enterAng = l2r ? Math.PI : 0;
       const exitAng = l2r ? 0 : Math.PI;
 
-      if (effDark < 0.08) {
+      if (effDark < lightCut) {
         // Preservar zonas de luz / brillo limpio sin saturar con líneas
         outX.push(px + Math.cos(enterAng) * (cellR * 0.88));
         outY.push(py + Math.sin(enterAng) * (cellR * 0.88));
@@ -2400,7 +2412,7 @@ function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask,
         continue;
       }
 
-      const turns = Math.min(6, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.25) * 5.2)));
+      const turns = Math.min(maxTurns, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.25) * (maxTurns - 0.8))));
       const totalCorners = turns * 6;
 
       outX.push(px + Math.cos(enterAng) * (cellR * 0.92));
@@ -2435,9 +2447,11 @@ function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask,
   };
 }
 
-function generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, MAX_R) {
+function generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, MAX_R, seed = 0) {
   const len = W * H;
   const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
+  const rScale = Math.pow(1.6 / Math.max(0.75, MIN_R), 0.68) * Math.pow(8.5 / Math.max(3.0, MAX_R), 0.35);
+  const effTargetNodes = Math.min(60000, Math.max(2500, Math.round(TARGET_NODES * rScale)));
   const effMinR = Math.max(0.75, MIN_R * nodeScale);
   const effMaxR = Math.max(effMinR + 1.0, MAX_R * nodeScale);
 
@@ -2453,12 +2467,14 @@ function generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, 
 
   if (totalMass < 10) return { rawX: new Float32Array(0), rawY: new Float32Array(0) };
 
-  const unitMass = totalMass / TARGET_NODES;
+  const unitMass = totalMass / effTargetNodes;
   const halfUnit = unitMass * 0.5;
-  const maxCap = Math.min(65000, Math.round(TARGET_NODES * 1.35) + 2000);
+  const maxCap = Math.min(65000, Math.round(effTargetNodes * 1.35) + 2000);
   const rx = new Float32Array(maxCap);
   const ry = new Float32Array(maxCap);
   let count = 0;
+  let rngSeed = (42 + seed * 3571) >>> 0;
+  const rand = () => { rngSeed = (rngSeed * 1664525 + 1013904223) >>> 0; return rngSeed / 4294967296; };
 
   for (let y = 4; y < H - 4; y++) {
     const leftToRight = (y & 1) === 0;
@@ -2466,9 +2482,9 @@ function generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, 
       const x = leftToRight ? step : (W - 1 - step);
       const idx = y * W + x;
       let val = err[idx];
-      while (val >= halfUnit && step232Stencil[idx] < 0.92 && count < TARGET_NODES) {
-        rx[count] = x + (Math.random() - 0.5) * 0.5;
-        ry[count] = y + (Math.random() - 0.5) * 0.5;
+      while (val >= halfUnit && step232Stencil[idx] < 0.92 && count < effTargetNodes) {
+        rx[count] = x + (rand() - 0.5) * 0.5;
+        ry[count] = y + (rand() - 0.5) * 0.5;
         count++;
         val -= unitMass;
       }
@@ -2548,7 +2564,7 @@ function generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, 
 /**
  * MODO 2: CORAL ORGÁNICO TSP (Versión Stippling Poisson-Disc + Lloyd + 2-Opt)
  */
-function generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TARGET_NODES, MIN_R, MAX_R) {
+function generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TARGET_NODES, MIN_R, MAX_R, seed = 0) {
   const len = W * H;
   const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
   const effMinR = Math.max(0.85, MIN_R * nodeScale);
@@ -2726,21 +2742,26 @@ function generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TA
  * Red continua de facetas isométricas (rombos 60°/120°) con pliegues concéntricos
  * adaptados a los rasgos y claroscuros del retrato.
  */
-function generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000) {
+function generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0) {
   const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
-  const dW = Math.max(4.6, Math.min(15.0, MIN_R * 4.6 * nodeScale));
-  const dH = dW * 0.57735; // tg(30°) = 1/sqrt(3)
+  const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
+  const dW = Math.max(4.2, Math.min(18.0, MIN_R * 4.4 * maxRScale * nodeScale));
+  const dH = dW * 0.57735;
+  const offX = (seed % 7) * 0.14 * dW;
+  const offY = ((seed * 3) % 7) * 0.14 * dH;
 
   const outX = [];
   const outY = [];
   const rows = Math.ceil(H / dH) + 1;
   const cols = Math.ceil(W / dW) + 1;
+  const lightCut = Math.max(0.04, Math.min(0.20, 0.04 + (MAX_R / 35.0) * 0.12));
+  const maxFolds = Math.max(2, Math.min(7, Math.round(6.5 - MIN_R * 0.6)));
 
   for (let r = 1; r < rows - 1; r++) {
-    const cy = r * dH;
+    const cy = r * dH + offY;
     let firstC = -1, lastC = -1;
     for (let c = 1; c < cols - 1; c++) {
-      const cx = c * dW + ((r & 1) ? dW * 0.5 : 0);
+      const cx = c * dW + ((r & 1) ? dW * 0.5 : 0) + offX;
       if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
       const idx = (cy | 0) * W + (cx | 0);
       if (!silhouetteMask[idx]) continue;
@@ -2759,7 +2780,7 @@ function generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask
     const stepC = l2r ? 1 : -1;
 
     for (let c = startC; l2r ? c <= endC : c >= endC; c += stepC) {
-      const cx = c * dW + ((r & 1) ? dW * 0.5 : 0);
+      const cx = c * dW + ((r & 1) ? dW * 0.5 : 0) + offX;
       if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
 
       const idx = (cy | 0) * W + (cx | 0);
@@ -2783,14 +2804,13 @@ function generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask
       const enterX = l2r ? px - dW * 0.48 : px + dW * 0.48;
       const exitX = l2r ? px + dW * 0.48 : px - dW * 0.48;
 
-      if (effDark < 0.08) {
-        // Zona de luz: conector limpio de diamante sin oscurecer
+      if (effDark < lightCut) {
         outX.push(enterX, px, exitX);
         outY.push(py, py - dH * 0.35, py);
         continue;
       }
 
-      const folds = Math.min(5, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.25) * 4.2)));
+      const folds = Math.min(maxFolds, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.25) * (maxFolds - 0.8))));
 
       outX.push(enterX);
       outY.push(py);
@@ -2825,22 +2845,27 @@ function generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask
  * Celdas poligonales con curvas de persecución que convergen en vórtices
  * modulados por los rasgos, pupilas y claroscuros del retrato.
  */
-function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000) {
+function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0) {
   const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
-  const cellR = Math.max(3.5, Math.min(10.5, MIN_R * 3.6 * nodeScale));
+  const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
+  const cellR = Math.max(3.0, Math.min(13.0, MIN_R * 3.4 * maxRScale * nodeScale));
   const dx = cellR * 1.62;
   const dy = cellR * 1.38;
+  const offX = (seed % 7) * 0.14 * dx;
+  const offY = ((seed * 3) % 7) * 0.14 * dy;
 
   const outX = [];
   const outY = [];
   const rows = Math.ceil(H / dy) + 1;
   const cols = Math.ceil(W / dx) + 1;
+  const lightCut = Math.max(0.04, Math.min(0.20, 0.04 + (MAX_R / 35.0) * 0.12));
+  const maxSteps = Math.max(16, Math.min(48, Math.round(44 - MIN_R * 3.5)));
 
   for (let r = 1; r < rows - 1; r++) {
-    const cy = r * dy;
+    const cy = r * dy + offY;
     let firstC = -1, lastC = -1;
     for (let c = 1; c < cols - 1; c++) {
-      const cx = c * dx + ((r & 1) ? dx * 0.5 : 0);
+      const cx = c * dx + ((r & 1) ? dx * 0.5 : 0) + offX;
       if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
       const idx = (cy | 0) * W + (cx | 0);
       if (!silhouetteMask[idx]) continue;
@@ -2859,7 +2884,7 @@ function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteM
     const stepC = l2r ? 1 : -1;
 
     for (let c = startC; l2r ? c <= endC : c >= endC; c += stepC) {
-      const cx = c * dx + ((r & 1) ? dx * 0.5 : 0);
+      const cx = c * dx + ((r & 1) ? dx * 0.5 : 0) + offX;
       if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
 
       const idx = (cy | 0) * W + (cx | 0);
@@ -2883,7 +2908,7 @@ function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteM
       const enterAng = l2r ? Math.PI : 0;
       const exitAng = l2r ? 0 : Math.PI;
 
-      if (effDark < 0.08) {
+      if (effDark < lightCut) {
         outX.push(px + Math.cos(enterAng) * (cellR * 0.88));
         outY.push(py + Math.sin(enterAng) * (cellR * 0.88));
         outX.push(px + Math.cos(exitAng) * (cellR * 0.88));
@@ -2906,7 +2931,7 @@ function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteM
         polyY[k] = py + Math.sin(ang) * rad;
       }
 
-      const totalSteps = Math.min(32, Math.max(6, Math.round(6 + Math.pow(effDark, 1.25) * 26)));
+      const totalSteps = Math.min(maxSteps, Math.max(6, Math.round(6 + Math.pow(effDark, 1.25) * (maxSteps - 6))));
       const alpha = 0.08 + effDark * 0.10;
 
       let pIdx = l2r ? 0 : 3;
@@ -2936,23 +2961,28 @@ function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteM
  * Teje una red continua de baldosas completas con marco perimetral biselado y la icónica Flor de Barcelona
  * en bajorrelieve (4 pétalos diagonales en esquinas y pistilo central).
  */
-function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000) {
+function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0) {
   const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
-  const tileSize = Math.max(8.0, Math.min(22.0, MIN_R * 5.2 * nodeScale));
+  const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
+  const tileSize = Math.max(7.5, Math.min(26.0, MIN_R * 4.9 * maxRScale * nodeScale));
   const halfS = tileSize * 0.5;
+  const offX = (seed % 7) * 0.14 * tileSize;
+  const offY = ((seed * 3) % 7) * 0.14 * tileSize;
 
   const outX = [];
   const outY = [];
   const rows = Math.ceil(H / tileSize);
   const cols = Math.ceil(W / tileSize);
+  const lightCut = Math.max(0.04, Math.min(0.20, 0.04 + (MAX_R / 35.0) * 0.12));
+  const maxTurns = Math.max(2, Math.min(5, Math.round(4.8 - MIN_R * 0.45)));
 
   for (let r = 0; r < rows; r++) {
-    const cy = r * tileSize + halfS;
+    const cy = r * tileSize + halfS + offY;
     if (cy < 4 || cy >= H - 4) continue;
 
     let firstC = -1, lastC = -1;
     for (let c = 0; c < cols; c++) {
-      const cx = c * tileSize + halfS;
+      const cx = c * tileSize + halfS + offX;
       if (cx < 4 || cx >= W - 4) continue;
       const idx = (cy | 0) * W + (cx | 0);
       if (!silhouetteMask[idx]) continue;
@@ -2971,7 +3001,7 @@ function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouette
     const stepC = l2r ? 1 : -1;
 
     for (let c = startC; l2r ? c <= endC : c >= endC; c += stepC) {
-      const cx = c * tileSize + halfS;
+      const cx = c * tileSize + halfS + offX;
       if (cx < 4 || cx >= W - 4) continue;
 
       const idx = (cy | 0) * W + (cx | 0);
@@ -2995,7 +3025,7 @@ function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouette
       const enterX = l2r ? px - halfS : px + halfS;
       const exitX = l2r ? px + halfS : px - halfS;
 
-      if (effDark < 0.08) {
+      if (effDark < lightCut) {
         outX.push(enterX, px, exitX);
         outY.push(py, py, py);
         continue;
@@ -3021,7 +3051,7 @@ function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouette
         }
       }
 
-      const turns = Math.min(3, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.25) * 3.5)));
+      const turns = Math.min(maxTurns, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.25) * (maxTurns - 0.5))));
 
       // Pétalos florales concéntricos de la Flor de Barcelona (45°, 135°, 225°, 315°)
       for (let t = 0; t < turns; t++) {
@@ -3066,26 +3096,31 @@ function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouette
  * Esculpe el rostro exclusivamente con la icónica Flor de Barcelona (4 pétalos modernistas y pistilo central).
  * Sin marco cuadrado ni baldosa: 100% silueta floral continua con relieves concéntricos según el claroscuro.
  */
-function generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 20000) {
+function generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 20000, seed = 0) {
   const nodeScale = Math.sqrt(20000 / Math.max(4000, TARGET_NODES));
-  const flowerSpacing = Math.max(9.0, Math.min(28.0, MIN_R * 5.4 * nodeScale));
+  const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
+  const flowerSpacing = Math.max(8.0, Math.min(32.0, MIN_R * 5.0 * maxRScale * nodeScale));
   const halfS = flowerSpacing * 0.5;
+  const offX = (seed % 7) * 0.14 * flowerSpacing;
+  const offY = ((seed * 3) % 7) * 0.14 * flowerSpacing;
 
   const outX = [];
   const outY = [];
   const rows = Math.ceil(H / flowerSpacing);
   const cols = Math.ceil(W / flowerSpacing);
+  const lightCut = Math.max(0.04, Math.min(0.20, 0.04 + (MAX_R / 35.0) * 0.12));
+  const maxInnerTurns = Math.max(2, Math.min(5, Math.round(4.6 - MIN_R * 0.4)));
 
   let activeRowIndex = 0;
   let prevExitX = null;
 
   for (let r = 0; r < rows; r++) {
-    const cy = r * flowerSpacing + halfS;
+    const cy = r * flowerSpacing + halfS + offY;
     if (cy < 4 || cy >= H - 4) continue;
 
     let firstC = -1, lastC = -1;
     for (let c = 0; c < cols; c++) {
-      const cx = c * flowerSpacing + halfS;
+      const cx = c * flowerSpacing + halfS + offX;
       if (cx < 4 || cx >= W - 4) continue;
       const idx = (cy | 0) * W + (cx | 0);
       if (!silhouetteMask[idx]) continue;
@@ -3106,7 +3141,7 @@ function generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteM
     const stepC = l2r ? 1 : -1;
 
     // Conexión escalonada suave entre filas para seguir el borde de la silueta sin diagonales invasivas
-    const firstCellCx = startC * flowerSpacing + halfS;
+    const firstCellCx = startC * flowerSpacing + halfS + offX;
     const firstEnterX = l2r ? firstCellCx - halfS : firstCellCx + halfS;
     if (prevExitX !== null) {
       outX.push(prevExitX, firstEnterX);
@@ -3114,7 +3149,7 @@ function generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteM
     }
 
     for (let c = startC; l2r ? c <= endC : c >= endC; c += stepC) {
-      const cx = c * flowerSpacing + halfS;
+      const cx = c * flowerSpacing + halfS + offX;
       if (cx < 4 || cx >= W - 4) continue;
 
       const idx = (cy | 0) * W + (cx | 0);
@@ -3145,7 +3180,7 @@ function generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteM
       outY.push(py);
 
       // Luces altas: paso limpio para mantener el contraste del rostro
-      if (effDark < 0.08) {
+      if (effDark < lightCut) {
         outX.push(px, exitX);
         outY.push(py, py);
         prevExitX = exitX;
@@ -3167,7 +3202,7 @@ function generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteM
       }
 
       // 2. Relieves florales concéntricos según el claroscuro (de 1 a 3 bucles interiores de pétalos)
-      const innerTurns = Math.min(3, Math.max(1, Math.round(Math.pow(effDark, 1.1) * 3.4)));
+      const innerTurns = Math.min(maxInnerTurns, Math.max(1, Math.round(Math.pow(effDark, 1.1) * (maxInnerTurns + 0.4))));
       for (let t = 0; t < innerTurns; t++) {
         const s = 0.72 - (t / Math.max(1, innerTurns)) * 0.44;
         const dir = (t & 1) === 0 ? -1 : 1;
@@ -3214,13 +3249,15 @@ function generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteM
  * 3. CERO ángulos rectos: une cada flor con la siguiente mediante puentes curvos en S (Bézier cúbica tangencial).
  * 4. El centro de cada flor queda 100% abierto y limpio, sin cruces internos.
  */
-function generateFractalOpenFlorPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 7.0, TARGET_NODES = 24000) {
+function generateFractalOpenFlorPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 7.0, TARGET_NODES = 24000, seed = 0) {
   const baseSide = Math.max(W, H);
   // Escala continua sensible a MIN_R y MAX_R para que cada cambio del slider modifique la separación
   const scaleFactor = Math.max(0.68, Math.min(1.45, 0.86 + (MIN_R - 1.4) * 0.085 + (MAX_R - 7.0) * 0.018));
   const maxSide = baseSide * scaleFactor;
-  const offsetX = (W - maxSide) * 0.5;
-  const offsetY = (H - maxSide) * 0.5;
+  const offSeedX = seed > 0 ? ((seed % 5) - 2) * 3.5 : 0;
+  const offSeedY = seed > 0 ? (((seed * 2) % 5) - 2) * 3.5 : 0;
+  const offsetX = (W - maxSide) * 0.5 + offSeedX;
+  const offsetY = (H - maxSide) * 0.5 + offSeedY;
 
   const nodeBoost = Math.log2(Math.max(4000, TARGET_NODES) / 24000) * 0.45;
   const maxDepth = Math.max(4, Math.min(8, Math.round(6.6 - (MIN_R - 1.4) * 0.42 + nodeBoost)));
@@ -3390,9 +3427,13 @@ function generateFractalOpenFlorPortrait(coralToneMap, step232Stencil, silhouett
 /**
  * MODO 5: PROPORCIÓN ÁUREA φ = 1.61803398875 (FILOTAXIS DE FIBONACCI 137.507764° + BRAZOS ESPIRALES 55/89)
  */
-function generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES) {
+function generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES, MIN_R = 1.4, MAX_R = 8.0, seed = 0) {
   const PHI = 1.618033988749895;
   const GOLDEN_ANGLE = Math.PI * (3.0 - Math.sqrt(5.0));
+  const rScale = Math.pow(1.8 / Math.max(0.75, MIN_R), 0.6) * Math.pow(8.0 / Math.max(3.0, MAX_R), 0.35);
+  const effTargetNodes = Math.min(55000, Math.max(3000, Math.round(TARGET_NODES * rScale)));
+  const shadeExp = Math.max(0.9, Math.min(2.2, 1.1 + (MIN_R / 4.0) * 0.6));
+  const seedShift = seed * 2.39996;
 
   let minX = W, maxX = 0, minY = H, maxY = 0;
   let sumX = 0, sumY = 0, sumW = 0;
@@ -3458,7 +3499,7 @@ function generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_
     const spiral89 = Math.cos(89.0 * theta + rRatio * 89.0 * Math.PI);
     const fibWave = 0.5 + 0.5 * (spiral55 * 0.65 + spiral89 * 0.35);
 
-    const baseDark = Math.pow(darkness, 1.35);
+    const baseDark = Math.pow(darkness, shadeExp);
     const spiralBoost = (0.38 * darkness) * Math.pow(fibWave, 1.6);
     return Math.min(1.0, baseDark * 0.85 + spiralBoost);
   };
@@ -3467,20 +3508,20 @@ function generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_
   let probeSum = 0;
   for (let k = 1; k <= probeN; k++) {
     const r = Math.sqrt(k / probeN) * maxRadius;
-    const theta = k * GOLDEN_ANGLE;
+    const theta = k * GOLDEN_ANGLE + seedShift;
     probeSum += evalGoldenWeight(cx + r * Math.cos(theta), cy + r * Math.sin(theta), r, theta);
   }
   const avgWeight = Math.max(0.015, probeSum / probeN);
-  const totalCandidates = Math.min(900000, Math.round(TARGET_NODES / avgWeight));
+  const totalCandidates = Math.min(900000, Math.round(effTargetNodes / avgWeight));
 
-  const rx = new Float32Array(TARGET_NODES + 4000);
-  const ry = new Float32Array(TARGET_NODES + 4000);
+  const rx = new Float32Array(effTargetNodes + 4000);
+  const ry = new Float32Array(effTargetNodes + 4000);
   let count = 0;
   let acc = 0;
 
   for (let k = 1; k <= totalCandidates; k++) {
     const r = Math.sqrt(k / totalCandidates) * maxRadius;
-    const theta = k * GOLDEN_ANGLE;
+    const theta = k * GOLDEN_ANGLE + seedShift;
     const x = cx + r * Math.cos(theta);
     const y = cy + r * Math.sin(theta);
 
@@ -3504,13 +3545,15 @@ function generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_
   return { rawX: rx.subarray(0, count), rawY: ry.subarray(0, count) };
 }
 
-function generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 8.0, TARGET_NODES = 24000) {
+function generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 8.0, TARGET_NODES = 24000, seed = 0) {
   const baseSide = Math.max(W, H);
   // Escala continua sensible a MIN_R (Sombras) y MAX_R (Luces)
   const scaleFactor = Math.max(0.68, Math.min(1.45, 0.88 + (MIN_R - 1.4) * 0.085 + (MAX_R - 8.0) * 0.015));
   const maxSide = baseSide * scaleFactor;
-  const offsetX = (W - maxSide) * 0.5;
-  const offsetY = (H - maxSide) * 0.5;
+  const offSeedX = seed > 0 ? ((seed % 5) - 2) * 3.5 : 0;
+  const offSeedY = seed > 0 ? (((seed * 2) % 5) - 2) * 3.5 : 0;
+  const offsetX = (W - maxSide) * 0.5 + offSeedX;
+  const offsetY = (H - maxSide) * 0.5 + offSeedY;
 
   const nodeBoost = Math.log2(Math.max(4000, TARGET_NODES) / 24000) * 0.55;
   const maxDepth = Math.max(5, Math.min(10, Math.round(8.2 - (MIN_R - 1.4) * 0.48 + nodeBoost)));
@@ -3604,13 +3647,16 @@ function generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, MIN_
 self.onmessage = function(e) {
   const {
     jobId, engineMode, step232Stencil, coralToneMap, silhouetteMask, smoothSilMap,
-    W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, maxTimeMs
+    W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0, maxTimeMs
   } = e.data;
 
   const tStart = performance.now();
 
   if (engineMode === 'coral') {
-    const { ptsX, ptsY } = generateDendriticCoralPortrait(coralToneMap, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, CHAIKIN_PASSES, TARGET_NODES);
+    let { ptsX, ptsY } = generateDendriticCoralPortrait(coralToneMap, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, CHAIKIN_PASSES, TARGET_NODES, seed);
+    if (CHAIKIN_PASSES > 0) {
+      ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+    }
     const outX = new Float32Array(ptsX);
     const outY = new Float32Array(ptsY);
     self.postMessage({ jobId, ptsX: outX, ptsY: outY, pass: 1, totalPasses: 1, done: true }, [outX.buffer, outY.buffer]);
@@ -3618,7 +3664,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'hex_spiral') {
-    let { ptsX, ptsY } = generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES);
+    let { ptsX, ptsY } = generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -3629,7 +3675,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'iso_diamond') {
-    let { ptsX, ptsY } = generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES);
+    let { ptsX, ptsY } = generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -3640,7 +3686,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'pursuit_vortex') {
-    let { ptsX, ptsY } = generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES);
+    let { ptsX, ptsY } = generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -3651,7 +3697,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'panot_bcn') {
-    let { ptsX, ptsY } = generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES);
+    let { ptsX, ptsY } = generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -3662,7 +3708,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'flor_bcn') {
-    let { ptsX, ptsY } = generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES);
+    let { ptsX, ptsY } = generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -3673,7 +3719,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'flor_fractal') {
-    let { ptsX, ptsY } = generateFractalOpenFlorPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES);
+    let { ptsX, ptsY } = generateFractalOpenFlorPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -3684,7 +3730,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'fractal') {
-    let { ptsX, ptsY } = generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES);
+    let { ptsX, ptsY } = generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -3695,7 +3741,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'stencil_cross') {
-    const { ptsX, ptsY } = generateCrossedEtchingTour(coralToneMap, step232Stencil, silhouetteMask, W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES);
+    const { ptsX, ptsY } = generateCrossedEtchingTour(coralToneMap, step232Stencil, silhouetteMask, W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed);
     const outX = new Float32Array(ptsX);
     const outY = new Float32Array(ptsY);
     self.postMessage({ jobId, ptsX: outX, ptsY: outY, pass: 1, totalPasses: 1, done: true }, [outX.buffer, outY.buffer]);
@@ -3705,12 +3751,12 @@ self.onmessage = function(e) {
   let rawX, rawY;
   let useSilPenalty = coralToneMap;
   if (engineMode === 'coral_tsp') {
-    ({ rawX, rawY } = generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TARGET_NODES, MIN_R, MAX_R));
+    ({ rawX, rawY } = generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TARGET_NODES, MIN_R, MAX_R, seed));
   } else if (engineMode === 'golden') {
-    ({ rawX, rawY } = generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES));
+    ({ rawX, rawY } = generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES, MIN_R, MAX_R, seed));
   } else {
     // stencil_clean
-    ({ rawX, rawY } = generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, MAX_R));
+    ({ rawX, rawY } = generateStep232StencilNodes(step232Stencil, W, H, TARGET_NODES, MIN_R, MAX_R, seed));
   }
 
   let { ptsX, ptsY } = buildPlanarContinuousTour(rawX, rawY, W, H, 24, useSilPenalty);
@@ -3841,6 +3887,7 @@ function rebuildPortrait(needsStencilRebuild = true) {
     MIN_R,
     MAX_R,
     CHAIKIN_PASSES,
+    seed: REBUILD_SEED,
     maxTimeMs: isMobileDevice ? 650 : 1100
   }, [s232Copy.buffer, coralCopy.buffer, silCopy.buffer, smSilCopy.buffer]);
 }
@@ -4531,7 +4578,13 @@ document.getElementById('lineW').addEventListener('input', (e) => {
   }
 });
 
-document.getElementById('btnRebuild').onclick = () => rebuildPortrait(true);
+document.getElementById('btnRebuild').onclick = () => {
+  REBUILD_SEED++;
+  ptsX = new Float32Array(0);
+  ptsY = new Float32Array(0);
+  render();
+  rebuildPortrait(true);
+};
 
 document.getElementById('btnClear').onclick = () => {
   stopAnimation();
