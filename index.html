@@ -188,6 +188,7 @@
           <label>Modo de Color</label>
           <select id="colorMode">
             <option value="mono">⚫ Monocromo</option>
+            <option value="line_strand" selected>🧵 Tramos de Línea (Hilo Continuo)</option>
             <option value="photo_exact">📸 Color Exacto de la Foto</option>
             <option value="organic_flow">🌊 Flujo Orgánico</option>
             <option value="organic_spatial">🌀 Ondas 2D</option>
@@ -378,7 +379,7 @@ let CHAIKIN_PASSES = 2;
 let LINE_W = 1.0;
 
 // Estado del Motor de Color Orgánico y Mezcla
-let COLOR_MODE = 'mono';
+let COLOR_MODE = 'line_strand';
 let COLOR_PALETTE = 'iris';
 let COLOR_HUE = 205;
 let COLOR_SCALE = 3.5;
@@ -3950,7 +3951,10 @@ function getOrganicLineColor(i, totalLen, x, y) {
   const tone = coralToneMap ? coralToneMap[pIdx] : 0.5;
 
   let phaseVal = 0;
-  if (COLOR_MODE === 'organic_flow') {
+  if (COLOR_MODE === 'line_strand') {
+    // 🧵 Tramos de Línea (Hilo Continuo): degradado 100% puro por recorrido de hilo (0 cuadrados, 0 ondas)
+    phaseVal = (i / Math.max(1, totalLen)) * COLOR_SCALE * Math.PI * 2.0 + colorPhase;
+  } else if (COLOR_MODE === 'organic_flow') {
     const u = (i / Math.max(1, totalLen)) * COLOR_SCALE * Math.PI * 2.0;
     const spatialCurl =
       Math.sin((x / W) * COLOR_SCALE * 3.2 + colorPhase * 0.7) *
@@ -4083,7 +4087,7 @@ function rebuildLineCache() {
     }
   } else {
     // Trazado multicolor orgánico por micro-segmentos continuos solapados (fluido en GPU a 60fps)
-    const chunkStep = (COLOR_MODE === 'photo_exact') ? 3 : (isColorFlowing ? 36 : 18);
+    const chunkStep = (COLOR_MODE === 'photo_exact') ? 3 : (COLOR_MODE === 'line_strand' ? (isColorFlowing ? 12 : 6) : (isColorFlowing ? 36 : 18));
     for (let start = 1; start < totalLen - 1; start += chunkStep) {
       const end = Math.min(totalLen - 1, start + chunkStep);
       const midIdx = (start + end) >> 1;
@@ -4151,8 +4155,8 @@ function render() {
 function startColorFlow() {
   if (isColorFlowing) return;
   if (COLOR_MODE === 'mono') {
-    COLOR_MODE = 'organic_flow';
-    document.getElementById('colorMode').value = 'organic_flow';
+    COLOR_MODE = 'line_strand';
+    document.getElementById('colorMode').value = 'line_strand';
   }
   isColorFlowing = true;
   const btn = document.getElementById('btnColorFlow');
