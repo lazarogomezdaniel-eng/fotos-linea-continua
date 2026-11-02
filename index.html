@@ -251,12 +251,18 @@
           </select>
         </div>
       </div>
-      <div class="grid-2col" style="align-items:center; margin-top:1px;">
+      <div class="grid-2col" style="align-items:center; margin-top:2px;">
         <div>
-          <label>Mezcla <span id="vColScale">3.5</span></label>
-          <input type="range" id="colorScale" min="0.8" max="10.0" step="0.2" value="3.5">
+          <label>Mezcla / Ritmo <span id="vColScale">3.5</span></label>
+          <input type="range" id="colorScale" min="0.5" max="10.0" step="0.2" value="3.5">
         </div>
-        <button id="btnColorFlow" style="background:#232838; color:#7ce8ff; border:1px solid #355472; padding:6px;">
+        <div>
+          <label>Intensidad <span id="vColIntensity">100%</span></label>
+          <input type="range" id="colorIntensity" min="15" max="200" step="5" value="100">
+        </div>
+      </div>
+      <div style="margin-top:3px;">
+        <button id="btnColorFlow" style="width:100%; background:#232838; color:#7ce8ff; border:1px solid #355472; padding:6px;">
           🌈 Fluir Colores
         </button>
       </div>
@@ -394,6 +400,7 @@ let COLOR_MODE = 'mono';
 let COLOR_PALETTE = 'iris';
 let COLOR_HUE = 205;
 let COLOR_SCALE = 3.5;
+let COLOR_INTENSITY = 1.0;
 let BG_THEME = 'white';
 let customColorsRGB = [
   [255, 77, 109],  // #ff4d6d
@@ -3972,15 +3979,14 @@ function getOrganicLineColor(i, totalLen, x, y) {
 
   let phaseVal = 0;
   if (COLOR_MODE === 'rainbow_bands') {
-    // 🏳️‍🌈 Rainbow Franjas Verticales: 6 franjas verticales puras (de izquierda a derecha: Rojo, Naranja, Amarillo, Verde, Azul, Violeta)
-    // Ondulación suave tipo bandera ondeando verticalmente cuando se activa Fluir Colores
+    // 🏳️‍🌈 Rainbow Franjas Verticales: 6 franjas puras moduladas por colorHue (0..360°)
+    const hueShift = (COLOR_HUE / 360.0);
     const wave = isColorFlowing ? Math.sin((y / H) * Math.PI * 2.0 + colorPhase) * 0.035 : 0;
-    const normX = Math.max(0.0, Math.min(0.9999, (x / W) + wave));
-    const pos = normX * 6.0;
-    const idx0 = pos | 0;
-    const idx1 = Math.min(5, idx0 + 1);
-    const f = pos - idx0;
-    // Franja limpia (88% sólida y 12% de transición antialias suave)
+    const rawPos = (((x / W) + hueShift + wave) % 1.0 + 1.0) % 1.0;
+    const pos = rawPos * 6.0;
+    const idx0 = (pos | 0) % 6;
+    const idx1 = (idx0 + 1) % 6;
+    const f = pos - (pos | 0);
     const bandFade = Math.min(1.0, Math.max(0.0, (f - 0.88) / 0.12));
     const sf = bandFade * bandFade * (3.0 - 2.0 * bandFade);
     const cA = RAINBOW_STOPS[idx0];
@@ -3991,12 +3997,19 @@ function getOrganicLineColor(i, totalLen, x, y) {
     const shadeFactor = BG_THEME === 'dark'
       ? (0.78 + 0.32 * (1.0 - tone * 0.4))
       : (0.72 + 0.28 * (1.0 - (1.0 - tone) * 0.45));
-    return `rgb(${(r * shadeFactor) | 0},${(g * shadeFactor) | 0},${(b * shadeFactor) | 0})`;
+    r *= shadeFactor; g *= shadeFactor; b *= shadeFactor;
+    if (COLOR_INTENSITY !== 1.0) {
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      r = Math.max(0, Math.min(255, lum + (r - lum) * COLOR_INTENSITY));
+      g = Math.max(0, Math.min(255, lum + (g - lum) * COLOR_INTENSITY));
+      b = Math.max(0, Math.min(255, lum + (b - lum) * COLOR_INTENSITY));
+    }
+    return `rgb(${r | 0},${g | 0},${b | 0})`;
   } else if (COLOR_MODE === 'rainbow') {
-    // 🌈 Rainbow: 6 tonos icónicos puros con transición continua a lo largo del hilo
-    const u = ((i / Math.max(1, totalLen)) * COLOR_SCALE + colorPhase * 0.159155) % 1.0;
-    const normU = u < 0 ? u + 1.0 : u;
-    const pos = normU * 6.0;
+    // 🌈 Rainbow: modulado por colorHue (rotación de fase) y colorIntensity
+    const hueShift = (COLOR_HUE / 360.0);
+    const u = (((i / Math.max(1, totalLen)) * COLOR_SCALE + hueShift + colorPhase * 0.159155) % 1.0 + 1.0) % 1.0;
+    const pos = u * 6.0;
     const idx0 = (pos | 0) % 6;
     const idx1 = (idx0 + 1) % 6;
     const f = pos - (pos | 0);
@@ -4009,7 +4022,14 @@ function getOrganicLineColor(i, totalLen, x, y) {
     const shadeFactor = BG_THEME === 'dark'
       ? (0.78 + 0.32 * (1.0 - tone * 0.4))
       : (0.72 + 0.28 * (1.0 - (1.0 - tone) * 0.45));
-    return `rgb(${(r * shadeFactor) | 0},${(g * shadeFactor) | 0},${(b * shadeFactor) | 0})`;
+    r *= shadeFactor; g *= shadeFactor; b *= shadeFactor;
+    if (COLOR_INTENSITY !== 1.0) {
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      r = Math.max(0, Math.min(255, lum + (r - lum) * COLOR_INTENSITY));
+      g = Math.max(0, Math.min(255, lum + (g - lum) * COLOR_INTENSITY));
+      b = Math.max(0, Math.min(255, lum + (b - lum) * COLOR_INTENSITY));
+    }
+    return `rgb(${r | 0},${g | 0},${b | 0})`;
   } else if (COLOR_MODE === 'line_strand') {
     // 🧵 Tramos de Línea (Hilo Continuo): degradado 100% puro por recorrido de hilo (0 cuadrados, 0 ondas)
     phaseVal = (i / Math.max(1, totalLen)) * COLOR_SCALE * Math.PI * 2.0 + colorPhase;
@@ -4090,6 +4110,13 @@ function getOrganicLineColor(i, totalLen, x, y) {
   r = Math.max(0, Math.min(255, r * shadeFactor));
   g = Math.max(0, Math.min(255, g * shadeFactor));
   b = Math.max(0, Math.min(255, b * shadeFactor));
+
+  if (COLOR_INTENSITY !== 1.0) {
+    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+    r = Math.max(0, Math.min(255, lum + (r - lum) * COLOR_INTENSITY));
+    g = Math.max(0, Math.min(255, lum + (g - lum) * COLOR_INTENSITY));
+    b = Math.max(0, Math.min(255, lum + (b - lum) * COLOR_INTENSITY));
+  }
 
   return `rgb(${r | 0},${g | 0},${b | 0})`;
 }
@@ -4540,6 +4567,11 @@ document.getElementById('colorPalette').addEventListener('change', (e) => {
 document.getElementById('colorHue').addEventListener('input', (e) => {
   COLOR_HUE = parseInt(e.target.value, 10);
   document.getElementById('vColHue').textContent = `${COLOR_HUE}°`;
+  if (COLOR_MODE === 'rainbow' || COLOR_MODE === 'rainbow_bands') {
+    lineCacheDirty = true;
+    render();
+    return;
+  }
   let harmony = computeHarmonyColors(COLOR_PALETTE, COLOR_HUE);
   if (!harmony) {
     COLOR_PALETTE = 'triad';
@@ -4553,9 +4585,17 @@ document.getElementById('colorHue').addEventListener('input', (e) => {
     syncCustomColorsFromPickers();
   }
   if (COLOR_MODE === 'mono') {
-    COLOR_MODE = 'organic_flow';
-    document.getElementById('colorMode').value = 'organic_flow';
+    COLOR_MODE = 'line_strand';
+    document.getElementById('colorMode').value = 'line_strand';
   }
+  lineCacheDirty = true;
+  render();
+});
+
+document.getElementById('colorIntensity').addEventListener('input', (e) => {
+  const v = parseInt(e.target.value, 10);
+  COLOR_INTENSITY = v / 100.0;
+  document.getElementById('vColIntensity').textContent = `${v}%`;
   lineCacheDirty = true;
   render();
 });
