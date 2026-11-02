@@ -197,7 +197,7 @@
           <label>Modo de Color</label>
           <select id="colorMode">
             <option value="mono" selected>⚫ Monocromo</option>
-            <option value="rainbow_bands">🏳️‍🌈 Rainbow (Franjas Bandera)</option>
+            <option value="rainbow_bands">🏳️‍🌈 Rainbow (Franjas Verticales)</option>
             <option value="rainbow">🌈 Rainbow (Hilo Continuo)</option>
             <option value="line_strand">🧵 Tramos de Línea (Hilo Continuo)</option>
             <option value="photo_exact">📸 Color Exacto de la Foto</option>
@@ -219,7 +219,6 @@
               <option value="monochrome">🌓 Monocromía de Valor</option>
             </optgroup>
             <optgroup label="🌈 Paletas de Autor">
-              <option value="rainbow">🌈 Rainbow</option>
               <option value="iris" selected>🌈 Iris Orgánico</option>
               <option value="cyan_amber">✨ Plata/Cian/Ámbar</option>
               <option value="sunset">🌅 Atardecer</option>
@@ -476,7 +475,6 @@ const RAINBOW_STOPS = [
 ];
 
 const PALETTE_PRESETS = {
-  rainbow:     ['#e40303', '#ffed00', '#004dff'],
   iris:        ['#ff4d6d', '#00d2ff', '#9b5de5'],
   cyan_amber:  ['#56cfe1', '#e0fbfc', '#f4a261'],
   sunset:      ['#e63946', '#ffb703', '#8338ec'],
@@ -3974,11 +3972,11 @@ function getOrganicLineColor(i, totalLen, x, y) {
 
   let phaseVal = 0;
   if (COLOR_MODE === 'rainbow_bands') {
-    // 🏳️‍🌈 Rainbow Franjas Bandera: 6 franjas horizontales puras (Rojo, Naranja, Amarillo, Verde, Azul, Violeta)
-    // Ondulación suave tipo bandera ondeando cuando se activa Fluir Colores
-    const wave = isColorFlowing ? Math.sin((x / W) * Math.PI * 2.0 + colorPhase) * 0.035 : 0;
-    const normY = Math.max(0.0, Math.min(0.9999, (y / H) + wave));
-    const pos = normY * 6.0;
+    // 🏳️‍🌈 Rainbow Franjas Verticales: 6 franjas verticales puras (de izquierda a derecha: Rojo, Naranja, Amarillo, Verde, Azul, Violeta)
+    // Ondulación suave tipo bandera ondeando verticalmente cuando se activa Fluir Colores
+    const wave = isColorFlowing ? Math.sin((y / H) * Math.PI * 2.0 + colorPhase) * 0.035 : 0;
+    const normX = Math.max(0.0, Math.min(0.9999, (x / W) + wave));
+    const pos = normX * 6.0;
     const idx0 = pos | 0;
     const idx1 = Math.min(5, idx0 + 1);
     const f = pos - idx0;
