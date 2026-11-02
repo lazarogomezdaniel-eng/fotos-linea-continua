@@ -3282,12 +3282,12 @@ function getFreshOrIdleWorker() {
   return solverWorker;
 }
 
-function rebuildPortrait(skipStencilRebuild = false) {
+function rebuildPortrait(needsStencilRebuild = true) {
   if (!rawGray) return;
   stopAnimation();
   stopLiveGrowth();
 
-  if (!skipStencilRebuild) {
+  if (needsStencilRebuild) {
     buildAllStencilsAndSilhouettes();
   }
 
@@ -3702,6 +3702,9 @@ function startAnimation() {
       stopAnimation();
       render();
       updateStatsText();
+      if (recorder && recorder.state === 'recording') {
+        btnRec.click();
+      }
     } else {
       animRafId = requestAnimationFrame(stepAnim);
     }
@@ -3756,7 +3759,7 @@ function loadFromImageElement(img) {
   cachedBlurRadius = -1;
   cachedBlurFine = null;
 
-  rebuildPortrait(false);
+  rebuildPortrait(true);
 }
 
 function initDemoPortrait() {
@@ -3870,7 +3873,7 @@ document.getElementById('engineMode').addEventListener('change', (e) => {
   ENGINE_MODE = e.target.value;
   document.getElementById('modeDesc').textContent = MODE_DESCRIPTIONS[ENGINE_MODE] || '';
   applyModePreset(ENGINE_MODE);
-  rebuildPortrait(false);
+  rebuildPortrait(true);
 });
 
 document.getElementById('viewMode').addEventListener('change', (e) => {
@@ -4017,7 +4020,7 @@ document.getElementById('lineW').addEventListener('input', (e) => {
   }
 });
 
-document.getElementById('btnRebuild').onclick = () => rebuildPortrait(false);
+document.getElementById('btnRebuild').onclick = () => rebuildPortrait(true);
 
 document.getElementById('btnClear').onclick = () => {
   stopAnimation();
@@ -4059,7 +4062,7 @@ document.getElementById('btnResetDefaults').onclick = () => {
     syncCustomColorsFromPickers();
   }
   applyModePreset(ENGINE_MODE);
-  rebuildPortrait(false);
+  rebuildPortrait(true);
 };
 
 document.getElementById('btnAnimate').onclick = () => {
