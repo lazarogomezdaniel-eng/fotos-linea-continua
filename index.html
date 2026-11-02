@@ -197,7 +197,8 @@
           <label>Modo de Color</label>
           <select id="colorMode">
             <option value="mono" selected>⚫ Monocromo</option>
-            <option value="rainbow">🌈 Rainbow</option>
+            <option value="rainbow_bands">🏳️‍🌈 Rainbow (Franjas Bandera)</option>
+            <option value="rainbow">🌈 Rainbow (Hilo Continuo)</option>
             <option value="line_strand">🧵 Tramos de Línea (Hilo Continuo)</option>
             <option value="photo_exact">📸 Color Exacto de la Foto</option>
             <option value="organic_flow">🌊 Flujo Orgánico</option>
@@ -3972,7 +3973,28 @@ function getOrganicLineColor(i, totalLen, x, y) {
   const tone = coralToneMap ? coralToneMap[pIdx] : 0.5;
 
   let phaseVal = 0;
-  if (COLOR_MODE === 'rainbow') {
+  if (COLOR_MODE === 'rainbow_bands') {
+    // 🏳️‍🌈 Rainbow Franjas Bandera: 6 franjas horizontales puras (Rojo, Naranja, Amarillo, Verde, Azul, Violeta)
+    // Ondulación suave tipo bandera ondeando cuando se activa Fluir Colores
+    const wave = isColorFlowing ? Math.sin((x / W) * Math.PI * 2.0 + colorPhase) * 0.035 : 0;
+    const normY = Math.max(0.0, Math.min(0.9999, (y / H) + wave));
+    const pos = normY * 6.0;
+    const idx0 = pos | 0;
+    const idx1 = Math.min(5, idx0 + 1);
+    const f = pos - idx0;
+    // Franja limpia (88% sólida y 12% de transición antialias suave)
+    const bandFade = Math.min(1.0, Math.max(0.0, (f - 0.88) / 0.12));
+    const sf = bandFade * bandFade * (3.0 - 2.0 * bandFade);
+    const cA = RAINBOW_STOPS[idx0];
+    const cB = RAINBOW_STOPS[idx1];
+    let r = cA[0] + (cB[0] - cA[0]) * sf;
+    let g = cA[1] + (cB[1] - cA[1]) * sf;
+    let b = cA[2] + (cB[2] - cA[2]) * sf;
+    const shadeFactor = BG_THEME === 'dark'
+      ? (0.78 + 0.32 * (1.0 - tone * 0.4))
+      : (0.72 + 0.28 * (1.0 - (1.0 - tone) * 0.45));
+    return `rgb(${(r * shadeFactor) | 0},${(g * shadeFactor) | 0},${(b * shadeFactor) | 0})`;
+  } else if (COLOR_MODE === 'rainbow') {
     // 🌈 Rainbow: 6 tonos icónicos puros con transición continua a lo largo del hilo
     const u = ((i / Math.max(1, totalLen)) * COLOR_SCALE + colorPhase * 0.159155) % 1.0;
     const normU = u < 0 ? u + 1.0 : u;
@@ -4126,7 +4148,7 @@ function rebuildLineCache() {
     }
   } else {
     // Trazado multicolor orgánico por micro-segmentos continuos solapados (fluido en GPU a 60fps)
-    const chunkStep = (COLOR_MODE === 'photo_exact') ? 3 : ((COLOR_MODE === 'line_strand' || COLOR_MODE === 'rainbow') ? (isColorFlowing ? 12 : 6) : (isColorFlowing ? 36 : 18));
+    const chunkStep = (COLOR_MODE === 'photo_exact') ? 3 : ((COLOR_MODE === 'line_strand' || COLOR_MODE === 'rainbow' || COLOR_MODE === 'rainbow_bands') ? (isColorFlowing ? 12 : 5) : (isColorFlowing ? 36 : 18));
     for (let start = 1; start < totalLen - 1; start += chunkStep) {
       const end = Math.min(totalLen - 1, start + chunkStep);
       const midIdx = (start + end) >> 1;
