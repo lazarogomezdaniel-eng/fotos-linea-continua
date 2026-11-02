@@ -164,7 +164,7 @@
         <option value="pursuit_vortex">🌪️ 10. Vórtice Geométrico en Espiral</option>
         <option value="panot_bcn">🧱 11. Panots de Barcelona (Baldosa Hidráulica con Marco)</option>
         <option value="flor_bcn">🌺 12. Flor de Barcelona (Silueta Floral Concéntrica · Sin Marco)</option>
-        <option value="flor_fractal">🌸 13. Flor Fractal de Barcelona (Curva Abierta Multiescala 2ⁿ)</option>
+        <option value="flor_fractal">🌸 13. Flor de Barcelona Abierta (Sin Cruzar por Dentro · Línea Continua)</option>
       </select>
       <div id="modeDesc" class="mode-badge">
         🧠 Coral: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros en U de extremo a extremo.
@@ -496,7 +496,7 @@ const MODE_DESCRIPTIONS = {
   pursuit_vortex: '🌪️ Vórtice Geométrico en Espiral: Celdas poligonales con giro progresivo (curvas de persecución) que esculpen el volumen facial.',
   panot_bcn:      '🧱 Panots de Barcelona: Teje una red continua de baldosas completas con marco perimetral y la icónica Flor de Barcelona en bajorrelieve.',
   flor_bcn:       '🌺 Flor de Barcelona: Silueta floral continua con relieves concéntricos adaptados a las facciones, sin marco ni cortes.',
-  flor_fractal:   '🌸 Flor Fractal de Barcelona: La Flor de Barcelona abierta y continua como el fractal. Se subdivide recursivamente en flores más finas en ojos, boca y sombras, y más abiertas en luces, en una sola línea abierta continua.'
+  flor_fractal:   '🌸 Flor de Barcelona Abierta: La flor auténtica abierta y continua sin cruzar por dentro. Traza los 4 pétalos redondeados en ondas fluidas con el centro completamente limpio y abierto, esculpiendo ojos y rasgos con relieves de pétalo.'
 };
 
 const MODE_PRESETS = {
@@ -3207,139 +3207,144 @@ function generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteM
 }
 
 /**
- * MODO 13: FLOR FRACTAL DE BARCELONA (CURVA ABIERTA MULTIESCALA 2ⁿ):
- * Combina la subdivisión fractal espacial adaptativa (árbol cuaternario Hilbert) con el dibujo
- * de la Flor de Barcelona abierta: 4 pétalos redondeados y pistilo central en un meandro abierto continuo.
- * En sombras y rasgos (ojos, boca), las flores se subdividen en flores más finas; en luces, son más amplias y abiertas.
+ * MODO 13: FLOR DE BARCELONA ABIERTA (SIN CRUZAR POR DENTRO · LÍNEA CONTINUA):
+ * Traza la Flor de Barcelona abierta y continua de forma pura y elegante:
+ * 1. Dibuja los 4 pétalos redondeados en las 4 esquinas (45°, 135°, 225°, 315°) sin cruzar por dentro.
+ * 2. El centro y el interior de cada flor quedan completamente limpios, abiertos y despejados (0 radios, 0 rayos, 0 cuerdas).
+ * 3. En sombras (ojos, cejas, boca), esculpe el claroscuro con ondas concéntricas abiertas paralelas dentro de los pétalos.
+ * 4. Línea continua unitaria y abierta que fluye de flor en flor sin bucles cerrados ni cruces internos.
  */
-function generateFractalOpenFlorPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, TARGET_NODES = 24000) {
-  const maxSide = Math.max(W, H);
-  const maxDepth = TARGET_NODES > 28000 ? 7 : (TARGET_NODES > 12000 ? 6 : 5);
-  const minDepth = 3;
+function generateFractalOpenFlorPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.6, MAX_R = 6.5, TARGET_NODES = 24000) {
+  const nodeScale = Math.sqrt(24000 / Math.max(4000, TARGET_NODES));
+  const flowerSpacing = Math.max(9.0, Math.min(26.0, MIN_R * 5.4 * nodeScale));
+  const halfS = flowerSpacing * 0.5;
 
   const outX = [];
   const outY = [];
+  const rows = Math.ceil(H / flowerSpacing);
+  const cols = Math.ceil(W / flowerSpacing);
 
-  function sampleRegion(x0, y0, size) {
-    const x1 = Math.min(W - 1, Math.ceil(x0 + size));
-    const y1 = Math.min(H - 1, Math.ceil(y0 + size));
-    const sx0 = Math.max(0, x0 | 0);
-    const sy0 = Math.max(0, y0 | 0);
-    if (sx0 >= W || sy0 >= H || x1 <= sx0 || y1 <= sy0) {
-      return { inside: false, darkness: 0 };
+  const numStepsHalf = 20;
+
+  for (let r = 0; r < rows; r++) {
+    const cy = r * flowerSpacing + halfS;
+    if (cy < 4 || cy >= H - 4) continue;
+
+    // Detectar rango de la silueta en esta fila
+    let firstC = -1, lastC = -1;
+    for (let c = 0; c < cols; c++) {
+      const cx = c * flowerSpacing + halfS;
+      if (cx < 4 || cx >= W - 4) continue;
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+      const dark = Math.max(0, 1.0 - (coralToneMap ? coralToneMap[idx] : 1.0));
+      const lineDark = Math.max(0, 1.0 - (step232Stencil ? step232Stencil[idx] : 1.0));
+      if (Math.min(1.0, dark * 0.65 + lineDark * 0.95) >= 0.045) {
+        if (firstC === -1) firstC = c;
+        lastC = c;
+      }
     }
+    if (firstC === -1) continue;
 
-    const step = Math.max(1, (size / 6) | 0);
-    let sumDark = 0, maxDark = 0, insideCnt = 0;
+    // 1. ONDA DE IDA (Izquierda a Derecha): Dibuja los DOS PÉTALOS SUPERIORES (135° y 45°)
+    for (let c = firstC; c <= lastC; c++) {
+      const cx = c * flowerSpacing + halfS;
+      const idx = (cy | 0) * W + (cx | 0);
 
-    for (let y = sy0; y <= y1; y += step) {
-      const row = y * W;
-      for (let x = sx0; x <= x1; x += step) {
-        if (silhouetteMask[row + x]) {
-          insideCnt++;
-          const tone = coralToneMap ? coralToneMap[row + x] : 0.5;
-          const s232 = step232Stencil ? step232Stencil[row + x] : 1.0;
-          const d = Math.max(0, 1.0 - tone) * 0.65 + Math.max(0, 1.0 - s232) * 0.95;
-          sumDark += d;
-          if (d > maxDark) maxDark = d;
+      const tone = coralToneMap ? coralToneMap[idx] : 0.5;
+      const s232 = step232Stencil ? step232Stencil[idx] : 1.0;
+      const dark = Math.max(0, 1.0 - tone);
+      const lineDark = Math.max(0, 1.0 - s232);
+      const effDark = Math.min(1.0, dark * 0.65 + lineDark * 0.95);
+
+      // Anclaje a las crestas de contraste (ojos, nariz, labios)
+      let px = cx, py = cy;
+      if (effDark > 0.08 && idx > W && idx < W * (H - 1) - 1) {
+        const gx = (coralToneMap[idx + 1] - coralToneMap[idx - 1]) * 0.5 + (step232Stencil[idx + 1] - step232Stencil[idx - 1]) * 0.5;
+        const gy = (coralToneMap[idx + W] - coralToneMap[idx - W]) * 0.5 + (step232Stencil[idx + W] - step232Stencil[idx - W]) * 0.5;
+        const pull = Math.min(2.5, effDark * 2.0);
+        px = Math.max(4, Math.min(W - 4, px - gx * pull));
+        py = Math.max(4, Math.min(H - 4, py - gy * pull));
+      }
+
+      const rMax = halfS * 0.94;
+      const rMin = rMax * 0.35;
+
+      // Cantidad de ondas concéntricas abiertas según la oscuridad:
+      // En luces: 1 onda limpia; en sombras: hasta 3 relieves paralelos que siguen el pétalo SIN CRUZAR EL CENTRO
+      const waves = effDark > 0.60 ? 3 : (effDark > 0.30 ? 2 : 1);
+
+      for (let w = 0; w < waves; w++) {
+        const s = 1.0 - (w / Math.max(1, waves)) * 0.36;
+        const dir = (w & 1) === 0 ? 1 : -1;
+
+        for (let k = 0; k <= numStepsHalf; k++) {
+          const u = k / numStepsHalf;
+          const theta = (dir === 1) ? (Math.PI - u * Math.PI) : (u * Math.PI);
+
+          const c4 = -Math.cos(4 * theta);
+          const petalFactor = Math.pow(Math.max(0, 0.5 + 0.5 * c4), 0.55);
+          const r = rMin * 0.8 + (rMax * s - rMin * 0.8) * petalFactor;
+
+          outX.push(px + Math.cos(theta) * r);
+          outY.push(py + Math.sin(theta) * r);
         }
       }
     }
 
-    if (insideCnt === 0) return { inside: false, darkness: 0 };
-    const avgDark = sumDark / insideCnt;
-    return {
-      inside: true,
-      darkness: Math.min(1.0, avgDark * 0.55 + maxDark * 0.45)
-    };
-  }
+    // Giro suave en el borde derecho hacia la onda inferior
+    const lastCx = lastC * flowerSpacing + halfS;
+    outX.push(lastCx + halfS * 0.38);
+    outY.push(cy);
 
-  function drawOpenFlowerCell(cx, cy, size, darkness) {
-    const R = size * 0.46;
-    const coreR = size * 0.15;
+    // 2. ONDA DE VUELTA (Derecha a Izquierda): Dibuja los DOS PÉTALOS INFERIORES (315° y 225°)
+    for (let c = lastC; c >= firstC; c--) {
+      const cx = c * flowerSpacing + halfS;
+      const idx = (cy | 0) * W + (cx | 0);
 
-    let px = cx, py = cy;
-    const idx = (cy | 0) * W + (cx | 0);
-    if (idx > W && idx < W * (H - 1) - 1) {
-      const gx = ((coralToneMap ? coralToneMap[idx + 1] - coralToneMap[idx - 1] : 0) +
-                  (step232Stencil ? step232Stencil[idx + 1] - step232Stencil[idx - 1] : 0)) * 0.5;
-      const gy = ((coralToneMap ? coralToneMap[idx + W] - coralToneMap[idx - W] : 0) +
-                  (step232Stencil ? step232Stencil[idx + W] - step232Stencil[idx - W] : 0)) * 0.5;
-      const pull = Math.min(size * 0.28, darkness * 2.0);
-      px = Math.max(4, Math.min(W - 4, px - gx * pull));
-      py = Math.max(4, Math.min(H - 4, py - gy * pull));
-    }
+      const tone = coralToneMap ? coralToneMap[idx] : 0.5;
+      const s232 = step232Stencil ? step232Stencil[idx] : 1.0;
+      const dark = Math.max(0, 1.0 - tone);
+      const lineDark = Math.max(0, 1.0 - s232);
+      const effDark = Math.min(1.0, dark * 0.65 + lineDark * 0.95);
 
-    if (darkness < 0.08) {
-      outX.push(px);
-      outY.push(py);
-      return;
-    }
-
-    const petalAngles = [
-      Math.PI * 1.25, // SW
-      Math.PI * 0.75, // NW
-      Math.PI * 0.25, // NE
-      Math.PI * 1.75  // SE
-    ];
-
-    const petalSteps = 10;
-    const spread = Math.PI * 0.36;
-
-    for (let p = 0; p < 4; p++) {
-      const th = petalAngles[p];
-      for (let k = 0; k <= petalSteps; k++) {
-        const u = k / petalSteps;
-        const angle = th - spread * 0.5 + spread * u;
-        const petalFactor = Math.pow(Math.sin(Math.PI * u), 0.55);
-        const r = coreR + (R - coreR) * petalFactor;
-        outX.push(px + Math.cos(angle) * r);
-        outY.push(py + Math.sin(angle) * r);
+      let px = cx, py = cy;
+      if (effDark > 0.08 && idx > W && idx < W * (H - 1) - 1) {
+        const gx = (coralToneMap[idx + 1] - coralToneMap[idx - 1]) * 0.5 + (step232Stencil[idx + 1] - step232Stencil[idx - 1]) * 0.5;
+        const gy = (coralToneMap[idx + W] - coralToneMap[idx - W]) * 0.5 + (step232Stencil[idx + W] - step232Stencil[idx - W]) * 0.5;
+        const pull = Math.min(2.5, effDark * 2.0);
+        px = Math.max(4, Math.min(W - 4, px - gx * pull));
+        py = Math.max(4, Math.min(H - 4, py - gy * pull));
       }
 
-      if (p < 3) {
-        const nextTh = petalAngles[p + 1];
-        const startCore = th + spread * 0.5;
-        const endCore = nextTh - spread * 0.5;
-        const cSteps = 3;
-        for (let k = 1; k <= cSteps; k++) {
-          const u = k / cSteps;
-          const angle = startCore + u * (endCore - startCore);
-          outX.push(px + Math.cos(angle) * coreR);
-          outY.push(py + Math.sin(angle) * coreR);
+      const rMax = halfS * 0.94;
+      const rMin = rMax * 0.35;
+
+      const waves = effDark > 0.60 ? 3 : (effDark > 0.30 ? 2 : 1);
+
+      for (let w = 0; w < waves; w++) {
+        const s = 1.0 - (w / Math.max(1, waves)) * 0.36;
+        const dir = (w & 1) === 0 ? 1 : -1;
+
+        for (let k = 0; k <= numStepsHalf; k++) {
+          const u = k / numStepsHalf;
+          const theta = (dir === 1) ? (Math.PI * 2.0 - u * Math.PI) : (Math.PI + u * Math.PI);
+
+          const c4 = -Math.cos(4 * theta);
+          const petalFactor = Math.pow(Math.max(0, 0.5 + 0.5 * c4), 0.55);
+          const r = rMin * 0.8 + (rMax * s - rMin * 0.8) * petalFactor;
+
+          outX.push(px + Math.cos(theta) * r);
+          outY.push(py + Math.sin(theta) * r);
         }
       }
     }
+
+    // Giro suave en el borde izquierdo hacia la siguiente fila
+    const firstCx = firstC * flowerSpacing + halfS;
+    outX.push(firstCx - halfS * 0.38);
+    outY.push(cy + flowerSpacing * 0.5);
   }
-
-  function recurseHilbert(x, y, ax, ay, bx, by, depth) {
-    const size = Math.hypot(ax, ay);
-    const cx = x + (ax + bx) * 0.5;
-    const cy = y + (ay + by) * 0.5;
-
-    const minX = Math.min(x, x + ax, x + bx, x + ax + bx);
-    const minY = Math.min(y, y + ay, y + by, y + ay + by);
-    const info = sampleRegion(minX, minY, size);
-
-    if (!info.inside && depth >= minDepth) return;
-
-    const normDepth = (depth - minDepth) / (maxDepth - minDepth);
-    const depthFactor = Math.pow(normDepth, 1.25) * (0.84 / Math.max(0.65, Math.min(1.4, TARGET_NODES / 24000)));
-    const neededDarkness = Math.max(0.04, Math.min(0.96, depthFactor));
-
-    if (depth < minDepth || (depth < maxDepth && info.darkness > neededDarkness)) {
-      const ax2 = ax * 0.5, ay2 = ay * 0.5;
-      const bx2 = bx * 0.5, by2 = by * 0.5;
-      recurseHilbert(x, y, bx2, by2, ax2, ay2, depth + 1);
-      recurseHilbert(x + bx2, y + by2, ax2, ay2, bx2, by2, depth + 1);
-      recurseHilbert(x + ax2 + bx2, y + ay2 + by2, ax2, ay2, bx2, by2, depth + 1);
-      recurseHilbert(x + ax2 + ax2 + bx2, y + ay2 + ay2 + by2, -bx2, -by2, -ax2, -ay2, depth + 1);
-    } else if (info.inside && cx >= 4 && cx < W - 4 && cy >= 4 && cy < H - 4) {
-      drawOpenFlowerCell(cx, cy, size, info.darkness);
-    }
-  }
-
-  recurseHilbert(0, 0, maxSide, 0, 0, maxSide, 0);
 
   return {
     ptsX: new Float32Array(outX),
@@ -3621,7 +3626,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'flor_fractal') {
-    let { ptsX, ptsY } = generateFractalOpenFlorPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, TARGET_NODES);
+    let { ptsX, ptsY } = generateFractalOpenFlorPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
