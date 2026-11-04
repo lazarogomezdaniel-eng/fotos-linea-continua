@@ -1,0 +1,14 @@
+{
+  "appId": "com.lineacontinua.studio",
+  "appName": "L\u00ednea Continua",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": true
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
