@@ -396,6 +396,13 @@
             👉 Toca cualquier punto de la foto en el lienzo para colocar el centro allí.
           </div>
         </div>
+        <div id="boxHaringIconControls" style="display:none; margin-top:8px; padding:8px 10px; background:rgba(56,189,248,0.10); border:1px solid rgba(56,189,248,0.28); border-radius:8px;">
+          <label style="display:flex; justify-content:space-between; align-items:center; font-size:11px; font-weight:700; color:#38bdf8; margin-bottom:4px;">
+            <span>🕺 Cantidad Máx. Iconos</span>
+            <span id="vHaringIcons" style="color:#f8fafc; font-weight:800;">95</span>
+          </label>
+          <input type="range" id="haringIconCount" min="15" max="150" step="5" value="95">
+        </div>
         <div id="modeDesc" class="mode-desc-bar">
           🧠 Coral: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros en U de extremo a extremo.
         </div>
@@ -620,6 +627,7 @@ let MIN_R = 1.5;
 let MAX_R = 4.8;
 let CHAIKIN_PASSES = 2;
 let LINE_W = 1.0;
+let HARING_ICON_COUNT = 95;
 
 // Estado del Motor de Color Orgánico y Mezcla
 let COLOR_MODE = 'mono';
@@ -795,6 +803,7 @@ function syncSlidersFromState() {
   setSlider('chaikinPasses', 'vChaikin', CHAIKIN_PASSES);
   setSlider('lineW', 'vWidth', LINE_W, 1);
   setSlider('colorScale', 'vColScale', COLOR_SCALE, 1);
+  setSlider('haringIconCount', 'vHaringIcons', HARING_ICON_COUNT);
 }
 syncSlidersFromState();
 
@@ -4423,7 +4432,7 @@ function getHaringCrocSkeleton(motifId) {
   }
 }
 
-function generateKeithHaringCapsuleIconPortrait(modeType, coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R = 1.4, MAX_R = 6.8, TARGET_NODES = 24000, seed = 0) {
+function generateKeithHaringCapsuleIconPortrait(modeType, coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R = 1.4, MAX_R = 6.8, TARGET_NODES = 24000, seed = 0, targetIconCount = 95) {
   const N = W * H;
   let minX = W, maxX = 0, minY = H, maxY = 0;
   for (let y = 4; y < H - 4; y += 3) {
@@ -4442,158 +4451,174 @@ function generateKeithHaringCapsuleIconPortrait(modeType, coralToneMap, step232S
   const figExclusionMask = new Uint8Array(N);
   const figClearanceMask = new Uint8Array(N);
 
-  const scaleMult = Math.max(0.86, Math.min(1.22, 0.98 + (MAX_R - 4.8) * 0.04));
+  const maxIcons = Math.max(10, Math.min(180, Math.round(targetIconCount || 95)));
+  // Smoothly scale grid spacing & clearance based on desired icon count (fewer icons -> wider spacing & larger icons; more icons -> tighter packing)
+  const densityFactor = Math.max(0.68, Math.min(1.55, Math.sqrt(95 / maxIcons)));
+  const sizeFactor = Math.max(0.88, Math.min(1.18, Math.pow(95 / maxIcons, 0.16)));
+  const scaleMult = Math.max(0.82, Math.min(1.26, (0.98 + (MAX_R - 4.8) * 0.04) * sizeFactor));
+  const spMult = scaleMult * densityFactor;
+  const clMult = Math.max(0.82, Math.min(1.45, densityFactor));
 
   const tiers = modeType === 'croc'
     ? [
-        { spacing: Math.round(36 * scaleMult), baseRad: Math.round(23 * scaleMult), radVar: 3, edgeLim: 0.44, clearPx: 7.6 },
-        { spacing: Math.round(22 * scaleMult), baseRad: Math.round(18 * scaleMult), radVar: 2, edgeLim: 0.37, clearPx: 6.8 },
-        { spacing: Math.round(14 * scaleMult), baseRad: Math.round(15 * scaleMult), radVar: 2, edgeLim: 0.31, clearPx: 6.2 },
-        { spacing: Math.round(10 * scaleMult), baseRad: Math.round(13 * scaleMult), radVar: 1, edgeLim: 0.26, clearPx: 5.8 }
+        { spacing: Math.round(35 * spMult), baseRad: Math.round(23 * scaleMult), radVar: 3, edgeLim: 0.44, clearPx: 7.4 * clMult },
+        { spacing: Math.round(22 * spMult), baseRad: Math.round(18 * scaleMult), radVar: 2, edgeLim: 0.37, clearPx: 6.6 * clMult },
+        { spacing: Math.round(14 * spMult), baseRad: Math.round(15 * scaleMult), radVar: 2, edgeLim: 0.31, clearPx: 6.0 * clMult },
+        { spacing: Math.round(10 * spMult), baseRad: Math.round(13 * scaleMult), radVar: 1, edgeLim: 0.26, clearPx: 5.5 * clMult }
       ]
     : [
-        { spacing: Math.round(36 * scaleMult), baseRad: Math.round(22 * scaleMult), radVar: 3, edgeLim: 0.44, clearPx: 7.4 },
-        { spacing: Math.round(22 * scaleMult), baseRad: Math.round(17 * scaleMult), radVar: 2, edgeLim: 0.37, clearPx: 6.6 },
-        { spacing: Math.round(14 * scaleMult), baseRad: Math.round(14 * scaleMult), radVar: 2, edgeLim: 0.31, clearPx: 6.0 },
-        { spacing: Math.round(10 * scaleMult), baseRad: Math.round(12 * scaleMult), radVar: 2, edgeLim: 0.26, clearPx: 5.6 }
+        { spacing: Math.round(35 * spMult), baseRad: Math.round(22 * scaleMult), radVar: 3, edgeLim: 0.44, clearPx: 7.2 * clMult },
+        { spacing: Math.round(22 * spMult), baseRad: Math.round(17 * scaleMult), radVar: 2, edgeLim: 0.37, clearPx: 6.4 * clMult },
+        { spacing: Math.round(14 * spMult), baseRad: Math.round(14 * scaleMult), radVar: 2, edgeLim: 0.31, clearPx: 5.8 * clMult },
+        { spacing: Math.round(10 * spMult), baseRad: Math.round(12 * scaleMult), radVar: 2, edgeLim: 0.26, clearPx: 5.4 * clMult }
       ];
 
   const tiltAngles = [0, 0.22, -0.22, 0.45, -0.45, 0.68, -0.68, -0.12, 0.12];
   let motifCounter = seed;
 
   for (let tIdx = 0; tIdx < tiers.length; tIdx++) {
+    if (placedFigures.length >= maxIcons) break;
     const { spacing, baseRad, radVar, edgeLim, clearPx } = tiers[tIdx];
-    const stepY = Math.max(8, Math.round(spacing * 0.75));
-    const stepX = Math.max(8, spacing);
+    const stepY = Math.max(7, Math.round(spacing * 0.75));
+    const stepX = Math.max(7, spacing);
 
+    // Shuffle candidate order pseudo-randomly per tier so when maxIcons caps a tier, icons are distributed evenly across the whole portrait (top to bottom)
+    const tierCands = [];
     for (let gy = minY + baseRad; gy <= maxY - baseRad; gy += stepY) {
       const rowIdx = Math.round((gy - minY) / stepY);
       const rowOffX = (rowIdx & 1) ? Math.round(stepX * 0.5) : 0;
       for (let gx = minX + baseRad + rowOffX; gx <= maxX - baseRad; gx += stepX) {
         const h = Math.abs(((gx | 0) * 73856093) ^ ((gy | 0) * 19349663) ^ ((seed + tIdx * 41) * 83492791));
-        const jx = gx + ((h % 7) - 3);
-        const jy = gy + (((h >> 4) % 7) - 3);
-        const ix = jx | 0, iy = jy | 0;
-        if (ix < baseRad + 6 || ix >= W - baseRad - 6 || iy < baseRad + 6 || iy >= H - baseRad - 6) continue;
-        if (!silhouetteMask[iy * W + ix] || figClearanceMask[iy * W + ix]) continue;
+        tierCands.push({ gx, gy, h, order: (h % 997) });
+      }
+    }
+    tierCands.sort((a, b) => a.order - b.order);
 
-        const rad = baseRad + (h % radVar);
-        const tubeR = Math.max(2.95, rad * 0.188);
+    for (let cIdx = 0; cIdx < tierCands.length; cIdx++) {
+      if (placedFigures.length >= maxIcons) break;
+      const { gx, gy, h } = tierCands[cIdx];
+      const jx = gx + ((h % 7) - 3);
+      const jy = gy + (((h >> 4) % 7) - 3);
+      const ix = jx | 0, iy = jy | 0;
+      if (ix < baseRad + 6 || ix >= W - baseRad - 6 || iy < baseRad + 6 || iy >= H - baseRad - 6) continue;
+      if (!silhouetteMask[iy * W + ix] || figClearanceMask[iy * W + ix]) continue;
 
-        const motifId = motifCounter + (h % 3);
-        const motifDef = modeType === 'croc' ? getHaringCrocSkeleton(motifId) : getHaringPopSkeleton(motifId);
-        const unitSegs = motifDef.segs;
-        const unitTicks = motifDef.ticks || [];
-        const flipX = ((h >> 3) % 2 === 0) ? 1 : -1;
-        const tilt = tiltAngles[(h >> 5) % tiltAngles.length];
-        const cosA = Math.cos(tilt), sinA = Math.sin(tilt);
+      const rad = baseRad + (h % radVar);
+      const tubeR = Math.max(2.95, rad * 0.188);
 
-        const transformPt = (ux, uy) => {
-          const fx = ux * flipX;
-          const fy = uy;
-          return [
-            jx + (fx * cosA - fy * sinA) * rad,
-            jy + (fx * sinA + fy * cosA) * rad
-          ];
-        };
+      const motifId = motifCounter + (h % 3);
+      const motifDef = modeType === 'croc' ? getHaringCrocSkeleton(motifId) : getHaringPopSkeleton(motifId);
+      const unitSegs = motifDef.segs;
+      const unitTicks = motifDef.ticks || [];
+      const flipX = ((h >> 3) % 2 === 0) ? 1 : -1;
+      const tilt = tiltAngles[(h >> 5) % tiltAngles.length];
+      const cosA = Math.cos(tilt), sinA = Math.sin(tilt);
 
-        const worldSegs = unitSegs.map(s => {
-          const p0 = transformPt(s[0], s[1]);
-          const p1 = transformPt(s[2], s[3]);
-          return [p0[0], p0[1], p1[0], p1[1], s[4]];
-        });
+      const transformPt = (ux, uy) => {
+        const fx = ux * flipX;
+        const fy = uy;
+        return [
+          jx + (fx * cosA - fy * sinA) * rad,
+          jy + (fx * sinA + fy * cosA) * rad
+        ];
+      };
 
-        let valid = true;
-        let sharpEdgeCnt = 0;
-        for (let k = 0; k < worldSegs.length; k++) {
-          const s = worldSegs[k];
-          for (let t = 0; t <= 1.0; t += 0.5) {
-            const wx = Math.round(s[0] + (s[2] - s[0]) * t);
-            const wy = Math.round(s[1] + (s[3] - s[1]) * t);
-            const m = Math.ceil(tubeR * s[4] + 3);
-            if (wx < m || wx >= W - m || wy < m || wy >= H - m) { valid = false; break; }
-            const wIdx = wy * W + wx;
-            if (!silhouetteMask[wIdx] || figClearanceMask[wIdx]) { valid = false; break; }
-            if (!silhouetteMask[(wy - 3) * W + wx] || !silhouetteMask[(wy + 3) * W + wx] ||
-                !silhouetteMask[wy * W + (wx - 3)] || !silhouetteMask[wy * W + (wx + 3)]) {
-              valid = false; break;
-            }
-            const s232 = step232Stencil ? step232Stencil[wIdx] : 1.0;
-            if (s232 < edgeLim) sharpEdgeCnt++;
-          }
-          if (!valid) break;
-        }
-        if (!valid || sharpEdgeCnt > 1) continue;
+      const worldSegs = unitSegs.map(s => {
+        const p0 = transformPt(s[0], s[1]);
+        const p1 = transformPt(s[2], s[3]);
+        return [p0[0], p0[1], p1[0], p1[1], s[4]];
+      });
 
-        const outerLoop = traceSkeletonContourHaring(worldSegs, tubeR, 0.0, 1.45);
-        if (outerLoop.length < 12) continue;
-
-        for (let i = 0; i < outerLoop.length; i += 2) {
-          const ox = Math.round(outerLoop[i][0]);
-          const oy = Math.round(outerLoop[i][1]);
-          if (ox < 4 || ox >= W - 4 || oy < 4 || oy >= H - 4 || !silhouetteMask[oy * W + ox] || figClearanceMask[oy * W + ox]) {
+      let valid = true;
+      let sharpEdgeCnt = 0;
+      for (let k = 0; k < worldSegs.length; k++) {
+        const s = worldSegs[k];
+        for (let t = 0; t <= 1.0; t += 0.5) {
+          const wx = Math.round(s[0] + (s[2] - s[0]) * t);
+          const wy = Math.round(s[1] + (s[3] - s[1]) * t);
+          const m = Math.ceil(tubeR * s[4] + 3);
+          if (wx < m || wx >= W - m || wy < m || wy >= H - m) { valid = false; break; }
+          const wIdx = wy * W + wx;
+          if (!silhouetteMask[wIdx] || figClearanceMask[wIdx]) { valid = false; break; }
+          if (!silhouetteMask[(wy - 3) * W + wx] || !silhouetteMask[(wy + 3) * W + wx] ||
+              !silhouetteMask[wy * W + (wx - 3)] || !silhouetteMask[wy * W + (wx + 3)]) {
             valid = false; break;
           }
+          const s232 = step232Stencil ? step232Stencil[wIdx] : 1.0;
+          if (s232 < edgeLim) sharpEdgeCnt++;
         }
-        if (!valid) continue;
-
-        const innerLoop = traceSkeletonContourHaring(worldSegs, tubeR, -0.75, 1.45);
-        motifCounter++;
-
-        const worldTicks = unitTicks.map(tk => {
-          const pA = transformPt(tk[0], tk[1]);
-          const pB = transformPt(tk[2], tk[3]);
-          let bestIdx = -1, bestD2 = 999;
-          for (let i = 0; i < outerLoop.length; i++) {
-            const dx = outerLoop[i][0] - pA[0], dy = outerLoop[i][1] - pA[1];
-            const d2 = dx * dx + dy * dy;
-            if (d2 < bestD2) { bestD2 = d2; bestIdx = i; }
-          }
-          return { bestIdx, tip: pB };
-        });
-
-        const figPts = [];
-        const n = outerLoop.length;
-        for (let i = 0; i < n; i++) {
-          const p0 = outerLoop[i];
-          figPts.push(p0);
-          for (let t = 0; t < worldTicks.length; t++) {
-            if (worldTicks[t].bestIdx === i) {
-              const tip = worldTicks[t].tip;
-              const tx = Math.round(tip[0]), ty = Math.round(tip[1]);
-              if (tx >= 4 && tx < W - 4 && ty >= 4 && ty < H - 4 &&
-                  silhouetteMask[ty * W + tx] && !figExclusionMask[ty * W + tx]) {
-                figPts.push(tip);
-                figPts.push(p0);
-              }
-            }
-          }
-        }
-        figPts.push(outerLoop[0]);
-
-        if (innerLoop.length > 4) {
-          for (let i = 0; i < innerLoop.length; i++) {
-            figPts.push(innerLoop[i]);
-          }
-          figPts.push(innerLoop[0]);
-          figPts.push(outerLoop[0]);
-        }
-
-        const boxR = Math.ceil(rad * 1.38 + clearPx + 4);
-        for (let py = Math.max(0, iy - boxR); py <= Math.min(H - 1, iy + boxR); py++) {
-          for (let px = Math.max(0, ix - boxR); px <= Math.min(W - 1, ix + boxR); px++) {
-            const d = distToSkeletonHaring(px, py, worldSegs, tubeR);
-            if (d <= 2.7) {
-              figExclusionMask[py * W + px] = 1;
-              figClearanceMask[py * W + px] = 1;
-            } else if (d <= clearPx) {
-              figClearanceMask[py * W + px] = 1;
-            }
-          }
-        }
-
-        placedFigures.push({ cx: jx, cy: jy, rad, pts: figPts });
+        if (!valid) break;
       }
+      if (!valid || sharpEdgeCnt > 1) continue;
+
+      const outerLoop = traceSkeletonContourHaring(worldSegs, tubeR, 0.0, 1.45);
+      if (outerLoop.length < 12) continue;
+
+      for (let i = 0; i < outerLoop.length; i += 2) {
+        const ox = Math.round(outerLoop[i][0]);
+        const oy = Math.round(outerLoop[i][1]);
+        if (ox < 4 || ox >= W - 4 || oy < 4 || oy >= H - 4 || !silhouetteMask[oy * W + ox] || figClearanceMask[oy * W + ox]) {
+          valid = false; break;
+        }
+      }
+      if (!valid) continue;
+
+      const innerLoop = traceSkeletonContourHaring(worldSegs, tubeR, -0.75, 1.45);
+      motifCounter++;
+
+      const worldTicks = unitTicks.map(tk => {
+        const pA = transformPt(tk[0], tk[1]);
+        const pB = transformPt(tk[2], tk[3]);
+        let bestIdx = -1, bestD2 = 999;
+        for (let i = 0; i < outerLoop.length; i++) {
+          const dx = outerLoop[i][0] - pA[0], dy = outerLoop[i][1] - pA[1];
+          const d2 = dx * dx + dy * dy;
+          if (d2 < bestD2) { bestD2 = d2; bestIdx = i; }
+        }
+        return { bestIdx, tip: pB };
+      });
+
+      const figPts = [];
+      const n = outerLoop.length;
+      for (let i = 0; i < n; i++) {
+        const p0 = outerLoop[i];
+        figPts.push(p0);
+        for (let t = 0; t < worldTicks.length; t++) {
+          if (worldTicks[t].bestIdx === i) {
+            const tip = worldTicks[t].tip;
+            const tx = Math.round(tip[0]), ty = Math.round(tip[1]);
+            if (tx >= 4 && tx < W - 4 && ty >= 4 && ty < H - 4 &&
+                silhouetteMask[ty * W + tx] && !figExclusionMask[ty * W + tx]) {
+              figPts.push(tip);
+              figPts.push(p0);
+            }
+          }
+        }
+      }
+      figPts.push(outerLoop[0]);
+
+      if (innerLoop.length > 4) {
+        for (let i = 0; i < innerLoop.length; i++) {
+          figPts.push(innerLoop[i]);
+        }
+        figPts.push(innerLoop[0]);
+        figPts.push(outerLoop[0]);
+      }
+
+      const boxR = Math.ceil(rad * 1.38 + clearPx + 4);
+      for (let py = Math.max(0, iy - boxR); py <= Math.min(H - 1, iy + boxR); py++) {
+        for (let px = Math.max(0, ix - boxR); px <= Math.min(W - 1, ix + boxR); px++) {
+          const d = distToSkeletonHaring(px, py, worldSegs, tubeR);
+          if (d <= 2.7) {
+            figExclusionMask[py * W + px] = 1;
+            figClearanceMask[py * W + px] = 1;
+          } else if (d <= clearPx) {
+            figClearanceMask[py * W + px] = 1;
+          }
+        }
+      }
+
+      placedFigures.push({ cx: jx, cy: jy, rad, pts: figPts });
     }
   }
 
@@ -4659,15 +4684,15 @@ function generateKeithHaringCapsuleIconPortrait(modeType, coralToneMap, step232S
 // ============================================================================
 // MODO 15: KEITH HARING POP-ART (115+ Iconos Tubulares: Perros, Bebés, OVNIs, Corazones, Bailarines)
 // ============================================================================
-function generateKeithHaringPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R = 1.4, MAX_R = 6.8, TARGET_NODES = 24000, seed = 0) {
-  return generateKeithHaringCapsuleIconPortrait('pop', coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
+function generateKeithHaringPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R = 1.4, MAX_R = 6.8, TARGET_NODES = 24000, seed = 0, haringIconCount = 95) {
+  return generateKeithHaringCapsuleIconPortrait('pop', coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed, haringIconCount);
 }
 
 // ============================================================================
 // MODO 16: KEITH HARING COCODRILOS POP-ART (90+ Cocodrilos con Fauces Dentadas, Cresta y Hombre-Cocodrilo)
 // ============================================================================
-function generateKeithHaringCrocPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R = 1.4, MAX_R = 6.8, TARGET_NODES = 24000, seed = 0) {
-  return generateKeithHaringCapsuleIconPortrait('croc', coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
+function generateKeithHaringCrocPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R = 1.4, MAX_R = 6.8, TARGET_NODES = 24000, seed = 0, haringIconCount = 95) {
+  return generateKeithHaringCapsuleIconPortrait('croc', coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed, haringIconCount);
 }
 
 // ============================================================================
@@ -5281,13 +5306,13 @@ self.onmessage = function(e) {
   const {
     jobId, engineMode, step232Stencil, coralToneMap, silhouetteMask, smoothSilMap,
     W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0, maxTimeMs,
-    customFocalX, customFocalY
+    customFocalX, customFocalY, haringIconCount
   } = e.data;
 
   const tStart = performance.now();
 
   if (engineMode === 'keith_haring') {
-    let { ptsX, ptsY } = generateKeithHaringPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
+    let { ptsX, ptsY } = generateKeithHaringPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed, haringIconCount);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -5298,7 +5323,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'haring_croc') {
-    let { ptsX, ptsY } = generateKeithHaringCrocPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
+    let { ptsX, ptsY } = generateKeithHaringCrocPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed, haringIconCount);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -5568,7 +5593,8 @@ function rebuildPortrait(needsStencilRebuild = true) {
     seed: REBUILD_SEED,
     maxTimeMs: isMobileDevice ? 650 : 1100,
     customFocalX,
-    customFocalY
+    customFocalY,
+    haringIconCount: HARING_ICON_COUNT
   }, [s232Copy.buffer, coralCopy.buffer, silCopy.buffer, smSilCopy.buffer]);
 }
 
@@ -6539,6 +6565,7 @@ bindParam('maxN', 'vNodes', v => TARGET_NODES = v, false, null);
 bindParam('minR', 'vMin', v => MIN_R = v, false, 1);
 bindParam('maxR', 'vMax', v => MAX_R = v, false, 1);
 bindParam('chaikinPasses', 'vChaikin', v => CHAIKIN_PASSES = v, false, null);
+bindParam('haringIconCount', 'vHaringIcons', v => HARING_ICON_COUNT = v, false, null);
 
 document.getElementById('lineW').addEventListener('input', (e) => {
   LINE_W = parseFloat(e.target.value);
@@ -6579,6 +6606,7 @@ document.getElementById('btnClear').onclick = () => {
 document.getElementById('btnResetDefaults').onclick = () => {
   stopColorFlow();
   TARGET_NODES = isMobileDevice ? 22000 : 26000;
+  HARING_ICON_COUNT = 95;
   LINE_W = 1.0;
   COLOR_MODE = 'mono';
   COLOR_PALETTE = 'iris';
@@ -6710,8 +6738,12 @@ let customFocalX = null, customFocalY = null;
 function updateFocalMarker() {
   const marker = document.getElementById('focalMarker');
   const box = document.getElementById('boxSpiralControls');
+  const boxHaring = document.getElementById('boxHaringIconControls');
   const txt = document.getElementById('focalCoordsText');
   const statusPill = document.getElementById('statusPill');
+  if (boxHaring) {
+    boxHaring.style.display = (ENGINE_MODE === 'keith_haring' || ENGINE_MODE === 'haring_croc') ? 'block' : 'none';
+  }
   if (ENGINE_MODE === 'golden_spiral') {
     if (box) box.style.display = 'block';
     if (customFocalX !== null && customFocalY !== null) {
