@@ -80,6 +80,26 @@
       position: absolute; transform-origin: center center;
       transition: transform 0.05s ease-out; will-change: transform;
       display: flex; align-items: center; justify-content: center;
+      width: fit-content; height: fit-content;
+    }
+    .focal-marker {
+      position: absolute; width: 32px; height: 32px;
+      border-radius: 50%; border: 2.5px solid #f59e0b;
+      background: radial-gradient(circle, rgba(245,158,11,0.5) 0%, rgba(245,158,11,0.08) 70%, transparent 100%);
+      box-shadow: 0 0 16px rgba(245,158,11,0.9), inset 0 0 8px rgba(245,158,11,0.5);
+      pointer-events: none; transform: translate(-50%, -50%);
+      animation: focalPulse 1.8s infinite ease-in-out;
+      z-index: 25;
+    }
+    .focal-marker::after {
+      content: ''; position: absolute; top: 50%; left: 50%;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #ffffff; transform: translate(-50%, -50%);
+      box-shadow: 0 0 6px #f59e0b;
+    }
+    @keyframes focalPulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.95; }
+      50% { transform: translate(-50%, -50%) scale(1.35); opacity: 0.55; }
     }
     canvas {
       display: block; background: #fff; border-radius: 6px;
@@ -243,6 +263,7 @@
   <main id="stage">
     <div id="canvasWrapper">
       <canvas id="canvas" width="720" height="880"></canvas>
+      <div id="focalMarker" class="focal-marker" style="display:none;" title="Centro de la Espiral Áurea"></div>
     </div>
     <div class="floating-pill" id="statusPill">Línea Continua · 100% Vectorial</div>
     <div class="stage-actions">
@@ -344,6 +365,17 @@
             <span class="card-emoji">🌻</span>
             <span class="card-title">Espiral Áurea</span>
             <span class="card-badge">Fibonacci φ</span>
+          </div>
+        </div>
+        <div id="boxSpiralControls" style="display:none; margin-top:8px; padding:8px 10px; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); border-radius:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:11px; font-weight:700; color:#fbbf24;">📍 Centro de la Espiral</span>
+            <button id="btnAutoFocal" style="padding:4px 10px; font-size:10px; font-weight:600; background:#241d13; color:#fde047; border:1px solid #f59e0b; border-radius:6px; cursor:pointer;">
+              🎯 Auto Mirada
+            </button>
+          </div>
+          <div id="focalCoordsText" style="font-size:10px; color:#cbd5e1; margin-top:4px; line-height:1.3;">
+            👉 Toca cualquier punto de la foto en el lienzo para colocar el centro allí.
           </div>
         </div>
         <div id="modeDesc" class="mode-desc-bar">
@@ -3851,49 +3883,57 @@ function generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, MIN_
 }
 
 
-function generateGoldenProportionalSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 7.0, TARGET_NODES = 24000, seed = 0) {
+function generateGoldenProportionalSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 7.0, TARGET_NODES = 24000, seed = 0, customFocalX = null, customFocalY = null) {
   const PHI = 1.618033988749895;
   const aspectY = 1.18;
 
-  let minX = W, maxX = 0, minY = H, maxY = 0;
-  let sumX = 0, sumY = 0, sumW = 0;
-  for (let y = 6; y < H - 6; y += 3) {
-    for (let x = 6; x < W - 6; x += 3) {
-      const idx = y * W + x;
-      if (silhouetteMask && silhouetteMask[idx]) {
-        const d = Math.max(0, 1.0 - (coralToneMap ? coralToneMap[idx] : 1.0));
-        if (d > 0.04) {
-          if (x < minX) minX = x;
-          if (x > maxX) maxX = x;
-          if (y < minY) minY = y;
-          if (y > maxY) maxY = y;
-          sumX += x * d; sumY += y * d; sumW += d;
+  let cx = 0, cy = 0;
+  if (customFocalX !== null && customFocalX !== undefined && customFocalX >= 0 && customFocalY !== null && customFocalY !== undefined && customFocalY >= 0) {
+    cx = Math.max(8, Math.min(W - 8, customFocalX));
+    cy = Math.max(8, Math.min(H - 8, customFocalY));
+  } else {
+    let minX = W, maxX = 0, minY = H, maxY = 0;
+    let sumX = 0, sumY = 0, sumW = 0;
+    for (let y = 6; y < H - 6; y += 3) {
+      for (let x = 6; x < W - 6; x += 3) {
+        const idx = y * W + x;
+        if (silhouetteMask && silhouetteMask[idx]) {
+          const d = Math.max(0, 1.0 - (coralToneMap ? coralToneMap[idx] : 1.0));
+          if (d > 0.04) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+            sumX += x * d; sumY += y * d; sumW += d;
+          }
         }
       }
     }
-  }
-  if (maxX <= minX || maxY <= minY) {
-    minX = W * 0.2; maxX = W * 0.8; minY = H * 0.15; maxY = H * 0.85;
-  }
-  const baseCx = sumW > 0 ? sumX / sumW : W * 0.5;
-  const goldenEyeY = minY < maxY ? minY + (maxY - minY) * (1.0 - 1.0 / PHI) : H * 0.40;
-  const baseCy = sumW > 0 ? (sumY / sumW) * 0.45 + goldenEyeY * 0.55 : H * 0.42;
+    if (maxX <= minX || maxY <= minY) {
+      minX = W * 0.2; maxX = W * 0.8; minY = H * 0.15; maxY = H * 0.85;
+    }
+    const baseCx = sumW > 0 ? sumX / sumW : W * 0.5;
+    const goldenEyeY = minY < maxY ? minY + (maxY - minY) * (1.0 - 1.0 / PHI) : H * 0.40;
+    const baseCy = sumW > 0 ? (sumY / sumW) * 0.45 + goldenEyeY * 0.55 : H * 0.42;
 
-  let cx = baseCx, cy = baseCy, maxScore = -1;
-  const eyeY0 = Math.floor(minY + (maxY - minY) * 0.24);
-  const eyeY1 = Math.floor(minY + (maxY - minY) * 0.46);
-  for (let y = eyeY0; y <= eyeY1; y += 4) {
-    for (let x = Math.floor(minX + (maxX - minX) * 0.25); x <= Math.floor(minX + (maxX - minX) * 0.75); x += 4) {
-      const idx = y * W + x;
-      if (silhouetteMask && !silhouetteMask[idx]) continue;
-      const c = coralToneMap ? coralToneMap[idx] : 1.0;
-      const s = step232Stencil ? step232Stencil[idx] : 1.0;
-      const score = (1.0 - c) * 1.5 + (1.0 - s) * 2.5;
-      if (score > maxScore) {
-        maxScore = score;
-        cx = x; cy = y;
+    let bestEyeX = baseCx, bestEyeY = baseCy, maxScore = -1;
+    const eyeY0 = Math.floor(minY + (maxY - minY) * 0.24);
+    const eyeY1 = Math.floor(minY + (maxY - minY) * 0.46);
+    for (let y = eyeY0; y <= eyeY1; y += 4) {
+      for (let x = Math.floor(minX + (maxX - minX) * 0.25); x <= Math.floor(minX + (maxX - minX) * 0.75); x += 4) {
+        const idx = y * W + x;
+        if (silhouetteMask && !silhouetteMask[idx]) continue;
+        const c = coralToneMap ? coralToneMap[idx] : 1.0;
+        const s = step232Stencil ? step232Stencil[idx] : 1.0;
+        const score = (1.0 - c) * 1.5 + (1.0 - s) * 2.5;
+        if (score > maxScore) {
+          maxScore = score;
+          bestEyeX = x; bestEyeY = y;
+        }
       }
     }
+    cx = bestEyeX;
+    cy = bestEyeY;
   }
 
   const maxR = Math.hypot(Math.max(cx, W - cx), Math.max(cy, H - cy) / aspectY) * 1.02;
@@ -3902,7 +3942,7 @@ function generateGoldenProportionalSpiralPortrait(coralToneMap, step232Stencil, 
   const maxPitch = Math.max(basePitch * 1.4, Math.min(16.0, MAX_R * 2.0 * nodeScale));
 
   const avgPitch = (basePitch + maxPitch) * 0.5;
-  const totalRevs = Math.max(22, Math.min(85, Math.round(maxR / avgPitch)));
+  const totalRevs = Math.max(26, Math.min(85, Math.round(maxR / avgPitch)));
   const maxTheta = totalRevs * 2.0 * Math.PI;
 
   const ptsOutX = [];
@@ -3910,7 +3950,8 @@ function generateGoldenProportionalSpiralPortrait(coralToneMap, step232Stencil, 
   const ptsInX = [];
   const ptsInY = [];
 
-  let r = 5.0;
+  // Relleno absoluto del centro: comienza en r = 0.15 px para eliminar cualquier agujero blanco
+  let r = 0.15;
   let theta = 0.0;
   const seedShift = (seed % 11) * 0.12;
 
@@ -3934,26 +3975,29 @@ function generateGoldenProportionalSpiralPortrait(coralToneMap, step232Stencil, 
       }
     }
 
-    const localPitch = (basePitch + (maxPitch - basePitch) * Math.pow(normRev, 1.0 / PHI)) * (1.0 - 0.52 * featDark);
+    // Progresión de paso ultra-fina en el centro (r < 16)
+    const coreFactor = Math.min(1.0, r / 16.0);
+    const curBasePitch = 0.70 + (basePitch - 0.70) * coreFactor;
+    const localPitch = (curBasePitch + (maxPitch - curBasePitch) * Math.pow(normRev, 1.0 / PHI)) * (1.0 - 0.52 * featDark);
     const halfPitch = localPitch * 0.5;
 
-    const waveAmp = featDark * halfPitch * 0.40;
+    const waveAmp = featDark * halfPitch * 0.40 * coreFactor;
     const fibHarmonic = Math.sin(55.0 * theta + seedShift) * 0.72 + Math.sin(89.0 * theta) * 0.28;
     const wave = fibHarmonic * waveAmp;
 
     const rOut = r + wave;
-    const xo = Math.max(2, Math.min(W - 2, cx + rOut * cosT));
-    const yo = Math.max(2, Math.min(H - 2, cy + rOut * sinT * aspectY));
+    const xo = Math.max(1, Math.min(W - 1, cx + rOut * cosT));
+    const yo = Math.max(1, Math.min(H - 1, cy + rOut * sinT * aspectY));
     ptsOutX.push(xo);
     ptsOutY.push(yo);
 
     const rIn = r + halfPitch - wave;
-    const xi = Math.max(2, Math.min(W - 2, cx + rIn * cosT));
-    const yi = Math.max(2, Math.min(H - 2, cy + rIn * sinT * aspectY));
+    const xi = Math.max(1, Math.min(W - 1, cx + rIn * cosT));
+    const yi = Math.max(1, Math.min(H - 1, cy + rIn * sinT * aspectY));
     ptsInX.push(xi);
     ptsInY.push(yi);
 
-    const dTheta = Math.max(0.006, Math.min(0.05, 1.35 / Math.max(6.0, r)));
+    const dTheta = Math.max(0.006, Math.min(0.07, 1.25 / Math.max(1.2, r)));
     const dr = (localPitch / (2.0 * Math.PI)) * dTheta;
     r += dr;
     theta += dTheta;
@@ -3989,28 +4033,18 @@ function generateGoldenProportionalSpiralPortrait(coralToneMap, step232Stencil, 
   ptsInX.reverse();
   ptsInY.reverse();
 
-  const coreSteps = 12;
-  const coreStartX = ptsInX[ptsInX.length - 1];
-  const coreStartY = ptsInY[ptsInY.length - 1];
-  const coreEndX = ptsOutX[0];
-  const coreEndY = ptsOutY[0];
+  // Bucle suave en el núcleo conectando el retorno con el origen exacto (cx, cy)
+  const coreSteps = 16;
+  const firstInX = ptsInX[ptsInX.length - 1];
+  const firstInY = ptsInY[ptsInY.length - 1];
+  const firstOutX = ptsOutX[0];
+  const firstOutY = ptsOutY[0];
   const corePtsX = [];
   const corePtsY = [];
   for (let k = 1; k < coreSteps; k++) {
     const t = k / coreSteps;
-    const oneMinusT = 1.0 - t;
-    const mx = (coreStartX + coreEndX) * 0.5;
-    const my = (coreStartY + coreEndY) * 0.5;
-    const dx = coreEndX - coreStartX;
-    const dy = coreEndY - coreStartY;
-    const len = Math.hypot(dx, dy) || 1.0;
-    const nx = -dy / len;
-    const ny = dx / len;
-    const cpx = mx + nx * len * 0.8;
-    const cpy = my + ny * len * 0.8;
-
-    const bx = oneMinusT * oneMinusT * coreStartX + 2.0 * oneMinusT * t * cpx + t * t * coreEndX;
-    const by = oneMinusT * oneMinusT * coreStartY + 2.0 * oneMinusT * t * cpy + t * t * coreEndY;
+    const bx = firstInX * (1.0 - t) * (1.0 - t) + cx * 2.0 * (1.0 - t) * t + firstOutX * t * t;
+    const by = firstInY * (1.0 - t) * (1.0 - t) + cy * 2.0 * (1.0 - t) * t + firstOutY * t * t;
     corePtsX.push(bx);
     corePtsY.push(by);
   }
@@ -4028,16 +4062,18 @@ function generateGoldenProportionalSpiralPortrait(coralToneMap, step232Stencil, 
   return { ptsX, ptsY };
 }
 
+
 self.onmessage = function(e) {
   const {
     jobId, engineMode, step232Stencil, coralToneMap, silhouetteMask, smoothSilMap,
-    W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0, maxTimeMs
+    W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0, maxTimeMs,
+    customFocalX, customFocalY
   } = e.data;
 
   const tStart = performance.now();
 
     if (engineMode === 'golden_spiral') {
-    let { ptsX, ptsY } = generateGoldenProportionalSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
+    let { ptsX, ptsY } = generateGoldenProportionalSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed, customFocalX, customFocalY);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -4283,7 +4319,9 @@ function rebuildPortrait(needsStencilRebuild = true) {
     MAX_R,
     CHAIKIN_PASSES,
     seed: REBUILD_SEED,
-    maxTimeMs: isMobileDevice ? 650 : 1100
+    maxTimeMs: isMobileDevice ? 650 : 1100,
+    customFocalX,
+    customFocalY
   }, [s232Copy.buffer, coralCopy.buffer, silCopy.buffer, smSilCopy.buffer]);
 }
 
@@ -5418,6 +5456,35 @@ btnRec.onclick = () => {
 // INTERFAZ MÓVIL PROFESIONAL: GESTOS, TABS Y SELECTOR ESTILOS
 // =========================================================
 const styleCards = document.querySelectorAll('.style-card');
+let customFocalX = null, customFocalY = null;
+
+function updateFocalMarker() {
+  const marker = document.getElementById('focalMarker');
+  const box = document.getElementById('boxSpiralControls');
+  const txt = document.getElementById('focalCoordsText');
+  const statusPill = document.getElementById('statusPill');
+  if (ENGINE_MODE === 'golden_spiral') {
+    if (box) box.style.display = 'block';
+    if (customFocalX !== null && customFocalY !== null) {
+      if (marker) {
+        marker.style.display = 'block';
+        marker.style.left = ((customFocalX / W) * 100) + '%';
+        marker.style.top = ((customFocalY / H) * 100) + '%';
+      }
+      if (txt) txt.textContent = 'Centro fijado en (' + Math.round(customFocalX) + ', ' + Math.round(customFocalY) + '). Toca cualquier punto para moverlo.';
+      if (statusPill) statusPill.textContent = '🌻 Foco (' + Math.round(customFocalX) + ',' + Math.round(customFocalY) + ') · Toca para mover';
+    } else {
+      if (marker) marker.style.display = 'none';
+      if (txt) txt.textContent = '👉 Centro automático en la mirada. Toca cualquier punto de la foto para situar el centro allí.';
+      if (statusPill) statusPill.textContent = '🌻 Toca cualquier punto para mover el centro';
+    }
+  } else {
+    if (marker) marker.style.display = 'none';
+    if (box) box.style.display = 'none';
+    if (statusPill) statusPill.textContent = 'Línea Continua · 100% Vectorial';
+  }
+}
+
 function syncStyleCards(selectedMode) {
   styleCards.forEach(card => {
     const isSel = (card.dataset.mode === selectedMode);
@@ -5430,6 +5497,7 @@ function syncStyleCards(selectedMode) {
         modePillText.textContent = emoji + " " + title;
       }
       card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      updateFocalMarker();
     }
   });
 }
@@ -5577,9 +5645,34 @@ if (stage) {
         scale = 2.2;
         updateCanvasTransform();
       }
+      lastTap = now;
+      return;
     }
     lastTap = now;
+
+    // En modo Espiral Áurea, un toque en el lienzo sitúa el centro exactamente donde toca el usuario
+    if (ENGINE_MODE === 'golden_spiral') {
+      const rect = canvas.getBoundingClientRect();
+      if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+        const cx = (e.clientX - rect.left) * (W / rect.width);
+        const cy = (e.clientY - rect.top) * (H / rect.height);
+        customFocalX = Math.round(cx);
+        customFocalY = Math.round(cy);
+        updateFocalMarker();
+        rebuildPortrait(true);
+      }
+    }
   });
+
+  const btnAutoFocal = document.getElementById('btnAutoFocal');
+  if (btnAutoFocal) {
+    btnAutoFocal.addEventListener('click', () => {
+      customFocalX = null;
+      customFocalY = null;
+      updateFocalMarker();
+      rebuildPortrait(true);
+    });
+  }
 }
 
 initDemoPortrait();
