@@ -4724,10 +4724,141 @@ function generateKeithHaringCrocPortrait(coralToneMap, step232Stencil, silhouett
 // MODO 17: KEITH HARING PUZLE HUMANO (Cuadro de Formas Humanas Entrelazadas)
 // ============================================================================
 function generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R = 1.4, MAX_R = 6.8, TARGET_NODES = 24000, seed = 0) {
+  function distSqToSeg(px, py, x0, y0, x1, y1) {
+    const dx = x1 - x0, dy = y1 - y0;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq < 1e-6) return (px - x0) * (px - x0) + (py - y0) * (py - y0);
+    let t = ((px - x0) * dx + (py - y0) * dy) / lenSq;
+    if (t < 0) t = 0; else if (t > 1) t = 1;
+    const projX = x0 + t * dx, projY = y0 + t * dy;
+    return (px - projX) * (px - projX) + (py - projY) * (py - projY);
+  }
+
+  function distToSkeleton(px, py, segs, baseRadius) {
+    let minD = Infinity;
+    for (let i = 0; i < segs.length; i++) {
+      const s = segs[i];
+      const d = Math.sqrt(distSqToSeg(px, py, s[0], s[1], s[2], s[3])) - baseRadius * (s[4] || 1.0);
+      if (d < minD) minD = d;
+    }
+    return minD;
+  }
+
+  function traceSkeletonContour(segs, baseRadius, isoVal, stepPx = 1.9) {
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    const pad = baseRadius * 1.7 + Math.abs(isoVal) + 4;
+    for (let i = 0; i < segs.length; i++) {
+      const s = segs[i];
+      if (s[0] < minX) minX = s[0]; if (s[0] > maxX) maxX = s[0];
+      if (s[2] < minX) minX = s[2]; if (s[2] > maxX) maxX = s[2];
+      if (s[1] < minY) minY = s[1]; if (s[1] > maxY) maxY = s[1];
+      if (s[3] < minY) minY = s[3]; if (s[3] > maxY) maxY = s[3];
+    }
+    minX = Math.floor(minX - pad);
+    maxX = Math.ceil(maxX + pad);
+    minY = Math.floor(minY - pad);
+    maxY = Math.ceil(maxY + pad);
+
+    const gw = Math.max(4, Math.ceil((maxX - minX) / stepPx));
+    const gh = Math.max(4, Math.ceil((maxY - minY) / stepPx));
+    const field = new Float32Array((gw + 1) * (gh + 1));
+
+    for (let gy = 0; gy <= gh; gy++) {
+      const py = minY + gy * stepPx;
+      for (let gx = 0; gx <= gw; gx++) {
+        const px = minX + gx * stepPx;
+        field[gy * (gw + 1) + gx] = distToSkeleton(px, py, segs, baseRadius) - isoVal;
+      }
+    }
+
+    const edges = [];
+    const interp = (x0, y0, v0, x1, y1, v1) => {
+      const t = Math.max(0.05, Math.min(0.95, -v0 / ((v1 - v0) || 1e-6)));
+      return [x0 + (x1 - x0) * t, y0 + (y1 - y0) * t];
+    };
+
+    for (let gy = 0; gy < gh; gy++) {
+      const y0 = minY + gy * stepPx, y1 = y0 + stepPx;
+      for (let gx = 0; gx < gw; gx++) {
+        const x0 = minX + gx * stepPx, x1 = x0 + stepPx;
+        const v00 = field[gy * (gw + 1) + gx];
+        const v10 = field[gy * (gw + 1) + (gx + 1)];
+        const v11 = field[(gy + 1) * (gw + 1) + (gx + 1)];
+        const v01 = field[(gy + 1) * (gw + 1) + gx];
+
+        let mask = 0;
+        if (v00 < 0) mask |= 1;
+        if (v10 < 0) mask |= 2;
+        if (v11 < 0) mask |= 4;
+        if (v01 < 0) mask |= 8;
+        if (mask === 0 || mask === 15) continue;
+
+        const pTop = (mask & 1) !== ((mask >> 1) & 1) ? interp(x0, y0, v00, x1, y0, v10) : null;
+        const pRight = ((mask >> 1) & 1) !== ((mask >> 2) & 1) ? interp(x1, y0, v10, x1, y1, v11) : null;
+        const pBot = ((mask >> 2) & 1) !== ((mask >> 3) & 1) ? interp(x1, y1, v11, x0, y1, v01) : null;
+        const pLeft = ((mask >> 3) & 1) !== (mask & 1) ? interp(x0, y1, v01, x0, y0, v00) : null;
+
+        if (mask === 1) edges.push([pLeft, pTop]);
+        else if (mask === 2) edges.push([pTop, pRight]);
+        else if (mask === 3) edges.push([pLeft, pRight]);
+        else if (mask === 4) edges.push([pRight, pBot]);
+        else if (mask === 5) { edges.push([pLeft, pBot]); edges.push([pRight, pTop]); }
+        else if (mask === 6) edges.push([pTop, pBot]);
+        else if (mask === 7) edges.push([pLeft, pBot]);
+        else if (mask === 8) edges.push([pBot, pLeft]);
+        else if (mask === 9) edges.push([pBot, pTop]);
+        else if (mask === 10) { edges.push([pTop, pLeft]); edges.push([pBot, pRight]); }
+        else if (mask === 11) edges.push([pBot, pRight]);
+        else if (mask === 12) edges.push([pRight, pLeft]);
+        else if (mask === 13) edges.push([pRight, pTop]);
+        else if (mask === 14) edges.push([pTop, pLeft]);
+      }
+    }
+
+    if (edges.length === 0) return [];
+
+    const used = new Uint8Array(edges.length);
+    let bestLoop = [];
+    for (let start = 0; start < edges.length; start++) {
+      if (used[start]) continue;
+      used[start] = 1;
+      const loop = [edges[start][0], edges[start][1]];
+      let curr = edges[start][1];
+      while (true) {
+        let nextIdx = -1, minD2 = 2.2 * 2.2;
+        for (let j = 0; j < edges.length; j++) {
+          if (used[j]) continue;
+          const p = edges[j][0];
+          const d2 = (p[0] - curr[0]) * (p[0] - curr[0]) + (p[1] - curr[1]) * (p[1] - curr[1]);
+          if (d2 < minD2) { minD2 = d2; nextIdx = j; }
+        }
+        if (nextIdx === -1) break;
+        used[nextIdx] = 1;
+        curr = edges[nextIdx][1];
+        loop.push(curr);
+      }
+      if (loop.length > bestLoop.length) bestLoop = loop;
+    }
+
+    const n = bestLoop.length;
+    if (n < 6) return bestLoop;
+    const smoothed = new Array(n);
+    for (let i = 0; i < n; i++) {
+      const prev = bestLoop[(i - 1 + n) % n];
+      const curr = bestLoop[i];
+      const next = bestLoop[(i + 1) % n];
+      smoothed[i] = [
+        0.22 * prev[0] + 0.56 * curr[0] + 0.22 * next[0],
+        0.22 * prev[1] + 0.56 * curr[1] + 0.22 * next[1]
+      ];
+    }
+    return smoothed;
+  }
+
   const N = W * H;
   let minX = W, maxX = 0, minY = H, maxY = 0;
-  for (let y = 4; y < H - 4; y += 3) {
-    for (let x = 4; x < W - 4; x += 3) {
+  for (let y = 4; y < H - 4; y += 2) {
+    for (let x = 4; x < W - 4; x += 2) {
       if (silhouetteMask[y * W + x]) {
         if (x < minX) minX = x;
         if (x > maxX) maxX = x;
@@ -4738,300 +4869,456 @@ function generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, si
   }
   if (maxX <= minX) { minX = W * 0.15; maxX = W * 0.85; minY = H * 0.1; maxY = H * 0.9; }
 
-  function pointInPoly(px, py, poly) {
-    let inside = false;
-    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-      const xi = poly[i][0], yi = poly[i][1];
-      const xj = poly[j][0], yj = poly[j][1];
-      const intersect = ((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / ((yj - yi) || 1e-6) + xi);
-      if (intersect) inside = !inside;
-    }
-    return inside;
-  }
-
-  function distSqToSegment(px, py, x0, y0, x1, y1) {
-    const dx = x1 - x0, dy = y1 - y0;
-    const lenSq = dx * dx + dy * dy;
-    if (lenSq < 1e-6) return (px - x0) * (px - x0) + (py - y0) * (py - y0);
-    const t = Math.max(0, Math.min(1, ((px - x0) * dx + (py - y0) * dy) / lenSq));
-    const projX = x0 + t * dx, projY = y0 + t * dy;
-    return (px - projX) * (px - projX) + (py - projY) * (py - projY);
-  }
-
-  function minDistSqToPoly(px, py, poly) {
-    let minD2 = Infinity;
-    for (let i = 0; i < poly.length; i++) {
-      const p0 = poly[i];
-      const p1 = poly[(i + 1) % poly.length];
-      const d2 = distSqToSegment(px, py, p0[0], p0[1], p1[0], p1[1]);
-      if (d2 < minD2) minD2 = d2;
-    }
-    return minD2;
-  }
-
-  function computeInwardOffsetPoly(poly, offsetPx) {
-    const n = poly.length;
-    let signedArea = 0;
-    for (let i = 0; i < n; i++) {
-      const p0 = poly[i], p1 = poly[(i + 1) % n];
-      signedArea += (p0[0] * p1[1] - p1[0] * p0[1]);
-    }
-    const orient = signedArea >= 0 ? 1 : -1;
-    const out = [];
-    for (let i = 0; i < n; i++) {
-      const prev = poly[(i - 1 + n) % n];
-      const curr = poly[i];
-      const next = poly[(i + 1) % n];
-      let dx1 = curr[0] - prev[0], dy1 = curr[1] - prev[1];
-      let l1 = Math.hypot(dx1, dy1) || 1;
-      dx1 /= l1; dy1 /= l1;
-      let dx2 = next[0] - curr[0], dy2 = next[1] - curr[1];
-      let l2 = Math.hypot(dx2, dy2) || 1;
-      dx2 /= l2; dy2 /= l2;
-      const nx1 = -dy1 * orient, ny1 = dx1 * orient;
-      const nx2 = -dy2 * orient, ny2 = dx2 * orient;
-      let bx = nx1 + nx2, by = ny1 + ny2;
-      const bLen = Math.hypot(bx, by) || 1;
-      bx /= bLen; by /= bLen;
-      out.push([curr[0] + bx * offsetPx, curr[1] + by * offsetPx]);
-    }
-    return out;
-  }
-
-  function getHumanPuzzleMotif(motifId) {
-    if (motifId === 0) {
-      return {
-        outer: [
-          [0.0, 0.30], [-0.15, 0.34], [-0.22, 0.86], [-0.54, 0.86], [-0.54, 0.28], [-0.36, 0.08],
-          [-0.86, 0.04], [-0.90, -0.60], [-0.54, -0.60], [-0.50, -0.22],
-          [-0.26, -0.22], [-0.34, -0.52], [-0.24, -0.82], [0.0, -0.90],
-          [0.24, -0.82], [0.34, -0.52], [0.26, -0.22],
-          [0.50, -0.22], [0.54, -0.60], [0.90, -0.60], [0.86, 0.04],
-          [0.36, 0.08], [0.54, 0.28], [0.54, 0.86], [0.22, 0.86], [0.15, 0.34]
-        ],
-        ticks: [[-0.90, -0.60, -1.06, -0.70], [0.90, -0.60, 1.06, -0.70]]
-      };
-    } else if (motifId === 1) {
-      return {
-        outer: [
-          [0.0, 0.38], [-0.36, 0.86], [-0.70, 0.78], [-0.32, 0.14],
-          [-0.86, -0.40], [-0.58, -0.70], [-0.22, -0.24],
-          [-0.32, -0.56], [0.0, -0.88], [0.32, -0.56],
-          [0.22, -0.24], [0.58, -0.70], [0.86, -0.40],
-          [0.32, 0.14], [0.70, 0.78], [0.36, 0.86]
-        ],
-        ticks: [[0.0, -0.88, 0.0, -1.06]]
-      };
-    } else if (motifId === 2) {
-      return {
-        outer: [
-          [-0.10, 0.36], [-0.36, 0.36], [-0.42, 0.86], [-0.76, 0.82], [-0.72, 0.20], [-0.40, 0.04],
-          [-0.86, -0.24], [-0.66, -0.74], [-0.36, -0.56], [-0.46, -0.26], [-0.24, -0.20],
-          [-0.30, -0.56], [0.0, -0.86], [0.30, -0.56], [0.24, -0.20],
-          [0.54, -0.24], [0.58, -0.72], [0.90, -0.68], [0.84, 0.04],
-          [0.38, 0.08], [0.64, 0.36], [0.58, 0.86], [0.24, 0.86], [0.24, 0.42]
-        ],
-        ticks: [[-0.66, -0.74, -0.82, -0.88], [0.90, -0.68, 1.06, -0.80]]
-      };
-    } else if (motifId === 3) {
-      return {
-        outer: [
-          [0.0, 0.30], [-0.15, 0.36], [-0.20, 0.86], [-0.52, 0.86], [-0.50, 0.28], [-0.34, 0.04],
-          [-0.82, -0.18], [-0.74, -0.70], [-0.34, -0.86],
-          [-0.44, -0.42], [-0.24, -0.22],
-          [-0.28, -0.56], [0.0, -0.80], [0.28, -0.56],
-          [0.24, -0.22], [0.44, -0.42],
-          [0.34, -0.86], [0.74, -0.70], [0.82, -0.18],
-          [0.34, 0.04], [0.50, 0.28], [0.52, 0.86], [0.20, 0.86], [0.15, 0.36]
-        ],
-        ticks: [[-0.74, -0.70, -0.92, -0.84], [0.74, -0.70, 0.92, -0.84]]
-      };
-    } else {
-      return {
-        outer: [
-          [-0.08, 0.32], [-0.54, 0.36], [-0.86, 0.72], [-0.94, 0.42], [-0.64, 0.08], [-0.34, 0.04],
-          [-0.82, -0.28], [-0.62, -0.64], [-0.26, -0.24],
-          [-0.32, -0.58], [0.0, -0.88], [0.32, -0.58], [0.26, -0.24],
-          [0.84, -0.34], [0.88, 0.02], [0.34, 0.06],
-          [0.54, 0.42], [0.44, 0.88], [0.12, 0.86], [0.16, 0.42]
-        ],
-        ticks: [[0.0, -0.88, 0.0, -1.06], [0.84, -0.34, 1.02, -0.42]]
-      };
-    }
-  }
-
-  const placedFigures = [];
-  const figExclusionMask = new Uint8Array(N);
-  const figClearanceMask = new Uint8Array(N);
-  let motifCounter = seed;
-
-  const puzzlePasses = [
-    { spacing: 46, baseRad: 26, radVar: 4, edgeLim: 0.44 },
-    { spacing: 30, baseRad: 18, radVar: 3, edgeLim: 0.38 },
-    { spacing: 22, baseRad: 13, radVar: 2, edgeLim: 0.34 }
-  ];
-
-  for (let pIdx = 0; pIdx < puzzlePasses.length; pIdx++) {
-    const { spacing, baseRad, radVar, edgeLim } = puzzlePasses[pIdx];
-    for (let gy = minY + baseRad; gy <= maxY - baseRad; gy += spacing * 0.78) {
-      const rowIdx = Math.round((gy - minY) / (spacing * 0.78));
-      const rowOffX = (rowIdx & 1) ? spacing * 0.5 : 0;
-      for (let gx = minX + baseRad + rowOffX; gx <= maxX - baseRad; gx += spacing) {
-        const h = Math.abs(((gx | 0) * 73856093) ^ ((gy | 0) * 19349663) ^ ((seed + pIdx * 31) * 83492791));
-        const jx = gx + ((h % 9) - 4);
-        const jy = gy + (((h >> 4) % 9) - 4);
-        const ix = jx | 0, iy = jy | 0;
-        const rad = baseRad + (h % radVar);
-        if (ix < rad + 10 || ix >= W - rad - 10 || iy < rad + 10 || iy >= H - rad - 10) continue;
-
-        const motifId = motifCounter % 5;
-        const flipX = ((h >> 3) % 2 === 0) ? 1 : -1;
-        const angleChoices = [0, 0.52, -0.52, 1.05, -1.05, 3.14159, 2.6, -2.6];
-        const tilt = angleChoices[h % angleChoices.length];
-
-        const motif = getHumanPuzzleMotif(motifId);
-        const cosA = Math.cos(tilt), sinA = Math.sin(tilt);
-        const transformPt = (ux, uy) => {
-          const fx = ux * flipX;
-          const fy = uy;
-          return [
-            jx + (fx * cosA - fy * sinA) * rad,
-            jy + (fx * sinA + fy * cosA) * rad
-          ];
-        };
-
-        const worldOuter = motif.outer.map(p => transformPt(p[0], p[1]));
-
-        let valid = true;
-        let sharpEdgeCnt = 0;
-        if (!silhouetteMask[iy * W + ix] || figClearanceMask[iy * W + ix]) continue;
-
-        for (let k = 0; k < worldOuter.length; k++) {
-          const p0 = worldOuter[k];
-          const p1 = worldOuter[(k + 1) % worldOuter.length];
-          for (let t = 0; t <= 0.5; t += 0.5) {
-            const wx = (p0[0] + (p1[0] - p0[0]) * t) | 0;
-            const wy = (p0[1] + (p1[1] - p0[1]) * t) | 0;
-            if (wx < 10 || wx >= W - 10 || wy < 10 || wy >= H - 10) { valid = false; break; }
-            if (!silhouetteMask[wy * W + wx] || figClearanceMask[wy * W + wx]) { valid = false; break; }
-            if (!silhouetteMask[(wy - 8) * W + wx] || !silhouetteMask[(wy + 8) * W + wx] ||
-                !silhouetteMask[wy * W + (wx - 8)] || !silhouetteMask[wy * W + (wx + 8)]) {
-              valid = false; break;
-            }
-            const s232 = step232Stencil ? step232Stencil[wy * W + wx] : 1.0;
-            if (s232 < edgeLim) sharpEdgeCnt++;
-          }
-          if (!valid) break;
-        }
-        if (!valid || sharpEdgeCnt > 1) continue;
-
-        motifCounter++;
-        const worldInner = computeInwardOffsetPoly(worldOuter, 1.10);
-
-        const figPts = [];
-        const addSeg = (p0, p1, stepLen = 2.2) => {
-          const d = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]);
-          const steps = Math.max(1, Math.ceil(d / stepLen));
-          for (let s = 0; s < steps; s++) {
-            const t = s / steps;
-            figPts.push([p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t]);
-          }
-        };
-
-        for (let i = 0; i < worldOuter.length; i++) {
-          const p0 = worldOuter[i];
-          const p1 = worldOuter[(i + 1) % worldOuter.length];
-          addSeg(p0, p1, 2.2);
-          for (let t = 0; t < motif.ticks.length; t++) {
-            const tk = motif.ticks[t];
-            if (Math.hypot(motif.outer[i][0] - tk[0], motif.outer[i][1] - tk[1]) < 0.05) {
-              const tpOut = transformPt(tk[2], tk[3]);
-              addSeg(p0, tpOut, 2.2);
-              addSeg(tpOut, p0, 2.2);
-            }
-          }
-        }
-        addSeg(worldOuter[0], worldInner[0], 1.5);
-        for (let i = 0; i < worldInner.length; i++) {
-          const p0 = worldInner[i];
-          const p1 = worldInner[(i + 1) % worldInner.length];
-          addSeg(p0, p1, 2.2);
-        }
-        addSeg(worldInner[0], worldOuter[0], 1.5);
-
-        const haloSq = 2.8 * 2.8;
-        const clearSq = 8.5 * 8.5;
-        const boxR = Math.ceil(rad * 1.25);
-        for (let py = Math.max(0, iy - boxR); py <= Math.min(H - 1, iy + boxR); py++) {
-          for (let px = Math.max(0, ix - boxR); px <= Math.min(W - 1, ix + boxR); px++) {
-            const inside = pointInPoly(px, py, worldOuter);
-            const d2 = inside ? 0 : minDistSqToPoly(px, py, worldOuter);
-            if (inside || d2 <= haloSq) {
-              figExclusionMask[py * W + px] = 1;
-              figClearanceMask[py * W + px] = 1;
-            } else if (d2 <= clearSq) {
-              figClearanceMask[py * W + px] = 1;
-            }
-          }
-        }
-
-        placedFigures.push({ cx: jx, cy: jy, rad, pts: figPts });
-      }
-    }
-  }
-
-  const maskedSilhouette = new Uint8Array(N);
   const hybridToneMap = new Float32Array(N);
   for (let i = 0; i < N; i++) {
-    maskedSilhouette[i] = (silhouetteMask[i] && !figExclusionMask[i]) ? 1 : 0;
     const c = coralToneMap ? coralToneMap[i] : 1.0;
     const s = step232Stencil ? step232Stencil[i] : 1.0;
-    hybridToneMap[i] = Math.min(c, s * 0.85 + c * 0.15);
+    hybridToneMap[i] = Math.min(c, s * 0.78 + c * 0.22);
   }
 
-  let { ptsX, ptsY } = generateDendriticCoralPortrait(hybridToneMap, maskedSilhouette, smoothSilMap, W, H, MIN_R, MAX_R, 1, Math.round(TARGET_NODES * 0.78), seed);
+  const distToPlaced = new Float32Array(N).fill(999.0);
 
-  const insertMap = new Map();
-  for (let f = 0; f < placedFigures.length; f++) {
-    const fig = placedFigures[f];
-    const fp = fig.pts;
-    let bestCoralIdx = 0, bestFigIdx = 0, bestD2 = Infinity;
-    for (let j = 0; j < fp.length; j += 4) {
-      const fx = fp[j][0], fy = fp[j][1];
-      for (let i = 0; i < ptsX.length; i += 2) {
-        const dx = ptsX[i] - fx, dy = ptsY[i] - fy;
-        const d2 = dx * dx + dy * dy;
-        if (d2 < bestD2) {
-          bestD2 = d2;
-          bestCoralIdx = i;
-          bestFigIdx = j;
+  const baseArmPosesL = [
+    [-1.52, -1.42], // Classic 90-deg raised left arm (L-up)
+    [-1.55,  1.42], // Classic 90-deg downward L-arm (L-down)
+    [-1.25, -0.75], // Reaching up-outward
+    [-1.95, -0.85], // Reaching down-outward
+    [-1.65,  0.00], // Straight out
+    [-1.15,  1.25], // Bent elbow outward-down
+    [-1.40, -0.35], // Wide open diagonal
+    [-1.80,  0.75]  // Low diagonal reach
+  ];
+  const armPosesL = [
+    ...baseArmPosesL.map(p => [p[0], p[1], 1.0]),
+    ...baseArmPosesL.map(p => [p[0], p[1], 0.74]),
+    ...baseArmPosesL.map(p => [p[0], p[1], 0.54])
+  ];
+  const armPosesR = armPosesL.map(p => [-p[0], -p[1], p[2]]);
+
+  const baseLegPosesL = [
+    [-0.62, -1.10], // Bent dancing left knee outward
+    [-0.95,  1.15], // High knee bent L-leg
+    [-0.48, -0.15], // Wide stance straight leg
+    [-1.15, -1.15], // Leaping / acrobat leg
+    [-0.78, -1.35], // Deep squat 90-deg leg
+    [-1.25,  1.05], // Sideways kick
+    [-0.90, -0.40]  // Wide straddle
+  ];
+  const legPosesL = [
+    ...baseLegPosesL.map(p => [p[0], p[1], 1.0]),
+    ...baseLegPosesL.map(p => [p[0], p[1], 0.74]),
+    ...baseLegPosesL.map(p => [p[0], p[1], 0.54])
+  ];
+  const legPosesR = legPosesL.map(p => [-p[0], -p[1], p[2]]);
+
+  const placedFigs = [];
+
+  function scoreSegment(x0, y0, x1, y1, rPx, minGap = 1.25, allowTipTouch = false, maxLocalStencilDrop = false) {
+    const dist = Math.hypot(x1 - x0, y1 - y0);
+    const steps = Math.max(4, Math.ceil(dist / 2.0));
+    let score = 0;
+    for (let s = 0; s <= steps; s++) {
+      const t = s / steps;
+      const px = Math.round(x0 + (x1 - x0) * t);
+      const py = Math.round(y0 + (y1 - y0) * t);
+      const margin = Math.ceil(rPx + 1);
+      if (px < margin || px >= W - margin || py < margin || py >= H - margin) return -1e9;
+      const idx = py * W + px;
+      if (!silhouetteMask[idx]) return -1e9;
+
+      if (!silhouetteMask[(py - 2) * W + px] || !silhouetteMask[(py + 2) * W + px] ||
+          !silhouetteMask[py * W + (px - 2)] || !silhouetteMask[py * W + (px + 2)]) {
+        return -1e9;
+      }
+
+      if (maxLocalStencilDrop && rPx > 4.5) {
+        const st = step232Stencil ? step232Stencil[idx] : 1.0;
+        if (st < 0.52) return -1e9;
+      }
+
+      const dExisting = distToPlaced[idx];
+      const gap = dExisting - rPx;
+      const effMinGap = (allowTipTouch && t > 0.68) ? 0.05 : minGap;
+      if (gap < effMinGap) return -1e9;
+
+      if (gap >= effMinGap && gap <= 6.0) {
+        score += (6.5 - gap) * 4.2;
+      }
+      if (allowTipTouch && s === steps && gap >= 0.05 && gap <= 2.8) {
+        score += 48.0;
+      }
+    }
+    return score;
+  }
+
+  const userScale = Math.max(0.80, Math.min(1.30, Math.sqrt(26000 / Math.max(8000, TARGET_NODES)) * (0.94 + (MAX_R - 4.8) * 0.05)));
+
+  const passes = [
+    { step: 13, baseL: 24.0 * userScale, baseR: 5.6 * userScale, avoidFeatures: true },
+    { step: 9,  baseL: 18.5 * userScale, baseR: 4.8 * userScale, avoidFeatures: true },
+    { step: 6,  baseL: 15.0 * userScale, baseR: 4.3 * userScale, avoidFeatures: false },
+    { step: 4,  baseL: 12.6 * userScale, baseR: 4.0 * userScale, avoidFeatures: false },
+    { step: 3,  baseL: 11.2 * userScale, baseR: 3.9 * userScale, avoidFeatures: false }
+  ];
+
+  const orientations = [
+    0, Math.PI * 0.5, -Math.PI * 0.5, Math.PI,
+    Math.PI * 0.25, -Math.PI * 0.25, Math.PI * 0.75, -Math.PI * 0.75,
+    Math.PI * 0.15, -Math.PI * 0.35, Math.PI * 0.65, -Math.PI * 0.85
+  ];
+
+  for (let pIdx = 0; pIdx < passes.length; pIdx++) {
+    const { step, baseL, baseR, avoidFeatures } = passes[pIdx];
+
+    const cands = [];
+    for (let gy = minY + 5; gy <= maxY - 5; gy += step) {
+      for (let gx = minX + 5; gx <= maxX - 5; gx += step) {
+        const ix = gx | 0, iy = gy | 0;
+        const idx = iy * W + ix;
+        if (!silhouetteMask[idx]) continue;
+        const d = distToPlaced[idx];
+        if (d < baseR + 1.1) continue;
+        const h = Math.abs(((ix * 73856093) ^ (iy * 19349663) ^ ((seed + pIdx * 19) * 83492791)));
+        let prio = (h % 100) * 0.01;
+        if (d >= baseR + 1.1 && d <= baseR + 16.0) prio += 120.0 - d;
+        cands.push({ x: ix + ((h % 3) - 1), y: iy + (((h >> 3) % 3) - 1), h, prio });
+      }
+    }
+    cands.sort((a, b) => b.prio - a.prio);
+
+    for (let c = 0; c < cands.length; c++) {
+      const { x: cx, y: cy, h } = cands[c];
+      if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+
+      const localTone = hybridToneMap[idx];
+      const localStencil = step232Stencil ? step232Stencil[idx] : 1.0;
+
+      if (pIdx === 0 && localTone < 0.45) continue;
+      if (avoidFeatures && localStencil < 0.54) continue;
+
+      const toneScale = 0.90 + 0.18 * localTone;
+      const L = baseL * toneScale;
+      const R = Math.max(3.8, baseR * (0.92 + 0.14 * localTone));
+
+      if (distToPlaced[idx] < R + 1.1) continue;
+
+      let bestTheta = null, bestTorsoScore = -1e8;
+      let bestP0 = null, bestP2 = null, bestPHead = null;
+
+      for (let o = 0; o < orientations.length; o++) {
+        const theta = orientations[(o + h) % orientations.length];
+        const dx = Math.sin(theta), dy = -Math.cos(theta);
+        const p0 = [cx - dx * L * 0.45, cy - dy * L * 0.45];
+        const p2 = [cx + dx * L * 0.55, cy + dy * L * 0.55];
+        const pHead = [cx + dx * (L * 0.55 + R * 2.25), cy + dy * (L * 0.55 + R * 2.25)];
+
+        const sTorso = scoreSegment(p0[0], p0[1], p2[0], p2[1], R * 1.0, 1.2, false, avoidFeatures);
+        if (sTorso < -1e7) continue;
+        const sHead = scoreSegment(p2[0], p2[1], pHead[0], pHead[1], R * 1.22, 1.2, true, avoidFeatures);
+        if (sHead < -1e7) continue;
+
+        if (sTorso + sHead > bestTorsoScore) {
+          bestTorsoScore = sTorso + sHead;
+          bestTheta = theta;
+          bestP0 = p0; bestP2 = p2; bestPHead = pHead;
+        }
+      }
+
+      if (bestTheta === null) continue;
+
+      const minSelfSq = (R * 2.30) * (R * 2.30);
+      const fitLimb = (rootPt, baseAngle, poses, l1Base, l2Base, avoidSegs) => {
+        let bestLimbSegs = null, bestScore = -1e8, bestEndPt = null, bestMidPt = null;
+        for (let i = 0; i < poses.length; i++) {
+          const [a1, a2, lenMult] = poses[(i + h) % poses.length];
+          const l1 = l1Base * lenMult, l2 = l2Base * lenMult;
+          const ang1 = baseAngle + a1;
+          const midX = rootPt[0] + Math.sin(ang1) * l1;
+          const midY = rootPt[1] - Math.cos(ang1) * l1;
+
+          const ang2 = ang1 + a2;
+          const endX = midX + Math.sin(ang2) * l2;
+          const endY = midY - Math.cos(ang2) * l2;
+
+          let selfOk = true;
+          for (let a = 0; a < avoidSegs.length; a++) {
+            const as = avoidSegs[a];
+            if (distSqToSeg(endX, endY, as[0], as[1], as[2], as[3]) < minSelfSq) {
+              selfOk = false; break;
+            }
+            if (a > 0 && distSqToSeg(midX, midY, as[0], as[1], as[2], as[3]) < minSelfSq * 0.85) {
+              selfOk = false; break;
+            }
+          }
+          if (!selfOk) continue;
+
+          const s1 = scoreSegment(rootPt[0], rootPt[1], midX, midY, R * 0.90, 1.15, false, avoidFeatures);
+          if (s1 < -1e7) continue;
+          const s2 = scoreSegment(midX, midY, endX, endY, R * 0.88, 1.15, true, avoidFeatures);
+          if (s2 < -1e7) continue;
+
+          const tot = s1 + s2 + lenMult * 5.0;
+          if (tot > bestScore) {
+            bestScore = tot;
+            bestMidPt = [midX, midY];
+            bestEndPt = [endX, endY];
+            bestLimbSegs = [
+              [rootPt[0], rootPt[1], midX, midY, 0.90],
+              [midX, midY, endX, endY, 0.88]
+            ];
+          }
+        }
+        return bestLimbSegs ? { segs: bestLimbSegs, midPt: bestMidPt, endPt: bestEndPt } : null;
+      };
+
+      const torsoAndHeadSegs = [
+        [bestP0[0], bestP0[1], bestP2[0], bestP2[1]],
+        [bestPHead[0] - 0.5, bestPHead[1] - 0.5, bestPHead[0] + 0.5, bestPHead[1] + 0.5]
+      ];
+
+      const armL = fitLimb(bestP2, bestTheta, armPosesL, L * 0.72, L * 0.66, torsoAndHeadSegs);
+      if (!armL) continue;
+      const armR = fitLimb(bestP2, bestTheta, armPosesR, L * 0.72, L * 0.66, [...torsoAndHeadSegs, ...armL.segs]);
+      if (!armR) continue;
+      const legL = fitLimb(bestP0, bestTheta + Math.PI, legPosesL, L * 0.78, L * 0.72, [torsoAndHeadSegs[1], ...armL.segs, ...armR.segs]);
+      if (!legL) continue;
+      const legR = fitLimb(bestP0, bestTheta + Math.PI, legPosesR, L * 0.78, L * 0.72, [torsoAndHeadSegs[1], ...armL.segs, ...armR.segs, ...legL.segs]);
+      if (!legR) continue;
+
+      const hx = bestPHead[0], hy = bestPHead[1];
+      const segs = [
+        [bestP0[0], bestP0[1], bestP2[0], bestP2[1], 1.00],
+        [bestP2[0], bestP2[1], hx, hy, 0.90],
+        [hx - 0.6, hy - 0.6, hx + 0.6, hy + 0.6, 1.28],
+        [hx - 0.6, hy + 0.6, hx + 0.6, hy - 0.6, 1.28],
+        ...armL.segs,
+        ...armR.segs,
+        ...legL.segs,
+        ...legR.segs
+      ];
+
+      const outerLoop = traceSkeletonContour(segs, R, 0.0, 1.9);
+      if (outerLoop.length < 12) continue;
+      const innerLoop = traceSkeletonContour(segs, R, -0.72, 1.9);
+
+      const figId = placedFigs.length;
+      let bMinX = W, bMaxX = 0, bMinY = H, bMaxY = 0;
+      for (let i = 0; i < outerLoop.length; i++) {
+        const pt = outerLoop[i];
+        if (pt[0] < bMinX) bMinX = pt[0]; if (pt[0] > bMaxX) bMaxX = pt[0];
+        if (pt[1] < bMinY) bMinY = pt[1]; if (pt[1] > bMaxY) bMaxY = pt[1];
+      }
+      const pad = Math.ceil(R * 2.5 + 20);
+      bMinX = Math.max(0, Math.floor(bMinX - pad));
+      bMaxX = Math.min(W - 1, Math.ceil(bMaxX + pad));
+      bMinY = Math.max(0, Math.floor(bMinY - pad));
+      bMaxY = Math.min(H - 1, Math.ceil(bMaxY + pad));
+
+      for (let py = bMinY; py <= bMaxY; py++) {
+        for (let px = bMinX; px <= bMaxX; px++) {
+          const d = distToSkeleton(px, py, segs, R);
+          const pIdx = py * W + px;
+          if (d < distToPlaced[pIdx]) {
+            distToPlaced[pIdx] = d;
+          }
+        }
+      }
+
+      placedFigs.push({
+        id: figId,
+        cx, cy, R, L,
+        localTone,
+        segs,
+        outerLoop,
+        innerLoop
+      });
+    }
+  }
+
+  const figTours = placedFigs.map((fig) => {
+    const pts = [];
+    const ol = fig.outerLoop;
+    const n = ol.length;
+
+    let sArea = 0;
+    for (let i = 0; i < n; i++) {
+      const p0 = ol[i], p1 = ol[(i + 1) % n];
+      sArea += (p0[0] * p1[1] - p1[0] * p0[1]);
+    }
+    const outSign = sArea >= 0 ? 1 : -1;
+
+    for (let i = 0; i < n; i++) {
+      const p0 = ol[i], p1 = ol[(i + 1) % n];
+      pts.push(p0);
+
+      const ix = Math.max(0, Math.min(W - 1, Math.round(p0[0])));
+      const iy = Math.max(0, Math.min(H - 1, Math.round(p0[1])));
+      const tone = hybridToneMap[iy * W + ix];
+      const darkness = 1.0 - tone;
+
+      const stride = darkness > 0.48 ? 1 : (darkness > 0.30 ? 2 : (darkness > 0.18 ? 3 : 999));
+      if (i % stride === 0) {
+        const dx = p1[0] - p0[0], dy = p1[1] - p0[1];
+        const l = Math.hypot(dx, dy) || 1;
+        let nx = (dy / l) * outSign;
+        let ny = (-dx / l) * outSign;
+        if (distToSkeleton(p0[0] + nx * 1.5, p0[1] + ny * 1.5, fig.segs, fig.R) < 0) {
+          nx = -nx; ny = -ny;
+        }
+
+        const maxReach = Math.min(13.0, 2.2 + darkness * 12.0);
+        let validReach = 0;
+        for (let r = 2.2; r <= maxReach; r += 0.9) {
+          const tx = Math.round(p0[0] + nx * r);
+          const ty = Math.round(p0[1] + ny * r);
+          if (tx < 3 || tx >= W - 3 || ty < 3 || ty >= H - 3) break;
+          const tIdx = ty * W + tx;
+          if (!silhouetteMask[tIdx]) break;
+          if (distToPlaced[tIdx] < 2.0) break;
+          if (1.0 - hybridToneMap[tIdx] < 0.14) break;
+          validReach = r;
+        }
+
+        if (validReach >= 2.2) {
+          const tip = [p0[0] + nx * validReach, p0[1] + ny * validReach];
+          pts.push(tip);
+          pts.push(p0);
         }
       }
     }
-    if (!insertMap.has(bestCoralIdx)) insertMap.set(bestCoralIdx, []);
-    insertMap.get(bestCoralIdx).push({ fp, startIdx: bestFigIdx });
+    pts.push(ol[0]);
+
+    const il = fig.innerLoop;
+    if (il.length > 4) {
+      for (let i = 0; i < il.length; i++) {
+        pts.push(il[i]);
+      }
+      pts.push(il[0]);
+      pts.push(ol[0]);
+    }
+
+    return pts;
+  });
+
+  const M = figTours.length;
+  if (M === 0) return { ptsX: new Float32Array(0), ptsY: new Float32Array(0) };
+
+  const samples = placedFigs.map((fig, fIdx) => {
+    const t = figTours[fIdx];
+    const s = [];
+    const step = Math.max(1, Math.floor(t.length / 44));
+    for (let i = 0; i < t.length; i += step) s.push({ idx: i, pt: t[i] });
+    return s;
+  });
+
+  function bridgeCrossesInterior(x0, y0, x1, y1) {
+    const dist = Math.hypot(x1 - x0, y1 - y0);
+    if (dist <= 3.6) return false;
+    const steps = Math.ceil(dist / 1.5);
+    for (let s = 1; s < steps; s++) {
+      const t = s / steps;
+      const px = Math.round(x0 + (x1 - x0) * t);
+      const py = Math.round(y0 + (y1 - y0) * t);
+      if (distToPlaced[py * W + px] < -0.4) return true;
+    }
+    return false;
+  }
+
+  const inTree = new Uint8Array(M);
+  const minDist = new Float32Array(M).fill(Infinity);
+  const parentFig = new Int32Array(M).fill(-1);
+  const parentPtIdx = new Int32Array(M).fill(0);
+  const childPtIdx = new Int32Array(M).fill(0);
+
+  const adj = Array.from({ length: M }, () => []);
+  inTree[0] = 1;
+
+  const updateDistsFrom = (u) => {
+    const su = samples[u];
+    for (let v = 0; v < M; v++) {
+      if (inTree[v]) continue;
+      const sv = samples[v];
+      let bestD2 = minDist[v];
+      let bestUIdx = -1, bestVIdx = -1;
+      for (let i = 0; i < su.length; i++) {
+        const ux = su[i].pt[0], uy = su[i].pt[1];
+        for (let j = 0; j < sv.length; j++) {
+          const vx = sv[j].pt[0], vy = sv[j].pt[1];
+          const dx = ux - vx, dy = uy - vy;
+          let d2 = dx * dx + dy * dy;
+          if (d2 >= bestD2) continue;
+          if (bridgeCrossesInterior(ux, uy, vx, vy)) {
+            d2 += 1e7;
+          }
+          if (d2 < bestD2) {
+            bestD2 = d2;
+            bestUIdx = su[i].idx;
+            bestVIdx = sv[j].idx;
+          }
+        }
+      }
+      if (bestUIdx !== -1) {
+        minDist[v] = bestD2;
+        parentFig[v] = u;
+        parentPtIdx[v] = bestUIdx;
+        childPtIdx[v] = bestVIdx;
+      }
+    }
+  };
+
+  updateDistsFrom(0);
+  for (let step = 1; step < M; step++) {
+    let bestV = -1, bestD2 = Infinity;
+    for (let v = 0; v < M; v++) {
+      if (!inTree[v] && minDist[v] < bestD2) {
+        bestD2 = minDist[v];
+        bestV = v;
+      }
+    }
+    if (bestV === -1) break;
+    inTree[bestV] = 1;
+    const u = parentFig[bestV];
+    adj[u].push({ child: bestV, uPtIdx: parentPtIdx[bestV], vPtIdx: childPtIdx[bestV] });
+    updateDistsFrom(bestV);
   }
 
   const finalX = [];
   const finalY = [];
-  for (let i = 0; i < ptsX.length; i++) {
-    finalX.push(ptsX[i]);
-    finalY.push(ptsY[i]);
-    if (insertMap.has(i)) {
-      const figs = insertMap.get(i);
-      for (let f = 0; f < figs.length; f++) {
-        const { fp, startIdx } = figs[f];
-        const len = fp.length;
-        for (let k = 0; k <= len; k++) {
-          const pt = fp[(startIdx + k) % len];
+
+  function traverseFig(u, entryIdx) {
+    const tour = figTours[u];
+    const len = tour.length;
+    if (len === 0) return;
+
+    const childMap = new Map();
+    const children = adj[u];
+    for (let c = 0; c < children.length; c++) {
+      const ch = children[c];
+      if (!childMap.has(ch.uPtIdx)) childMap.set(ch.uPtIdx, []);
+      childMap.get(ch.uPtIdx).push(ch);
+    }
+
+    for (let k = 0; k <= len; k++) {
+      const idx = (entryIdx + k) % len;
+      const pt = tour[idx];
+      finalX.push(pt[0]);
+      finalY.push(pt[1]);
+
+      if (k < len && childMap.has(idx)) {
+        const chList = childMap.get(idx);
+        for (let c = 0; c < chList.length; c++) {
+          const { child, vPtIdx } = chList[c];
+          traverseFig(child, vPtIdx);
           finalX.push(pt[0]);
           finalY.push(pt[1]);
         }
-        finalX.push(ptsX[i]);
-        finalY.push(ptsY[i]);
       }
     }
   }
+
+  traverseFig(0, 0);
 
   return {
     ptsX: new Float32Array(finalX),
