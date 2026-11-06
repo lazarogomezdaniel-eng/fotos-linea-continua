@@ -5851,13 +5851,226 @@ function generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, si
     return pts;
   });
 
-  const M = figTours.length;
+  // ============================================================================
+  // PRESERVACIÓN DEL MOTIVO PRINCIPAL CON LÍNEAS Y "PELITOS" POP-ART DE HARING
+  // ============================================================================
+  // Cuando el usuario disminuye la cantidad de figuras humanas (haringIconCount bajo),
+  // se activan trazos directos sobre los rasgos principales (ojos, nariz, boca, pelo,
+  // contornos de silueta) con "pelitos" / marcas de radiación de Haring, garantizando
+  // que la foto principal NUNCA se pierda.
+  const humanRatio = Math.max(0.0, Math.min(1.0, ((haringIconCount || 95) - 15) / 120.0));
+  const maxFeaturePaths = Math.round(220 - humanRatio * 160);
+
+  const featVisited = new Uint8Array(N);
+  const featureTours = [];
+
+  const featCands = [];
+  const scanStep = humanRatio > 0.60 ? 3 : 2;
+  for (let y = minY + 4; y <= maxY - 4; y += scanStep) {
+    for (let x = minX + 4; x <= maxX - 4; x += scanStep) {
+      const idx = y * W + x;
+      if (!silhouetteMask[idx]) continue;
+      const dPlaced = distToPlaced[idx];
+      const s = step232Stencil ? step232Stencil[idx] : 1.0;
+      const c = coralToneMap ? coralToneMap[idx] : 1.0;
+      const isCriticalEyeOrMouth = s < 0.42;
+      if (dPlaced < (isCriticalEyeOrMouth ? 0.3 : 1.35)) continue;
+
+      const edgeDark = Math.max(0, 1.0 - s);
+      const toneDark = Math.max(0, 1.0 - c);
+      const featScore = edgeDark * 3.5 + toneDark * 1.5;
+      if (featScore > 0.46) {
+        featCands.push({ x, y, score: featScore });
+      }
+    }
+  }
+  featCands.sort((a, b) => b.score - a.score);
+
+  const stepSize = 1.85;
+  for (let k = 0; k < featCands.length && featureTours.length < maxFeaturePaths; k++) {
+    const { x: sx, y: sy } = featCands[k];
+    const sIdx = sy * W + sx;
+    if (featVisited[sIdx]) continue;
+
+    const traceBranch = (startX, startY, dirSign) => {
+      const branchPts = [];
+      let cx = startX, cy = startY;
+      let prevDirX = 0, prevDirY = 0;
+
+      for (let step = 0; step < 65; step++) {
+        const ix = Math.round(cx), iy = Math.round(cy);
+        if (ix < 4 || ix >= W - 4 || iy < 4 || iy >= H - 4) break;
+        const cIdx = iy * W + ix;
+        if (!silhouetteMask[cIdx]) break;
+        const sVal = step232Stencil ? step232Stencil[cIdx] : 1.0;
+        if (distToPlaced[cIdx] < 0.75 && sVal >= 0.38) break;
+
+        branchPts.push([cx, cy]);
+        featVisited[cIdx] = 1;
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            featVisited[(iy + dy) * W + (ix + dx)] = 1;
+          }
+        }
+
+        const gx = (step232Stencil ? (step232Stencil[cIdx + 1] - step232Stencil[cIdx - 1]) : 0.0) * 0.5;
+        const gy = (step232Stencil ? (step232Stencil[cIdx + W] - step232Stencil[cIdx - W]) : 0.0) * 0.5;
+        let tx = -gy * dirSign;
+        let ty = gx * dirSign;
+        const tLen = Math.hypot(tx, ty);
+
+        if (tLen < 0.02) {
+          let bestNx = 0, bestNy = 0, bestDark = -1;
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              if (dx === 0 && dy === 0) continue;
+              const nIdx = (iy + dy) * W + (ix + dx);
+              if (featVisited[nIdx] || !silhouetteMask[nIdx]) continue;
+              const nd = 1.0 - (step232Stencil ? step232Stencil[nIdx] : 1.0);
+              if (nd > bestDark) {
+                bestDark = nd;
+                bestNx = dx;
+                bestNy = dy;
+              }
+            }
+          }
+          if (bestDark < 0.18) break;
+          const nl = Math.hypot(bestNx, bestNy);
+          tx = bestNx / nl;
+          ty = bestNy / nl;
+        } else {
+          tx /= tLen;
+          ty /= tLen;
+        }
+
+        if (prevDirX !== 0 || prevDirY !== 0) {
+          tx = tx * 0.65 + prevDirX * 0.35;
+          ty = ty * 0.65 + prevDirY * 0.35;
+          const sl = Math.hypot(tx, ty) || 1;
+          tx /= sl; ty /= sl;
+        }
+        prevDirX = tx;
+        prevDirY = ty;
+
+        cx += tx * stepSize;
+        cy += ty * stepSize;
+
+        const nS = step232Stencil ? step232Stencil[Math.round(cy) * W + Math.round(cx)] : 1.0;
+        const nC = coralToneMap ? coralToneMap[Math.round(cy) * W + Math.round(cx)] : 1.0;
+        if (nS > 0.82 && nC > 0.72) break;
+      }
+      return branchPts;
+    };
+
+    const bForward = traceBranch(sx, sy, 1.0);
+    const bBackward = traceBranch(sx, sy, -1.0);
+    bBackward.reverse();
+    if (bBackward.length > 0) bBackward.pop();
+    const poly = [...bBackward, ...bForward];
+
+    if (poly.length >= 6) {
+      const featPts = [];
+      const pLen = poly.length;
+
+      for (let i = 0; i < pLen; i++) {
+        const pCurr = poly[i];
+        featPts.push(pCurr);
+
+        if (i % 2 === 0 && i < pLen - 1) {
+          const pNext = poly[i + 1];
+          const dx = pNext[0] - pCurr[0];
+          const dy = pNext[1] - pCurr[1];
+          const l = Math.hypot(dx, dy) || 1;
+          let nx = -dy / l;
+          let ny = dx / l;
+
+          const testR = 2.5;
+          const tAx = Math.round(pCurr[0] + nx * testR);
+          const tAy = Math.round(pCurr[1] + ny * testR);
+          const tBx = Math.round(pCurr[0] - nx * testR);
+          const tBy = Math.round(pCurr[1] - ny * testR);
+          let darkA = 0, darkB = 0;
+          if (tAx >= 0 && tAx < W && tAy >= 0 && tAy < H) darkA = 1.0 - (coralToneMap ? coralToneMap[tAy * W + tAx] : 1.0);
+          if (tBx >= 0 && tBx < W && tBy >= 0 && tBy < H) darkB = 1.0 - (coralToneMap ? coralToneMap[tBy * W + tBx] : 1.0);
+          if (darkB > darkA) {
+            nx = -nx;
+            ny = -ny;
+          }
+          const localDarkness = Math.max(darkA, darkB, 0.20);
+
+          const maxReach = Math.min(16.0, (2.6 + localDarkness * 13.0) * (1.18 - humanRatio * 0.36));
+          let validReach = 0;
+          for (let r = 1.6; r <= maxReach; r += 0.85) {
+            const tx = Math.round(pCurr[0] + nx * r);
+            const ty = Math.round(pCurr[1] + ny * r);
+            if (tx < 3 || tx >= W - 3 || ty < 3 || ty >= H - 3) break;
+            const tIdx = ty * W + tx;
+            if (!silhouetteMask[tIdx]) break;
+            if (distToPlaced[tIdx] < 0.2 && r > 2.0) {
+              validReach = r;
+              break;
+            }
+            if (1.0 - (coralToneMap ? coralToneMap[tIdx] : 1.0) < 0.05) break;
+            validReach = r;
+          }
+
+          if (validReach >= 1.8) {
+            const tip = [pCurr[0] + nx * validReach, pCurr[1] + ny * validReach];
+            featPts.push(tip);
+            featPts.push(pCurr);
+          }
+        }
+      }
+
+      for (let i = pLen - 2; i >= 0; i--) {
+        featPts.push(poly[i]);
+      }
+
+      featureTours.push(featPts);
+    }
+  }
+
+  // Si hay pocos humanos (humanRatio < 0.50), añadir trazos de sombra / vibración pop-art estilo Haring
+  if (humanRatio < 0.50 && featureTours.length < maxFeaturePaths) {
+    const shadowStep = Math.max(7, Math.round(8 + humanRatio * 6));
+    for (let gy = minY + 6; gy <= maxY - 6 && featureTours.length < maxFeaturePaths; gy += shadowStep) {
+      for (let gx = minX + 6; gx <= maxX - 6 && featureTours.length < maxFeaturePaths; gx += shadowStep) {
+        const sIdx = gy * W + gx;
+        if (!silhouetteMask[sIdx] || featVisited[sIdx] || distToPlaced[sIdx] < 2.5) continue;
+        const c = coralToneMap ? coralToneMap[sIdx] : 1.0;
+        if (c > 0.44) continue;
+
+        const strokeLen = Math.min(22.0, 8.0 + (1.0 - c) * 16.0);
+        const ang = Math.PI * 0.25;
+        const cosA = Math.cos(ang), sinA = Math.sin(ang);
+        const p0 = [gx - cosA * strokeLen * 0.5, gy - sinA * strokeLen * 0.5];
+        const p1 = [gx + cosA * strokeLen * 0.5, gy + sinA * strokeLen * 0.5];
+
+        const sPts = [p0, [gx, gy], p1];
+        const perpX = -sinA * (strokeLen * 0.45);
+        const perpY = cosA * (strokeLen * 0.45);
+        sPts.push([gx + perpX, gy + perpY]);
+        sPts.push(p1);
+        sPts.push([gx, gy]);
+        sPts.push(p0);
+
+        featureTours.push(sPts);
+        for (let dy = -3; dy <= 3; dy++) {
+          for (let dx = -3; dx <= 3; dx++) {
+            featVisited[(gy + dy) * W + (gx + dx)] = 1;
+          }
+        }
+      }
+    }
+  }
+
+  const allTours = [...figTours, ...featureTours];
+  const M = allTours.length;
   if (M === 0) return { ptsX: new Float32Array(0), ptsY: new Float32Array(0) };
 
-  const samples = placedFigs.map((fig, fIdx) => {
-    const t = figTours[fIdx];
+  const samples = allTours.map((t, fIdx) => {
     const s = [];
-    const step = Math.max(1, Math.floor(t.length / 44));
+    const step = Math.max(1, Math.floor(t.length / 36));
     for (let i = 0; i < t.length; i += step) s.push({ idx: i, pt: t[i] });
     return s;
   });
@@ -5937,7 +6150,7 @@ function generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, si
   const finalY = [];
 
   function traverseFig(u, entryIdx) {
-    const tour = figTours[u];
+    const tour = allTours[u];
     const len = tour.length;
     if (len === 0) return;
 
