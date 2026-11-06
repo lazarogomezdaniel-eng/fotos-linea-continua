@@ -480,7 +480,7 @@
           </div>
           <div>
             <label>Nodos <span id="vNodes">26000</span></label>
-            <input type="range" id="maxN" min="6000" max="45000" step="2000" value="26000">
+            <input type="range" id="maxN" min="6000" max="60000" step="2000" value="26000">
           </div>
           <div>
             <label>Grosor Línea <span id="vWidth">1.0</span></label>
@@ -5658,7 +5658,7 @@ function rebuildPortrait(needsStencilRebuild = true) {
     MAX_R,
     CHAIKIN_PASSES,
     seed: REBUILD_SEED,
-    maxTimeMs: isMobileDevice ? 650 : 1100,
+    maxTimeMs: isMobileDevice ? (TARGET_NODES > 35000 ? 1100 : 650) : (TARGET_NODES > 35000 ? 2000 : 1100),
     customFocalX,
     customFocalY,
     haringIconCount: HARING_ICON_COUNT,
