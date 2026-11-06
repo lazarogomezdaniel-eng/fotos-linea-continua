@@ -607,6 +607,255 @@
       box-shadow: 0 0 10px var(--accent-glow);
     }
 
+    /* COLOR STUDIO: CAROUSELS & SWATCH CARDS */
+    .color-carousel {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 2px 8px 2px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+    }
+    .color-carousel::-webkit-scrollbar { display: none; }
+    .color-mode-card {
+      flex: 0 0 96px;
+      height: 72px;
+      border-radius: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      padding: 6px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-spring);
+      text-align: center;
+      scroll-snap-align: start;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .color-mode-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+    .color-mode-card:active { transform: scale(0.95); }
+    .color-mode-card.active {
+      background: linear-gradient(145deg, rgba(30, 58, 138, 0.45) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border-color: var(--accent);
+      box-shadow: 0 0 16px var(--accent-glow), inset 0 0 0 1px var(--accent);
+      transform: translateY(-2px);
+    }
+    .color-mode-preview {
+      width: 100%;
+      height: 18px;
+      border-radius: 6px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18), 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .color-mode-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 84px;
+    }
+    .color-mode-card.active .color-mode-title {
+      color: #ffffff;
+      font-weight: 800;
+    }
+    .color-mode-badge {
+      font-size: 8px;
+      color: var(--text-dim);
+      background: rgba(255,255,255,0.06);
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .color-mode-card.active .color-mode-badge {
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.16);
+      font-weight: 700;
+    }
+
+    .palette-card {
+      flex: 0 0 106px;
+      height: 72px;
+      border-radius: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      padding: 6px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-spring);
+      text-align: center;
+      scroll-snap-align: start;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .palette-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+    .palette-card:active { transform: scale(0.95); }
+    .palette-card.active {
+      background: linear-gradient(145deg, rgba(30, 58, 138, 0.45) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border-color: var(--accent);
+      box-shadow: 0 0 16px var(--accent-glow), inset 0 0 0 1px var(--accent);
+      transform: translateY(-2px);
+    }
+    .palette-swatch {
+      width: 100%;
+      height: 18px;
+      border-radius: 6px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18), 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .palette-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 94px;
+    }
+    .palette-card.active .palette-title {
+      color: #ffffff;
+      font-weight: 800;
+    }
+    .palette-badge {
+      font-size: 8px;
+      color: var(--text-dim);
+      background: rgba(255,255,255,0.06);
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .palette-card.active .palette-badge {
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.16);
+      font-weight: 700;
+    }
+
+    .bg-theme-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      background: rgba(16, 22, 34, 0.7);
+      padding: 3px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+    }
+    .bg-theme-chip {
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: all 0.18s var(--ease-spring);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .bg-theme-chip:active { transform: scale(0.96); }
+    .bg-theme-chip.active {
+      background: #1e293b;
+      color: #ffffff;
+      border-color: var(--border-light);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+    .bg-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.25);
+    }
+    .bg-dot.white { background: #ffffff; }
+    .bg-dot.dark { background: #0b0d13; border-color: rgba(255,255,255,0.4); }
+    .bg-dot.cream { background: #fdfbf7; }
+
+    .color-pickers-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 7px 10px;
+    }
+    .color-picker-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .color-picker-item span {
+      font-size: 10.5px;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+    .color-picker-circle {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.25);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      padding: 0;
+      background: none;
+      -webkit-appearance: none;
+    }
+    .color-picker-circle::-webkit-color-swatch-wrapper { padding: 0; }
+    .color-picker-circle::-webkit-color-swatch { border: none; border-radius: 50%; }
+    .color-picker-circle:active {
+      transform: scale(1.15);
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    .flow-btn {
+      height: 38px;
+      width: 100%;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(236,72,153,0.20) 0%, rgba(56,189,248,0.20) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-spring);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    .flow-btn:hover {
+      background: linear-gradient(135deg, rgba(236,72,153,0.35) 0%, rgba(56,189,248,0.35) 100%);
+      border-color: var(--accent);
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+    .flow-btn:active {
+      transform: scale(0.96);
+    }
+    .flow-btn.flowing {
+      background: linear-gradient(135deg, #ec4899 0%, #38bdf8 100%) !important;
+      border-color: #ffffff !important;
+      box-shadow: 0 0 16px rgba(236, 72, 153, 0.6) !important;
+      animation: flowPulse 2s infinite ease-in-out;
+    }
+    @keyframes flowPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.88; transform: scale(0.98); }
+    }
+
     /* EXPORT SUITE (STUDIO CARDS) */
     .export-cards-grid {
       display: flex;
@@ -1077,80 +1326,241 @@
         </div>
       </div>
 
-      <!-- TAB 3: COLOR & ARMONÍAS CROMÁTICAS -->
+      <!-- TAB 3: COLOR & ARMONÍAS CROMÁTICAS (STUDIO SUITE) -->
       <div class="tab-pane" id="paneColor">
-        <div class="controls-grid" style="align-items:start;">
-          <div>
-            <label style="margin-bottom:2px;">Modo Color</label>
-            <select id="colorMode">
-              <option value="mono" selected>⚫ Monocromo</option>
-              <option value="organic_flow">🌊 Flujo Orgánico</option>
-              <option value="rainbow_bands">🏳️‍🌈 Rainbow (Franjas)</option>
-              <option value="rainbow">🌈 Rainbow (Hilo)</option>
-              <option value="line_strand">🧵 Tramos de Línea</option>
-              <option value="photo_exact">📸 Color Foto</option>
-              <option value="organic_spatial">🌀 Ondas 2D</option>
-              <option value="tonal_blend">🌡️ Fusión Tonal</option>
-              <option value="photo_fusion">🖼️ Foto + Mezcla</option>
-            </select>
+        <!-- Modo Color (Studio Carousel) -->
+        <div style="margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+            <label style="margin:0; font-size:11px; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:0.5px;">Modo Color</label>
+            <span id="currentColorModeLabel" style="font-size:10.5px; color:var(--accent); font-weight:700;">Monocromo</span>
           </div>
-          <div id="boxPalette">
-            <label style="margin-bottom:2px;">Armonía Cromática</label>
-            <select id="colorPalette">
-              <optgroup label="📐 Teoría del Color">
-                <option value="triad">📐 Triádica (120°)</option>
-                <option value="analogous">🌿 Análoga (35°)</option>
-                <option value="split">🔀 Split-Comp.</option>
-                <option value="complementary">⚡ Complementaria</option>
-                <option value="warm_cool">🌡️ Frío-Cálido</option>
-                <option value="monochrome">🌓 Monocromía</option>
-              </optgroup>
-              <optgroup label="🌈 Paletas de Autor">
-                <option value="iris" selected>🌈 Iris Orgánico</option>
-                <option value="cyan_amber">✨ Cian / Ámbar</option>
-                <option value="sunset">🌅 Atardecer</option>
-                <option value="ocean">🌊 Bioluminiscencia</option>
-                <option value="forest">🍃 Bosque Boreal</option>
-              </optgroup>
-              <option value="custom">🎛️ Personalizada</option>
-            </select>
+
+          <!-- Hidden Native Select for 100% Backward Compatibility -->
+          <select id="colorMode" style="display:none;">
+            <option value="mono" selected>⚫ Monocromo</option>
+            <option value="organic_flow">🌊 Flujo Orgánico</option>
+            <option value="rainbow_bands">🏳️‍🌈 Rainbow (Franjas)</option>
+            <option value="rainbow">🌈 Rainbow (Hilo)</option>
+            <option value="line_strand">🧵 Tramos de Línea</option>
+            <option value="photo_exact">📸 Color Foto</option>
+            <option value="organic_spatial">🌀 Ondas 2D</option>
+            <option value="tonal_blend">🌡️ Fusión Tonal</option>
+            <option value="photo_fusion">🖼️ Foto + Mezcla</option>
+          </select>
+
+          <!-- Studio Visual Cards Carousel -->
+          <div class="color-carousel" id="colorModeCarousel">
+            <div class="color-mode-card active" data-mode="mono">
+              <div class="color-mode-preview" style="background: linear-gradient(135deg, #0f172a 0%, #334155 50%, #000000 100%);"></div>
+              <div class="color-mode-title">Monocromo</div>
+              <div class="color-mode-badge">Tinta Pura</div>
+            </div>
+            <div class="color-mode-card" data-mode="organic_flow">
+              <div class="color-mode-preview" style="background: linear-gradient(135deg, #ff007f 0%, #7928ca 50%, #00dfd8 100%);"></div>
+              <div class="color-mode-title">Flujo Orgánico</div>
+              <div class="color-mode-badge">Dinámico</div>
+            </div>
+            <div class="color-mode-card" data-mode="rainbow_bands">
+              <div class="color-mode-preview" style="background: linear-gradient(90deg, #ff0000 0%, #ff7f00 20%, #ffff00 40%, #00ff00 60%, #0000ff 80%, #8b00ff 100%);"></div>
+              <div class="color-mode-title">Franjas Arcoíris</div>
+              <div class="color-mode-badge">Bands</div>
+            </div>
+            <div class="color-mode-card" data-mode="rainbow">
+              <div class="color-mode-preview" style="background: linear-gradient(135deg, #ff0055 0%, #ffcc00 33%, #00ccff 66%, #cc00ff 100%);"></div>
+              <div class="color-mode-title">Hilo Arcoíris</div>
+              <div class="color-mode-badge">Continuo</div>
+            </div>
+            <div class="color-mode-card" data-mode="line_strand">
+              <div class="color-mode-preview" style="background: linear-gradient(135deg, #ec4899 0%, #3b82f6 50%, #10b981 100%);"></div>
+              <div class="color-mode-title">Tramos Línea</div>
+              <div class="color-mode-badge">Segmentos</div>
+            </div>
+            <div class="color-mode-card" data-mode="photo_exact">
+              <div class="color-mode-preview" style="background: radial-gradient(circle, #f59e0b 0%, #ef4444 45%, #6366f1 90%);"></div>
+              <div class="color-mode-title">Color Foto</div>
+              <div class="color-mode-badge">Original</div>
+            </div>
+            <div class="color-mode-card" data-mode="organic_spatial">
+              <div class="color-mode-preview" style="background: conic-gradient(from 180deg at 50% 50%, #06b6d4 0deg, #3b82f6 120deg, #ec4899 240deg, #06b6d4 360deg);"></div>
+              <div class="color-mode-title">Ondas 2D</div>
+              <div class="color-mode-badge">Espacial</div>
+            </div>
+            <div class="color-mode-card" data-mode="tonal_blend">
+              <div class="color-mode-preview" style="background: linear-gradient(135deg, #f97316 0%, #a855f7 50%, #06b6d4 100%);"></div>
+              <div class="color-mode-title">Fusión Tonal</div>
+              <div class="color-mode-badge">Suave</div>
+            </div>
+            <div class="color-mode-card" data-mode="photo_fusion">
+              <div class="color-mode-preview" style="background: linear-gradient(135deg, #10b981 0%, #3b82f6 50%, #f43f5e 100%);"></div>
+              <div class="color-mode-title">Foto + Mezcla</div>
+              <div class="color-mode-badge">Híbrido</div>
+            </div>
           </div>
         </div>
 
-        <div id="boxHue" style="margin-top:6px;">
-          <label>Matiz / Rueda <span id="vColHue">205°</span></label>
-          <input type="range" id="colorHue" min="0" max="360" step="1" value="205" style="background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%); height: 6px;">
+        <!-- Armonía Cromática (Studio Palette Swatches) -->
+        <div id="boxPalette" style="margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+            <label style="margin:0; font-size:11px; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:0.5px;">Armonía Cromática</label>
+            <span id="currentPaletteLabel" style="font-size:10.5px; color:var(--accent); font-weight:700;">Iris Orgánico</span>
+          </div>
+
+          <!-- Hidden Native Select -->
+          <select id="colorPalette" style="display:none;">
+            <optgroup label="📐 Teoría del Color">
+              <option value="triad">📐 Triádica (120°)</option>
+              <option value="analogous">🌿 Análoga (35°)</option>
+              <option value="split">🔀 Split-Comp.</option>
+              <option value="complementary">⚡ Complementaria</option>
+              <option value="warm_cool">🌡️ Frío-Cálido</option>
+              <option value="monochrome">🌓 Monocromía</option>
+            </optgroup>
+            <optgroup label="🌈 Paletas de Autor">
+              <option value="iris" selected>🌈 Iris Orgánico</option>
+              <option value="cyan_amber">✨ Cian / Ámbar</option>
+              <option value="sunset">🌅 Atardecer</option>
+              <option value="ocean">🌊 Bioluminiscencia</option>
+              <option value="forest">🍃 Bosque Boreal</option>
+            </optgroup>
+            <option value="custom">🎛️ Personalizada</option>
+          </select>
+
+          <!-- Studio Palette Carousel -->
+          <div class="color-carousel" id="paletteCarousel">
+            <div class="palette-card active" data-palette="iris">
+              <div class="palette-swatch" style="background: linear-gradient(90deg, #ff4d6d 0%, #00d2ff 50%, #9b5de5 100%);"></div>
+              <div class="palette-title">Iris Orgánico</div>
+              <div class="palette-badge">Autor</div>
+            </div>
+            <div class="palette-card" data-palette="cyan_amber">
+              <div class="palette-swatch" style="background: linear-gradient(90deg, #56cfe1 0%, #e0fbfc 50%, #f4a261 100%);"></div>
+              <div class="palette-title">Cian / Ámbar</div>
+              <div class="palette-badge">Autor</div>
+            </div>
+            <div class="palette-card" data-palette="sunset">
+              <div class="palette-swatch" style="background: linear-gradient(90deg, #e63946 0%, #ffb703 50%, #8338ec 100%);"></div>
+              <div class="palette-title">Atardecer</div>
+              <div class="palette-badge">Autor</div>
+            </div>
+            <div class="palette-card" data-palette="ocean">
+              <div class="palette-swatch" style="background: linear-gradient(90deg, #00f5d4 0%, #00bbf9 50%, #5e60ce 100%);"></div>
+              <div class="palette-title">Bioluminiscente</div>
+              <div class="palette-badge">Autor</div>
+            </div>
+            <div class="palette-card" data-palette="forest">
+              <div class="palette-swatch" style="background: linear-gradient(90deg, #2a9d8f 0%, #e76f51 50%, #264653 100%);"></div>
+              <div class="palette-title">Bosque Boreal</div>
+              <div class="palette-badge">Autor</div>
+            </div>
+            <div class="palette-card" data-palette="triad">
+              <div class="palette-swatch" style="background: linear-gradient(90deg, #ff0055 0%, #00e5ff 50%, #ffe600 100%);"></div>
+              <div class="palette-title">Triádica (120°)</div>
+              <div class="palette-badge">Teoría</div>
+            </div>
+            <div class="palette-card" data-palette="analogous">
+              <div class="palette-swatch" style="background: linear-gradient(90deg, #38ef7d 0%, #11998e 50%, #00d2ff 100%);"></div>
+              <div class="palette-title">Análoga (35°)</div>
+              <div class="palette-badge">Teoría</div>
+            </div>
+            <div class="palette-card" data-palette="split">
+              <div class="palette-swatch" style="background: linear-gradient(90deg, #ff3366 0%, #33ccff 50%, #33ff99 100%);"></div>
+              <div class="palette-title">Split-Comp.</div>
+              <div class="palette-badge">Teoría</div>
+            </div>
+            <div class="palette-card" data-palette="complementary">
+              <div class="palette-swatch" style="background: linear-gradient(90deg, #00d2ff 0%, #ff8c00 100%);"></div>
+              <div class="palette-title">Complementaria</div>
+              <div class="palette-badge">Teoría</div>
+            </div>
+            <div class="palette-card" data-palette="warm_cool">
+              <div class="palette-swatch" style="background: linear-gradient(90deg, #204080 0%, #30a0a0 50%, #ffaa20 100%);"></div>
+              <div class="palette-title">Frío-Cálido</div>
+              <div class="palette-badge">Teoría</div>
+            </div>
+            <div class="palette-card" data-palette="monochrome">
+              <div class="palette-swatch" style="background: linear-gradient(90deg, #1e293b 0%, #64748b 50%, #cbd5e1 100%);"></div>
+              <div class="palette-title">Monocromía</div>
+              <div class="palette-badge">Teoría</div>
+            </div>
+            <div class="palette-card" data-palette="custom">
+              <div class="palette-swatch" style="background: linear-gradient(90deg, #ff4d6d 0%, #00d2ff 50%, #9b5de5 100%);"></div>
+              <div class="palette-title">Personalizada</div>
+              <div class="palette-badge">Custom</div>
+            </div>
+          </div>
         </div>
 
-        <div class="controls-grid" style="align-items:center; margin-top:6px;">
-          <div id="boxPickers" style="display:flex; gap:5px; align-items:center;">
-            <label style="margin:0; font-size:10px;">Tonos:</label>
-            <input type="color" id="colPick1" value="#ff4d6d" title="Tono 1 (Sombras)" style="width:26px; height:22px; border:none; border-radius:4px; background:none; cursor:pointer;">
-            <input type="color" id="colPick2" value="#00d2ff" title="Tono 2 (Medios)" style="width:26px; height:22px; border:none; border-radius:4px; background:none; cursor:pointer;">
-            <input type="color" id="colPick3" value="#9b5de5" title="Tono 3 (Luces)" style="width:26px; height:22px; border:none; border-radius:4px; background:none; cursor:pointer;">
+        <!-- Matiz / Rueda -->
+        <div id="boxHue" style="margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label style="margin:0; font-size:11px;">Rueda Cromática / Matiz</label>
+            <span id="vColHue" style="font-size:11px; font-weight:700; color:var(--accent);">205°</span>
           </div>
+          <input type="range" id="colorHue" min="0" max="360" step="1" value="205" style="background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%); height: 8px; border-radius:4px;">
+        </div>
+
+        <!-- Selector de Tonos y Fondo de Lienzo -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">
+          <!-- Tonos Triádicos -->
+          <div id="boxPickers" class="color-pickers-row">
+            <div class="color-picker-item" title="Tono 1 (Sombras)">
+              <input type="color" id="colPick1" class="color-picker-circle" value="#ff4d6d">
+              <span>Sombra</span>
+            </div>
+            <div class="color-picker-item" title="Tono 2 (Medios)">
+              <input type="color" id="colPick2" class="color-picker-circle" value="#00d2ff">
+              <span>Medio</span>
+            </div>
+            <div class="color-picker-item" title="Tono 3 (Luces)">
+              <input type="color" id="colPick3" class="color-picker-circle" value="#9b5de5">
+              <span>Luz</span>
+            </div>
+          </div>
+
+          <!-- Fondo del Lienzo -->
           <div>
-            <select id="bgTheme" title="Fondo del Lienzo">
-              <option value="white">📄 Fondo Blanco</option>
+            <select id="bgTheme" style="display:none;">
+              <option value="white" selected>📄 Fondo Blanco</option>
               <option value="dark">🌑 Fondo Noche</option>
               <option value="cream">📜 Pergamino</option>
             </select>
+            <div class="bg-theme-group" id="bgThemeGroup">
+              <button type="button" class="bg-theme-chip active" data-theme="white" title="Lienzo Blanco">
+                <span class="bg-dot white"></span> Blanco
+              </button>
+              <button type="button" class="bg-theme-chip" data-theme="dark" title="Lienzo Noche">
+                <span class="bg-dot dark"></span> Noche
+              </button>
+              <button type="button" class="bg-theme-chip" data-theme="cream" title="Pergamino Clásico">
+                <span class="bg-dot cream"></span> Calma
+              </button>
+            </div>
           </div>
         </div>
 
-        <div class="controls-grid" style="align-items:center; margin-top:6px;">
+        <!-- Sliders Mezcla e Intensidad -->
+        <div class="controls-grid" style="align-items:center; margin-bottom:10px;">
           <div id="boxScale">
-            <label>Mezcla / Ritmo <span id="vColScale">3.5</span></label>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+              <label style="margin:0;">Frecuencia / Ritmo</label>
+              <span id="vColScale" style="font-size:11px; font-weight:700; color:var(--accent);">3.5</span>
+            </div>
             <input type="range" id="colorScale" min="0.5" max="10.0" step="0.2" value="3.5">
           </div>
           <div id="boxIntensity">
-            <label>Intensidad <span id="vColIntensity">100%</span></label>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+              <label style="margin:0;">Saturación / Brillo</label>
+              <span id="vColIntensity" style="font-size:11px; font-weight:700; color:var(--accent);">100%</span>
+            </div>
             <input type="range" id="colorIntensity" min="15" max="200" step="5" value="100">
           </div>
         </div>
 
-        <div id="boxFlow" style="margin-top:6px;">
-          <button id="btnColorFlow" class="action-btn" style="width:100%;">🌈 Fluir Colores</button>
+        <!-- Botón Flujo Animado -->
+        <div id="boxFlow">
+          <button id="btnColorFlow" class="flow-btn" type="button">
+            <span>🌈</span> Flujo Cromático Animado
+          </button>
         </div>
       </div>
 
@@ -6852,12 +7262,15 @@ function startColorFlow() {
   if (COLOR_MODE === 'mono') {
     COLOR_MODE = 'line_strand';
     document.getElementById('colorMode').value = 'line_strand';
+    if (typeof syncColorModeCards === 'function') syncColorModeCards('line_strand');
+    if (typeof updateColorPanelVisibility === 'function') updateColorPanelVisibility();
   }
   isColorFlowing = true;
   const btn = document.getElementById('btnColorFlow');
-  btn.textContent = '⏸ Pausar Flujo de Color';
-  btn.style.background = '#1f5f5b';
-  btn.style.color = '#ffffff';
+  if (btn) {
+    btn.innerHTML = '<span>⏸</span> Pausar Flujo Vivo';
+    btn.classList.add('flowing');
+  }
 
   let lastTick = 0;
   function stepColorFlow(ts) {
@@ -6885,9 +7298,8 @@ function stopColorFlow() {
   }
   const btn = document.getElementById('btnColorFlow');
   if (btn) {
-    btn.textContent = '🌈 Fluir y Mezclar Colores en Vivo';
-    btn.style.background = '#232838';
-    btn.style.color = '#7ce8ff';
+    btn.innerHTML = '<span>🌈</span> Flujo Cromático Animado';
+    btn.classList.remove('flowing');
   }
   lineCacheDirty = true;
 }
@@ -7354,11 +7766,92 @@ function updateColorPanelVisibility() {
   if (boxFlow) boxFlow.style.display = (!isMono && !isPhotoExact) ? 'block' : 'none';
 }
 
+function syncColorModeCards(mode) {
+  const cards = document.querySelectorAll('.color-mode-card');
+  let selectedTitle = 'Monocromo';
+  cards.forEach(card => {
+    const isSelected = (card.getAttribute('data-mode') === mode);
+    card.classList.toggle('active', isSelected);
+    if (isSelected) {
+      const titleEl = card.querySelector('.color-mode-title');
+      if (titleEl) selectedTitle = titleEl.textContent;
+    }
+  });
+  const label = document.getElementById('currentColorModeLabel');
+  if (label) label.textContent = selectedTitle;
+}
+
+function syncPaletteCards(palette) {
+  const cards = document.querySelectorAll('.palette-card');
+  let selectedTitle = 'Iris Orgánico';
+  cards.forEach(card => {
+    const isSelected = (card.getAttribute('data-palette') === palette);
+    card.classList.toggle('active', isSelected);
+    if (isSelected) {
+      const titleEl = card.querySelector('.palette-title');
+      if (titleEl) selectedTitle = titleEl.textContent;
+    }
+  });
+  const label = document.getElementById('currentPaletteLabel');
+  if (label) label.textContent = selectedTitle;
+}
+
+function syncBgThemeChips(theme) {
+  const chips = document.querySelectorAll('.bg-theme-chip');
+  chips.forEach(chip => {
+    chip.classList.toggle('active', chip.getAttribute('data-theme') === theme);
+  });
+  const bgLabel = document.getElementById('currentBgLabel');
+  if (bgLabel) {
+    if (theme === 'white') bgLabel.textContent = 'Blanco Puro';
+    else if (theme === 'dark') bgLabel.textContent = 'Noche Profunda';
+    else if (theme === 'cream') bgLabel.textContent = 'Pergamino Calma';
+  }
+}
+
+// Click Listeners para los Carousels y Chips Visuales
+document.querySelectorAll('.color-mode-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const mode = card.getAttribute('data-mode');
+    if (!mode) return;
+    const sel = document.getElementById('colorMode');
+    if (sel && sel.value !== mode) {
+      sel.value = mode;
+      sel.dispatchEvent(new Event('change'));
+    }
+  });
+});
+
+document.querySelectorAll('.palette-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const pal = card.getAttribute('data-palette');
+    if (!pal) return;
+    const sel = document.getElementById('colorPalette');
+    if (sel && sel.value !== pal) {
+      sel.value = pal;
+      sel.dispatchEvent(new Event('change'));
+    }
+  });
+});
+
+document.querySelectorAll('.bg-theme-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const theme = chip.getAttribute('data-theme');
+    if (!theme) return;
+    const sel = document.getElementById('bgTheme');
+    if (sel && sel.value !== theme) {
+      sel.value = theme;
+      sel.dispatchEvent(new Event('change'));
+    }
+  });
+});
+
 document.getElementById('colorMode').addEventListener('change', (e) => {
   COLOR_MODE = e.target.value;
   if (COLOR_MODE === 'mono' && isColorFlowing) {
     stopColorFlow();
   }
+  syncColorModeCards(COLOR_MODE);
   updateColorPanelVisibility();
   lineCacheDirty = true;
   render();
@@ -7381,9 +7874,12 @@ document.getElementById('colorPalette').addEventListener('change', (e) => {
       syncCustomColorsFromPickers();
     }
   }
+  syncPaletteCards(COLOR_PALETTE);
   if (COLOR_MODE === 'mono') {
     COLOR_MODE = 'organic_flow';
     document.getElementById('colorMode').value = 'organic_flow';
+    syncColorModeCards('organic_flow');
+    updateColorPanelVisibility();
   }
   lineCacheDirty = true;
   render();
@@ -7401,6 +7897,7 @@ document.getElementById('colorHue').addEventListener('input', (e) => {
   if (!harmony) {
     COLOR_PALETTE = 'triad';
     document.getElementById('colorPalette').value = 'triad';
+    syncPaletteCards('triad');
     harmony = computeHarmonyColors('triad', COLOR_HUE);
   }
   if (harmony) {
@@ -7412,6 +7909,8 @@ document.getElementById('colorHue').addEventListener('input', (e) => {
   if (COLOR_MODE === 'mono') {
     COLOR_MODE = 'line_strand';
     document.getElementById('colorMode').value = 'line_strand';
+    syncColorModeCards('line_strand');
+    updateColorPanelVisibility();
   }
   lineCacheDirty = true;
   render();
@@ -7429,10 +7928,13 @@ for (const pickId of ['colPick1', 'colPick2', 'colPick3']) {
   document.getElementById(pickId).addEventListener('input', () => {
     document.getElementById('colorPalette').value = 'custom';
     COLOR_PALETTE = 'custom';
+    syncPaletteCards('custom');
     syncCustomColorsFromPickers();
     if (COLOR_MODE === 'mono') {
       COLOR_MODE = 'organic_flow';
       document.getElementById('colorMode').value = 'organic_flow';
+      syncColorModeCards('organic_flow');
+      updateColorPanelVisibility();
     }
     lineCacheDirty = true;
     render();
@@ -7448,6 +7950,7 @@ document.getElementById('colorScale').addEventListener('input', (e) => {
 
 document.getElementById('bgTheme').addEventListener('change', (e) => {
   BG_THEME = e.target.value;
+  syncBgThemeChips(BG_THEME);
   lineCacheDirty = true;
   render();
 });
@@ -7559,6 +8062,10 @@ document.getElementById('btnResetDefaults').onclick = () => {
     document.getElementById('colPick3').value = pIris[2];
     syncCustomColorsFromPickers();
   }
+  syncColorModeCards(COLOR_MODE);
+  syncPaletteCards(COLOR_PALETTE);
+  syncBgThemeChips(BG_THEME);
+  updateColorPanelVisibility();
   applyModePreset(ENGINE_MODE);
   rebuildPortrait(true);
 };
@@ -8002,6 +8509,9 @@ if (stage) {
 initDemoPortrait();
 updateColorPanelVisibility();
 syncStyleCards(ENGINE_MODE);
+syncColorModeCards(COLOR_MODE);
+syncPaletteCards(COLOR_PALETTE);
+syncBgThemeChips(BG_THEME);
 
 // =========================================================
 // PWA: Service Worker e Instalación en Pantalla de Inicio
