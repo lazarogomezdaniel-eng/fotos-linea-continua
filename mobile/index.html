@@ -60,6 +60,44 @@
     .icon-btn:active { transform: scale(0.94); }
     .icon-btn.primary { background: #065f46; border-color: var(--green); color: #ecfdf5; }
 
+    .upload-btn {
+      height: 38px;
+      padding: 0 13px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+      border: 1px solid rgba(96, 165, 250, 0.55);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.40);
+      transition: all 0.15s ease;
+      user-select: none;
+      -webkit-user-select: none;
+      flex-shrink: 0;
+    }
+    .upload-btn:hover {
+      background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+      border-color: #bfdbfe;
+      transform: translateY(-1px);
+    }
+    .upload-btn:active {
+      transform: scale(0.95);
+      box-shadow: none;
+    }
+    .upload-btn .upload-icon { font-size: 17px; line-height: 1; }
+    .upload-btn .upload-text { letter-spacing: 0.2px; }
+
+    .stage-btn.active {
+      background: #2563eb !important;
+      color: #ffffff !important;
+      border-color: #60a5fa !important;
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.5) !important;
+    }
+
     .mode-pill {
       display: flex; align-items: center; gap: 6px;
       padding: 5px 12px; border-radius: 20px;
@@ -243,8 +281,9 @@
   <!-- APP TOP HEADER -->
   <header id="appHeader">
     <div class="header-left">
-      <label class="icon-btn" title="Cargar Foto">
-        📁
+      <label id="btnUploadPhoto" class="upload-btn" title="Cargar Foto desde Galería o Cámara">
+        <span class="upload-icon">📁</span>
+        <span class="upload-text">Cargar Foto</span>
         <input type="file" id="imgInput" accept="image/*" style="display:none">
       </label>
       <button id="btnInstallApp" class="icon-btn" style="display:none;" title="Instalar App">📲</button>
@@ -396,12 +435,24 @@
             👉 Toca cualquier punto de la foto en el lienzo para colocar el centro allí.
           </div>
         </div>
-        <div id="boxHaringIconControls" style="display:none; margin-top:8px; padding:8px 10px; background:rgba(56,189,248,0.10); border:1px solid rgba(56,189,248,0.28); border-radius:8px;">
-          <label style="display:flex; justify-content:space-between; align-items:center; font-size:11px; font-weight:700; color:#38bdf8; margin-bottom:4px;">
-            <span>🕺 Cantidad Máx. Iconos</span>
-            <span id="vHaringIcons" style="color:#f8fafc; font-weight:800;">95</span>
-          </label>
-          <input type="range" id="haringIconCount" min="15" max="150" step="5" value="95">
+        <div id="boxHaringIconControls" style="display:none; margin-top:8px; padding:10px 12px; background:rgba(56,189,248,0.10); border:1px solid rgba(56,189,248,0.32); border-radius:10px;">
+          <div style="font-size:11px; font-weight:800; color:#38bdf8; margin-bottom:8px; display:flex; align-items:center; gap:5px;">
+            <span>🕺🐊🧩 Parámetros Keith Haring</span>
+          </div>
+          <div style="margin-bottom:8px;">
+            <label style="display:flex; justify-content:space-between; align-items:center; font-size:11px; font-weight:600; color:#94a3b8; margin-bottom:3px;">
+              <span>Cantidad de Figuras / Iconos</span>
+              <span id="vHaringIcons" style="color:#f8fafc; font-weight:800;">95</span>
+            </label>
+            <input type="range" id="haringIconCount" min="15" max="180" step="5" value="95">
+          </div>
+          <div>
+            <label style="display:flex; justify-content:space-between; align-items:center; font-size:11px; font-weight:600; color:#94a3b8; margin-bottom:3px;">
+              <span>Tamaño de Figuras / Iconos</span>
+              <span id="vHaringSize" style="color:#f8fafc; font-weight:800;">100%</span>
+            </label>
+            <input type="range" id="haringIconSize" min="40" max="200" step="5" value="100">
+          </div>
         </div>
         <div id="modeDesc" class="mode-desc-bar">
           🧠 Coral: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros en U de extremo a extremo.
@@ -628,6 +679,7 @@ let MAX_R = 4.8;
 let CHAIKIN_PASSES = 2;
 let LINE_W = 1.0;
 let HARING_ICON_COUNT = 95;
+let HARING_ICON_SIZE = 100;
 
 // Estado del Motor de Color Orgánico y Mezcla
 let COLOR_MODE = 'mono';
@@ -787,11 +839,11 @@ const MODE_PRESETS = {
 };
 
 function syncSlidersFromState() {
-  const setSlider = (id, labelId, val, decimals = null) => {
+  const setSlider = (id, labelId, val, decimals = null, suffix = '') => {
     const el = document.getElementById(id);
     if (el) el.value = val;
     const lbl = document.getElementById(labelId);
-    if (lbl) lbl.textContent = decimals !== null ? val.toFixed(decimals) : val;
+    if (lbl) lbl.textContent = (decimals !== null ? val.toFixed(decimals) : val) + suffix;
   };
   setSlider('pencilStr', 'vPencil', PENCIL_STR, 1);
   setSlider('pencilBlur', 'vBlur', PENCIL_BLUR, 1);
@@ -804,6 +856,7 @@ function syncSlidersFromState() {
   setSlider('lineW', 'vWidth', LINE_W, 1);
   setSlider('colorScale', 'vColScale', COLOR_SCALE, 1);
   setSlider('haringIconCount', 'vHaringIcons', HARING_ICON_COUNT);
+  setSlider('haringIconSize', 'vHaringSize', HARING_ICON_SIZE, null, '%');
 }
 syncSlidersFromState();
 
@@ -4432,7 +4485,7 @@ function getHaringCrocSkeleton(motifId) {
   }
 }
 
-function generateKeithHaringCapsuleIconPortrait(modeType, coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R = 1.4, MAX_R = 6.8, TARGET_NODES = 24000, seed = 0, targetIconCount = 95) {
+function generateKeithHaringCapsuleIconPortrait(modeType, coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R = 1.4, MAX_R = 6.8, TARGET_NODES = 24000, seed = 0, targetIconCount = 95, targetIconSize = 100) {
   const N = W * H;
   let minX = W, maxX = 0, minY = H, maxY = 0;
   for (let y = 4; y < H - 4; y += 3) {
@@ -4451,13 +4504,14 @@ function generateKeithHaringCapsuleIconPortrait(modeType, coralToneMap, step232S
   const figExclusionMask = new Uint8Array(N);
   const figClearanceMask = new Uint8Array(N);
 
-  const maxIcons = Math.max(10, Math.min(180, Math.round(targetIconCount || 95)));
-  // Smoothly scale grid spacing & clearance based on desired icon count (fewer icons -> wider spacing & larger icons; more icons -> tighter packing)
-  const densityFactor = Math.max(0.68, Math.min(1.55, Math.sqrt(95 / maxIcons)));
-  const sizeFactor = Math.max(0.88, Math.min(1.18, Math.pow(95 / maxIcons, 0.16)));
-  const scaleMult = Math.max(0.82, Math.min(1.26, (0.98 + (MAX_R - 4.8) * 0.04) * sizeFactor));
-  const spMult = scaleMult * densityFactor;
-  const clMult = Math.max(0.82, Math.min(1.45, densityFactor));
+  const userSizeMult = Math.max(0.40, Math.min(2.20, (targetIconSize || 100) / 100.0));
+  const maxIcons = Math.max(10, Math.min(220, Math.round(targetIconCount || 95)));
+  // Smoothly scale grid spacing & clearance based on desired icon count and user size scale
+  const densityFactor = Math.max(0.55, Math.min(1.65, Math.sqrt(95 / maxIcons)));
+  const sizeFactor = Math.max(0.85, Math.min(1.22, Math.pow(95 / maxIcons, 0.16))) * userSizeMult;
+  const scaleMult = Math.max(0.38, Math.min(2.60, (0.98 + (MAX_R - 4.8) * 0.04) * sizeFactor));
+  const spMult = Math.max(0.35, scaleMult * densityFactor);
+  const clMult = Math.max(0.65, Math.min(1.60, densityFactor * Math.sqrt(userSizeMult)));
 
   const tiers = modeType === 'croc'
     ? [
@@ -4684,21 +4738,21 @@ function generateKeithHaringCapsuleIconPortrait(modeType, coralToneMap, step232S
 // ============================================================================
 // MODO 15: KEITH HARING POP-ART (115+ Iconos Tubulares: Perros, Bebés, OVNIs, Corazones, Bailarines)
 // ============================================================================
-function generateKeithHaringPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R = 1.4, MAX_R = 6.8, TARGET_NODES = 24000, seed = 0, haringIconCount = 95) {
-  return generateKeithHaringCapsuleIconPortrait('pop', coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed, haringIconCount);
+function generateKeithHaringPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R = 1.4, MAX_R = 6.8, TARGET_NODES = 24000, seed = 0, haringIconCount = 95, haringIconSize = 100) {
+  return generateKeithHaringCapsuleIconPortrait('pop', coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed, haringIconCount, haringIconSize);
 }
 
 // ============================================================================
 // MODO 16: KEITH HARING COCODRILOS POP-ART (90+ Cocodrilos con Fauces Dentadas, Cresta y Hombre-Cocodrilo)
 // ============================================================================
-function generateKeithHaringCrocPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R = 1.4, MAX_R = 6.8, TARGET_NODES = 24000, seed = 0, haringIconCount = 95) {
-  return generateKeithHaringCapsuleIconPortrait('croc', coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed, haringIconCount);
+function generateKeithHaringCrocPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R = 1.4, MAX_R = 6.8, TARGET_NODES = 24000, seed = 0, haringIconCount = 95, haringIconSize = 100) {
+  return generateKeithHaringCapsuleIconPortrait('croc', coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed, haringIconCount, haringIconSize);
 }
 
 // ============================================================================
 // MODO 17: KEITH HARING PUZLE HUMANO (Cuadro de Formas Humanas Entrelazadas)
 // ============================================================================
-function generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R = 1.4, MAX_R = 6.8, TARGET_NODES = 24000, seed = 0) {
+function generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R = 1.4, MAX_R = 6.8, TARGET_NODES = 24000, seed = 0, haringIconCount = 95, haringIconSize = 100) {
   function distSqToSeg(px, py, x0, y0, x1, y1) {
     const dx = x1 - x0, dy = y1 - y0;
     const lenSq = dx * dx + dy * dy;
@@ -4888,15 +4942,15 @@ function generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, si
 
   const placedFigs = [];
 
-  function scoreSegment(x0, y0, x1, y1, rPx, minGap = 1.25, allowTipTouch = false, maxLocalStencilDrop = false) {
+  function scoreSegment(x0, y0, x1, y1, rPx, minGap = 0.0, allowTipTouch = true, maxLocalStencilDrop = false) {
     const dist = Math.hypot(x1 - x0, y1 - y0);
-    const steps = Math.max(4, Math.ceil(dist / 2.0));
+    const steps = Math.max(4, Math.ceil(dist / 1.7));
     let score = 0;
     for (let s = 0; s <= steps; s++) {
       const t = s / steps;
       const px = Math.round(x0 + (x1 - x0) * t);
       const py = Math.round(y0 + (y1 - y0) * t);
-      const margin = Math.ceil(rPx + 1);
+      const margin = Math.ceil(rPx + 0.5);
       if (px < margin || px >= W - margin || py < margin || py >= H - margin) return -1e9;
       const idx = py * W + px;
       if (!silhouetteMask[idx]) return -1e9;
@@ -4913,27 +4967,32 @@ function generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, si
 
       const dExisting = distToPlaced[idx];
       const gap = dExisting - rPx;
-      const effMinGap = (allowTipTouch && t > 0.68) ? 0.05 : minGap;
+      // Allow touching / slight kissing contact (-0.4px) for true interlocking Haring jigsaw effect
+      const effMinGap = allowTipTouch ? -0.40 : Math.min(minGap, 0.0);
       if (gap < effMinGap) return -1e9;
 
-      if (gap >= effMinGap && gap <= 6.0) {
-        score += (6.5 - gap) * 4.2;
+      // Hugging & interlocking bonus: huge score when figures touch or are right next to each other
+      if (gap >= effMinGap && gap <= 4.5) {
+        score += (5.0 - Math.max(0, gap)) * 14.0;
       }
-      if (allowTipTouch && s === steps && gap >= 0.05 && gap <= 2.8) {
-        score += 48.0;
+      if (allowTipTouch && s === steps && gap >= -0.40 && gap <= 2.2) {
+        score += 85.0; // High incentive to anchor extremities against adjacent figures
       }
     }
     return score;
   }
 
-  const userScale = Math.max(0.80, Math.min(1.30, Math.sqrt(26000 / Math.max(8000, TARGET_NODES)) * (0.94 + (MAX_R - 4.8) * 0.05)));
+  const userIconSizeMult = Math.max(0.40, Math.min(2.20, (haringIconSize || 100) / 100.0));
+  const userScale = Math.max(0.38, Math.min(2.40, Math.sqrt(26000 / Math.max(8000, TARGET_NODES)) * (0.94 + (MAX_R - 4.8) * 0.05) * userIconSizeMult));
+  const maxFigs = Math.max(15, Math.min(280, Math.round((haringIconCount || 95) * 1.35)));
 
   const passes = [
-    { step: 13, baseL: 24.0 * userScale, baseR: 5.6 * userScale, avoidFeatures: true },
-    { step: 9,  baseL: 18.5 * userScale, baseR: 4.8 * userScale, avoidFeatures: true },
-    { step: 6,  baseL: 15.0 * userScale, baseR: 4.3 * userScale, avoidFeatures: false },
-    { step: 4,  baseL: 12.6 * userScale, baseR: 4.0 * userScale, avoidFeatures: false },
-    { step: 3,  baseL: 11.2 * userScale, baseR: 3.9 * userScale, avoidFeatures: false }
+    { baseL: 24.0 * userScale, baseR: 5.6 * userScale, avoidFeatures: true },
+    { baseL: 17.5 * userScale, baseR: 4.6 * userScale, avoidFeatures: true },
+    { baseL: 13.5 * userScale, baseR: 3.8 * userScale, avoidFeatures: false },
+    { baseL: 9.8 * userScale,  baseR: 3.0 * userScale, avoidFeatures: false },
+    { baseL: 7.0 * userScale,  baseR: 2.3 * userScale, avoidFeatures: false },
+    { baseL: 5.0 * userScale,  baseR: 1.8 * userScale, avoidFeatures: false }
   ];
 
   const orientations = [
@@ -4943,41 +5002,45 @@ function generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, si
   ];
 
   for (let pIdx = 0; pIdx < passes.length; pIdx++) {
-    const { step, baseL, baseR, avoidFeatures } = passes[pIdx];
+    if (placedFigs.length >= maxFigs) break;
+    const { baseL, baseR, avoidFeatures } = passes[pIdx];
+    const step = Math.max(3, Math.round(baseL * 0.50));
 
     const cands = [];
-    for (let gy = minY + 5; gy <= maxY - 5; gy += step) {
-      for (let gx = minX + 5; gx <= maxX - 5; gx += step) {
+    for (let gy = minY + 4; gy <= maxY - 4; gy += step) {
+      for (let gx = minX + 4; gx <= maxX - 4; gx += step) {
         const ix = gx | 0, iy = gy | 0;
         const idx = iy * W + ix;
         if (!silhouetteMask[idx]) continue;
         const d = distToPlaced[idx];
-        if (d < baseR + 1.1) continue;
+        if (d < baseR * 0.82) continue;
         const h = Math.abs(((ix * 73856093) ^ (iy * 19349663) ^ ((seed + pIdx * 19) * 83492791)));
         let prio = (h % 100) * 0.01;
-        if (d >= baseR + 1.1 && d <= baseR + 16.0) prio += 120.0 - d;
+        // Prioritize candidates that fit snugly right beside existing figures
+        if (d >= baseR * 0.82 && d <= baseR * 2.8) prio += 180.0 - d * 8.0;
         cands.push({ x: ix + ((h % 3) - 1), y: iy + (((h >> 3) % 3) - 1), h, prio });
       }
     }
     cands.sort((a, b) => b.prio - a.prio);
 
     for (let c = 0; c < cands.length; c++) {
+      if (placedFigs.length >= maxFigs) break;
       const { x: cx, y: cy, h } = cands[c];
-      if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
+      if (cx < 5 || cx >= W - 5 || cy < 5 || cy >= H - 5) continue;
       const idx = (cy | 0) * W + (cx | 0);
       if (!silhouetteMask[idx]) continue;
 
       const localTone = hybridToneMap[idx];
       const localStencil = step232Stencil ? step232Stencil[idx] : 1.0;
 
-      if (pIdx === 0 && localTone < 0.45) continue;
-      if (avoidFeatures && localStencil < 0.54) continue;
+      if (pIdx === 0 && localTone < 0.42) continue;
+      if (avoidFeatures && localStencil < 0.52) continue;
 
       const toneScale = 0.90 + 0.18 * localTone;
       const L = baseL * toneScale;
-      const R = Math.max(3.8, baseR * (0.92 + 0.14 * localTone));
+      const R = Math.max(1.8, baseR * (0.92 + 0.14 * localTone));
 
-      if (distToPlaced[idx] < R + 1.1) continue;
+      if (distToPlaced[idx] < R * 0.82) continue;
 
       let bestTheta = null, bestTorsoScore = -1e8;
       let bestP0 = null, bestP2 = null, bestPHead = null;
@@ -5029,9 +5092,9 @@ function generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, si
           }
           if (!selfOk) continue;
 
-          const s1 = scoreSegment(rootPt[0], rootPt[1], midX, midY, R * 0.90, 1.15, false, avoidFeatures);
+          const s1 = scoreSegment(rootPt[0], rootPt[1], midX, midY, R * 0.90, -0.20, false, avoidFeatures);
           if (s1 < -1e7) continue;
-          const s2 = scoreSegment(midX, midY, endX, endY, R * 0.88, 1.15, true, avoidFeatures);
+          const s2 = scoreSegment(midX, midY, endX, endY, R * 0.88, -0.35, true, avoidFeatures);
           if (s2 < -1e7) continue;
 
           const tot = s1 + s2 + lenMult * 5.0;
@@ -5074,9 +5137,10 @@ function generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, si
         ...legR.segs
       ];
 
-      const outerLoop = traceSkeletonContour(segs, R, 0.0, 1.9);
-      if (outerLoop.length < 12) continue;
-      const innerLoop = traceSkeletonContour(segs, R, -0.72, 1.9);
+      const stepPx = Math.max(0.85, Math.min(1.7, R * 0.36));
+      const outerLoop = traceSkeletonContour(segs, R, 0.0, stepPx);
+      if (outerLoop.length < 10) continue;
+      const innerLoop = traceSkeletonContour(segs, R, -0.65, stepPx);
 
       const figId = placedFigs.length;
       let bMinX = W, bMaxX = 0, bMinY = H, bMaxY = 0;
@@ -5143,20 +5207,23 @@ function generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, si
           nx = -nx; ny = -ny;
         }
 
-        const maxReach = Math.min(13.0, 2.2 + darkness * 12.0);
+        const maxReach = Math.min(18.0, 2.0 + darkness * 16.0);
         let validReach = 0;
-        for (let r = 2.2; r <= maxReach; r += 0.9) {
+        for (let r = 1.6; r <= maxReach; r += 0.85) {
           const tx = Math.round(p0[0] + nx * r);
           const ty = Math.round(p0[1] + ny * r);
           if (tx < 3 || tx >= W - 3 || ty < 3 || ty >= H - 3) break;
           const tIdx = ty * W + tx;
           if (!silhouetteMask[tIdx]) break;
-          if (distToPlaced[tIdx] < 2.0) break;
-          if (1.0 - hybridToneMap[tIdx] < 0.14) break;
+          if (distToPlaced[tIdx] < 0.1 && r > 2.0) {
+            validReach = r;
+            break;
+          }
+          if (1.0 - hybridToneMap[tIdx] < 0.08) break;
           validReach = r;
         }
 
-        if (validReach >= 2.2) {
+        if (validReach >= 1.6) {
           const tip = [p0[0] + nx * validReach, p0[1] + ny * validReach];
           pts.push(tip);
           pts.push(p0);
@@ -5306,13 +5373,13 @@ self.onmessage = function(e) {
   const {
     jobId, engineMode, step232Stencil, coralToneMap, silhouetteMask, smoothSilMap,
     W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0, maxTimeMs,
-    customFocalX, customFocalY, haringIconCount
+    customFocalX, customFocalY, haringIconCount = 95, haringIconSize = 100
   } = e.data;
 
   const tStart = performance.now();
 
   if (engineMode === 'keith_haring') {
-    let { ptsX, ptsY } = generateKeithHaringPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed, haringIconCount);
+    let { ptsX, ptsY } = generateKeithHaringPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed, haringIconCount, haringIconSize);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -5323,7 +5390,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'haring_croc') {
-    let { ptsX, ptsY } = generateKeithHaringCrocPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed, haringIconCount);
+    let { ptsX, ptsY } = generateKeithHaringCrocPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed, haringIconCount, haringIconSize);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -5334,7 +5401,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'haring_puzzle') {
-    let { ptsX, ptsY } = generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
+    let { ptsX, ptsY } = generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed, haringIconCount, haringIconSize);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -5594,7 +5661,8 @@ function rebuildPortrait(needsStencilRebuild = true) {
     maxTimeMs: isMobileDevice ? 650 : 1100,
     customFocalX,
     customFocalY,
-    haringIconCount: HARING_ICON_COUNT
+    haringIconCount: HARING_ICON_COUNT,
+    haringIconSize: HARING_ICON_SIZE
   }, [s232Copy.buffer, coralCopy.buffer, silCopy.buffer, smSilCopy.buffer]);
 }
 
@@ -5638,10 +5706,16 @@ function getOrganicLineColor(i, totalLen, x, y) {
       const idx00 = y0 * W + x0, idx10 = y0 * W + x1;
       const idx01 = y1 * W + x0, idx11 = y1 * W + x1;
 
-      const r = Math.min(255, Math.max(0, ((w00 * rCh[idx00] + w10 * rCh[idx10] + w01 * rCh[idx01] + w11 * rCh[idx11]) * 255 + 0.5) | 0));
-      const g = Math.min(255, Math.max(0, ((w00 * gCh[idx00] + w10 * gCh[idx10] + w01 * gCh[idx01] + w11 * gCh[idx11]) * 255 + 0.5) | 0));
-      const b = Math.min(255, Math.max(0, ((w00 * bCh[idx00] + w10 * bCh[idx10] + w01 * bCh[idx01] + w11 * bCh[idx11]) * 255 + 0.5) | 0));
-      return `rgb(${r},${g},${b})`;
+      let r = Math.min(255, Math.max(0, ((w00 * rCh[idx00] + w10 * rCh[idx10] + w01 * rCh[idx01] + w11 * rCh[idx11]) * 255 + 0.5) | 0));
+      let g = Math.min(255, Math.max(0, ((w00 * gCh[idx00] + w10 * gCh[idx10] + w01 * gCh[idx01] + w11 * gCh[idx11]) * 255 + 0.5) | 0));
+      let b = Math.min(255, Math.max(0, ((w00 * bCh[idx00] + w10 * bCh[idx10] + w01 * bCh[idx01] + w11 * bCh[idx11]) * 255 + 0.5) | 0));
+      if (COLOR_INTENSITY !== 1.0) {
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+        r = Math.max(0, Math.min(255, lum + (r - lum) * COLOR_INTENSITY));
+        g = Math.max(0, Math.min(255, lum + (g - lum) * COLOR_INTENSITY));
+        b = Math.max(0, Math.min(255, lum + (b - lum) * COLOR_INTENSITY));
+      }
+      return `rgb(${r | 0},${g | 0},${b | 0})`;
     }
     return BG_THEME === 'dark' ? '#e8eef7' : '#0e1118';
   }
@@ -5743,6 +5817,12 @@ function getOrganicLineColor(i, totalLen, x, y) {
       g = c1[1] + (c2[1] - c1[1]) * s;
       b = c1[2] + (c2[2] - c1[2]) * s;
     }
+    if (COLOR_INTENSITY !== 1.0) {
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      r = Math.max(0, Math.min(255, lum + (r - lum) * COLOR_INTENSITY));
+      g = Math.max(0, Math.min(255, lum + (g - lum) * COLOR_INTENSITY));
+      b = Math.max(0, Math.min(255, lum + (b - lum) * COLOR_INTENSITY));
+    }
     return `rgb(${r | 0},${g | 0},${b | 0})`;
   } else {
     // photo_fusion: Pigmento real de la foto en (x,y) fundido con onda cromática orgánica
@@ -5763,9 +5843,15 @@ function getOrganicLineColor(i, totalLen, x, y) {
       pg = Math.max(0, Math.min(255, lum + (pg - lum) * 1.65));
       pb = Math.max(0, Math.min(255, lum + (pb - lum) * 1.65));
       const mix = 0.42 + 0.22 * Math.sin(colorPhase + (x - y) * 0.01);
-      const r = pr * (1.0 - mix) + palR * mix;
-      const g = pg * (1.0 - mix) + palG * mix;
-      const b = pb * (1.0 - mix) + palB * mix;
+      let r = pr * (1.0 - mix) + palR * mix;
+      let g = pg * (1.0 - mix) + palG * mix;
+      let b = pb * (1.0 - mix) + palB * mix;
+      if (COLOR_INTENSITY !== 1.0) {
+        const mixLum = 0.299 * r + 0.587 * g + 0.114 * b;
+        r = Math.max(0, Math.min(255, mixLum + (r - mixLum) * COLOR_INTENSITY));
+        g = Math.max(0, Math.min(255, mixLum + (g - mixLum) * COLOR_INTENSITY));
+        b = Math.max(0, Math.min(255, mixLum + (b - mixLum) * COLOR_INTENSITY));
+      }
       return `rgb(${r | 0},${g | 0},${b | 0})`;
     }
     phaseVal = u;
@@ -5799,14 +5885,39 @@ function getOrganicLineColor(i, totalLen, x, y) {
   return `rgb(${r | 0},${g | 0},${b | 0})`;
 }
 
+function getMonoStrokeColor() {
+  if (BG_THEME === 'dark') {
+    const alpha = Math.min(1.0, Math.max(0.20, 0.22 + 0.78 * Math.min(1.0, COLOR_INTENSITY)));
+    const boost = COLOR_INTENSITY > 1.0 ? Math.min(23, (COLOR_INTENSITY - 1.0) * 23) : 0;
+    const r = Math.min(255, 232 + boost) | 0;
+    const g = Math.min(255, 238 + boost) | 0;
+    const b = Math.min(255, 247 + boost) | 0;
+    return `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
+  } else if (BG_THEME === 'cream') {
+    const alpha = Math.min(1.0, Math.max(0.22, 0.25 + 0.75 * Math.min(1.0, COLOR_INTENSITY)));
+    const val = COLOR_INTENSITY >= 1.0
+      ? Math.max(0, (26 - (COLOR_INTENSITY - 1.0) * 26) | 0)
+      : Math.min(130, (26 + (1.0 - COLOR_INTENSITY) * 104) | 0);
+    return `rgba(${val},${val + 2},${val + 6},${alpha.toFixed(3)})`;
+  } else {
+    const alpha = Math.min(1.0, Math.max(0.20, 0.22 + 0.78 * Math.min(1.0, COLOR_INTENSITY)));
+    const val = COLOR_INTENSITY >= 1.0
+      ? Math.max(0, (14 - (COLOR_INTENSITY - 1.0) * 14) | 0)
+      : Math.min(150, (14 + (1.0 - COLOR_INTENSITY) * 136) | 0);
+    return `rgba(${val},${val},${val},${alpha.toFixed(3)})`;
+  }
+}
+
 function getPenWidth(x, y, baseWidth) {
-  if (!coralToneMap) return baseWidth;
+  const intensityBoost = COLOR_INTENSITY > 1.0 ? (1.0 + (COLOR_INTENSITY - 1.0) * 0.16) : (0.86 + COLOR_INTENSITY * 0.14);
+  const effectiveBase = baseWidth * intensityBoost;
+  if (!coralToneMap) return effectiveBase;
   const ix = Math.min(W - 1, Math.max(0, x | 0));
   const iy = Math.min(H - 1, Math.max(0, y | 0));
   const tone = coralToneMap[iy * W + ix];
   // Presión artística de pluma: trazo más rotundo en sombras profundas (1.25x) y delicado en luces (0.82x)
   const factor = 1.25 - 0.43 * Math.max(0, Math.min(1, tone));
-  return baseWidth * factor;
+  return effectiveBase * factor;
 }
 
 function rebuildLineCache() {
@@ -5828,7 +5939,7 @@ function rebuildLineCache() {
   lCtx.lineJoin = 'round';
 
   if (COLOR_MODE === 'mono') {
-    const monoStroke = BG_THEME === 'dark' ? '#e8eef7' : '#0e1118';
+    const monoStroke = getMonoStrokeColor();
     lCtx.strokeStyle = monoStroke;
     const chunkStep = 10;
     for (let start = 1; start < totalLen - 1; start += chunkStep) {
@@ -6532,11 +6643,13 @@ document.getElementById('btnColorFlow').onclick = () => {
 
 let stencilRafPending = false;
 let paramDebounceTimer = null;
-const bindParam = (id, labelId, setter, isStencilParam = false, decimals = null) => {
+const bindParam = (id, labelId, setter, isStencilParam = false, decimals = null, suffix = '') => {
   const el = document.getElementById(id);
+  if (!el) return;
   el.addEventListener('input', (e) => {
     const v = parseFloat(e.target.value);
-    document.getElementById(labelId).textContent = decimals !== null ? v.toFixed(decimals) : v;
+    const lbl = document.getElementById(labelId);
+    if (lbl) lbl.textContent = (decimals !== null ? v.toFixed(decimals) : v) + suffix;
     setter(v);
     if (isStencilParam && !stencilRafPending) {
       stencilRafPending = true;
@@ -6566,6 +6679,7 @@ bindParam('minR', 'vMin', v => MIN_R = v, false, 1);
 bindParam('maxR', 'vMax', v => MAX_R = v, false, 1);
 bindParam('chaikinPasses', 'vChaikin', v => CHAIKIN_PASSES = v, false, null);
 bindParam('haringIconCount', 'vHaringIcons', v => HARING_ICON_COUNT = v, false, null);
+bindParam('haringIconSize', 'vHaringSize', v => HARING_ICON_SIZE = v, false, null, '%');
 
 document.getElementById('lineW').addEventListener('input', (e) => {
   LINE_W = parseFloat(e.target.value);
@@ -6607,6 +6721,7 @@ document.getElementById('btnResetDefaults').onclick = () => {
   stopColorFlow();
   TARGET_NODES = isMobileDevice ? 22000 : 26000;
   HARING_ICON_COUNT = 95;
+  HARING_ICON_SIZE = 100;
   LINE_W = 1.0;
   COLOR_MODE = 'mono';
   COLOR_PALETTE = 'iris';
@@ -6654,7 +6769,8 @@ document.getElementById('btnSvg').onclick = () => {
   let pathsMarkup = '';
 
   if (COLOR_MODE === 'mono') {
-    const strokeCol = BG_THEME === 'dark' ? '#e8eef7' : '#0e1118';
+    const strokeCol = getMonoStrokeColor();
+    const effW = LINE_W * (COLOR_INTENSITY > 1.0 ? (1.0 + (COLOR_INTENSITY - 1.0) * 0.16) : (0.86 + COLOR_INTENSITY * 0.14));
     const mx0 = (ptsX[0] + ptsX[1]) * 0.5;
     const my0 = (ptsY[0] + ptsY[1]) * 0.5;
     const parts = [`M ${mx0.toFixed(1)} ${my0.toFixed(1)}`];
@@ -6663,7 +6779,7 @@ document.getElementById('btnSvg').onclick = () => {
       const my1 = (ptsY[i] + ptsY[i + 1]) * 0.5;
       parts.push(`Q ${ptsX[i].toFixed(1)} ${ptsY[i].toFixed(1)} ${mx1.toFixed(1)} ${my1.toFixed(1)}`);
     }
-    pathsMarkup = `  <path d="${parts.join(' ')}" fill="none" stroke="${strokeCol}" stroke-width="${LINE_W}" stroke-linecap="round" stroke-linejoin="round"/>`;
+    pathsMarkup = `  <path d="${parts.join(' ')}" fill="none" stroke="${strokeCol}" stroke-width="${effW.toFixed(2)}" stroke-linecap="round" stroke-linejoin="round"/>`;
   } else {
     const chunkStep = (COLOR_MODE === 'photo_exact') ? 4 : 24;
     const pathList = [];
@@ -6742,7 +6858,7 @@ function updateFocalMarker() {
   const txt = document.getElementById('focalCoordsText');
   const statusPill = document.getElementById('statusPill');
   if (boxHaring) {
-    boxHaring.style.display = (ENGINE_MODE === 'keith_haring' || ENGINE_MODE === 'haring_croc') ? 'block' : 'none';
+    boxHaring.style.display = (ENGINE_MODE === 'keith_haring' || ENGINE_MODE === 'haring_croc' || ENGINE_MODE === 'haring_puzzle') ? 'block' : 'none';
   }
   if (ENGINE_MODE === 'golden_spiral') {
     if (box) box.style.display = 'block';
@@ -6866,20 +6982,47 @@ let scale = 1, panX = 0, panY = 0;
 let isPanning = false, startPanX = 0, startPanY = 0;
 let initialPinchDist = 0, initialScale = 1;
 
-function updateCanvasTransform() {
-  if (canvasWrapper) {
-    canvasWrapper.style.transform = "translate3d(" + panX + "px, " + panY + "px, 0) scale(" + scale + ")";
+function updateZoomButtonUI() {
+  if (!btnResetZoom) return;
+  if (scale > 1.15) {
+    btnResetZoom.textContent = '1x';
+    btnResetZoom.title = 'Alejar / Vista Completa (1x)';
+    btnResetZoom.classList.add('active');
+  } else {
+    btnResetZoom.textContent = '🔍';
+    btnResetZoom.title = 'Zoom Detalle (2.2x)';
+    btnResetZoom.classList.remove('active');
   }
 }
+
+function updateCanvasTransform(animate = false) {
+  if (canvasWrapper) {
+    canvasWrapper.style.transition = animate ? 'transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
+    canvasWrapper.style.transform = "translate3d(" + panX + "px, " + panY + "px, 0) scale(" + scale + ")";
+  }
+  updateZoomButtonUI();
+}
+
 function resetCanvasZoom() {
   scale = 1; panX = 0; panY = 0;
-  updateCanvasTransform();
+  updateCanvasTransform(true);
 }
+
+function toggleCanvasZoom() {
+  if (scale > 1.15) {
+    scale = 1; panX = 0; panY = 0;
+  } else {
+    scale = 2.2; panX = 0; panY = 0;
+  }
+  updateCanvasTransform(true);
+}
+
 const btnResetZoom = document.getElementById('btnResetZoom');
-if (btnResetZoom) btnResetZoom.addEventListener('click', resetCanvasZoom);
+if (btnResetZoom) btnResetZoom.addEventListener('click', toggleCanvasZoom);
 
 if (stage) {
   stage.addEventListener('touchstart', (e) => {
+    if (canvasWrapper) canvasWrapper.style.transition = 'none';
     if (e.touches.length === 1) {
       isPanning = true;
       startPanX = e.touches[0].clientX - panX;
