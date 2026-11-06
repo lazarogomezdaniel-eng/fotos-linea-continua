@@ -801,6 +801,161 @@
       box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
     }
 
+    /* =========================================================
+       STUDIO VIEW LAYER CARDS (CAPA VISIBLE EN PANTALLA)
+       ========================================================= */
+    .view-layer-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+    @media (max-width: 340px) {
+      .view-layer-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .view-layer-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      padding: 10px 11px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+      touch-action: manipulation;
+    }
+    .view-layer-card:hover {
+      background: rgba(30, 41, 59, 0.85);
+      border-color: rgba(56, 189, 248, 0.35);
+      transform: translateY(-1px);
+    }
+    .view-layer-card:active {
+      transform: scale(0.97);
+    }
+    .view-layer-card.active {
+      background: linear-gradient(135deg, rgba(14, 38, 74, 0.90) 0%, rgba(10, 25, 48, 0.95) 100%);
+      border-color: #38bdf8;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.28), inset 0 0 0 1px rgba(56, 189, 248, 0.35);
+    }
+    .view-layer-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .view-layer-icon-wrap {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.06);
+      color: #94a3b8;
+      transition: all 0.2s ease;
+    }
+    .view-layer-card.active .view-layer-icon-wrap {
+      background: rgba(56, 189, 248, 0.22);
+      color: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+    }
+    .view-layer-radio {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .view-layer-card.active .view-layer-radio {
+      border-color: #38bdf8;
+      background: #38bdf8;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+    }
+    .view-layer-radio::after {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #0b0f19;
+      opacity: 0;
+      transform: scale(0.4);
+      transition: all 0.18s ease;
+    }
+    .view-layer-card.active .view-layer-radio::after {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .view-layer-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      width: 100%;
+    }
+    .view-layer-name {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #f1f5f9;
+      line-height: 1.2;
+    }
+    .view-layer-card.active .view-layer-name {
+      color: #ffffff;
+      font-weight: 800;
+    }
+    .view-layer-desc {
+      font-size: 9px;
+      color: #94a3b8;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+    .view-layer-card.active .view-layer-desc {
+      color: #7dd3fc;
+    }
+    .view-layer-tag {
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #94a3b8;
+      align-self: flex-start;
+      margin-top: 1px;
+    }
+    .view-layer-card.active .view-layer-tag {
+      background: rgba(56, 189, 248, 0.20);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+    .view-layer-hint {
+      margin-top: 4px;
+      padding: 6px 9px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed rgba(255, 255, 255, 0.08);
+      font-size: 9.5px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.3;
+    }
+    .view-layer-hint strong {
+      color: #e2e8f0;
+    }
+
     /* COLOR STUDIO: CAROUSELS & SWATCH CARDS */
     .color-carousel {
       display: flex;
@@ -1718,13 +1873,102 @@
         </div>
 
         <div class="param-card full-width">
-          <div class="view-mode-selector">
-            <select id="viewMode">
-              <option value="line">✒️ Solo Línea Continua (Final)</option>
-              <option value="both">👁️ Línea Continua + Calco Debajo</option>
-              <option value="stencil">✏️ Solo Calco a Lápiz / Silueta</option>
-              <option value="photo">🖼️ Foto Original</option>
-            </select>
+          <div class="param-header" style="margin-bottom: 2px;">
+            <div class="param-title-group">
+              <span class="param-title">Composición del Lienzo</span>
+              <span class="param-sub">Capas activas en área de trabajo</span>
+            </div>
+            <span class="param-badge hero" id="currentViewModeBadge">Línea Pura</span>
+          </div>
+
+          <!-- Hidden Native Select for 100% Backward Compatibility & Automation -->
+          <select id="viewMode" style="display:none;">
+            <option value="line" selected>✒️ Solo Línea Continua (Final)</option>
+            <option value="both">👁️ Línea Continua + Calco Debajo</option>
+            <option value="stencil">✏️ Solo Calco a Lápiz / Silueta</option>
+            <option value="photo">🖼️ Foto Original</option>
+          </select>
+
+          <!-- 2x2 Studio Interactive Layer Cards -->
+          <div class="view-layer-grid" role="radiogroup" aria-label="Capa visible en el lienzo">
+            <!-- Capa 1: Solo Línea Continua -->
+            <div class="view-layer-card active" data-view-value="line" role="radio" aria-checked="true" tabindex="0">
+              <div class="view-layer-header">
+                <div class="view-layer-icon-wrap">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 17c3.5-6 6.5-6 9-2s5.5 4 9-2"></path>
+                    <circle cx="21" cy="15" r="1.5" fill="currentColor"></circle>
+                  </svg>
+                </div>
+                <div class="view-layer-radio"></div>
+              </div>
+              <div class="view-layer-info">
+                <span class="view-layer-name">Línea Continua</span>
+                <span class="view-layer-desc">Trazo único de autor</span>
+                <span class="view-layer-tag">Arte Final</span>
+              </div>
+            </div>
+
+            <!-- Capa 2: Superposición Línea + Calco -->
+            <div class="view-layer-card" data-view-value="both" role="radio" aria-checked="false" tabindex="0">
+              <div class="view-layer-header">
+                <div class="view-layer-icon-wrap">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                  </svg>
+                </div>
+                <div class="view-layer-radio"></div>
+              </div>
+              <div class="view-layer-info">
+                <span class="view-layer-name">Línea + Calco</span>
+                <span class="view-layer-desc">Trazo sobre plantilla</span>
+                <span class="view-layer-tag">Superposición</span>
+              </div>
+            </div>
+
+            <!-- Capa 3: Solo Calco a Lápiz -->
+            <div class="view-layer-card" data-view-value="stencil" role="radio" aria-checked="false" tabindex="0">
+              <div class="view-layer-header">
+                <div class="view-layer-icon-wrap">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20h9"></path>
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                  </svg>
+                </div>
+                <div class="view-layer-radio"></div>
+              </div>
+              <div class="view-layer-info">
+                <span class="view-layer-name">Calco a Lápiz</span>
+                <span class="view-layer-desc">Silueta y sombras</span>
+                <span class="view-layer-tag">Guía Tatuador</span>
+              </div>
+            </div>
+
+            <!-- Capa 4: Foto Original -->
+            <div class="view-layer-card" data-view-value="photo" role="radio" aria-checked="false" tabindex="0">
+              <div class="view-layer-header">
+                <div class="view-layer-icon-wrap">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="3" ry="3"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                </div>
+                <div class="view-layer-radio"></div>
+              </div>
+              <div class="view-layer-info">
+                <span class="view-layer-name">Foto Original</span>
+                <span class="view-layer-desc">Imagen sin procesar</span>
+                <span class="view-layer-tag">Referencia</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="view-layer-hint">
+            <span>💡</span>
+            <span><strong>Tip rápido:</strong> Mantén pulsado el botón <strong>👁️</strong> del dock inferior para contrastar al vuelo con la foto.</span>
           </div>
         </div>
 
@@ -2311,6 +2555,29 @@ function syncMaxNPresets(val) {
   });
 }
 
+function syncViewLayerCards(val = VIEW_MODE) {
+  const badgeMap = {
+    'line': 'Línea Pura',
+    'both': 'Superposición',
+    'stencil': 'Calco a Lápiz',
+    'photo': 'Foto Original'
+  };
+  const badge = document.getElementById('currentViewModeBadge');
+  if (badge && badgeMap[val]) {
+    badge.textContent = badgeMap[val];
+  }
+  document.querySelectorAll('.view-layer-card[data-view-value]').forEach(card => {
+    const isTarget = card.getAttribute('data-view-value') === val;
+    if (isTarget) {
+      card.classList.add('active');
+      card.setAttribute('aria-checked', 'true');
+    } else {
+      card.classList.remove('active');
+      card.setAttribute('aria-checked', 'false');
+    }
+  });
+}
+
 function syncSlidersFromState() {
   const setSlider = (id, labelId, val, decimals = null, suffix = '') => {
     const el = document.getElementById(id);
@@ -2331,6 +2598,7 @@ function syncSlidersFromState() {
   setSlider('haringIconCount', 'vHaringIcons', HARING_ICON_COUNT);
   setSlider('haringIconSize', 'vHaringSize', HARING_ICON_SIZE, null, '%');
   syncMaxNPresets(TARGET_NODES);
+  syncViewLayerCards(VIEW_MODE);
 }
 syncSlidersFromState();
 
@@ -8238,6 +8506,7 @@ document.getElementById('engineMode').addEventListener('change', (e) => {
 
 document.getElementById('viewMode').addEventListener('change', (e) => {
   VIEW_MODE = e.target.value;
+  syncViewLayerCards(VIEW_MODE);
   render();
 });
 
@@ -8644,6 +8913,35 @@ document.querySelectorAll('input[type="range"]').forEach(slider => {
     isVerticalScroll = false;
     initialVal = null;
   }, { passive: true });
+});
+
+// =========================================================
+// STUDIO VIEW LAYER CARDS HANDLERS
+// =========================================================
+document.querySelectorAll('.view-layer-card[data-view-value]').forEach(card => {
+  const activateCard = (e) => {
+    e.preventDefault();
+    const val = card.getAttribute('data-view-value');
+    const sel = document.getElementById('viewMode');
+    if (!sel || !val) return;
+    if (sel.value !== val) {
+      sel.value = val;
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    syncViewLayerCards(val);
+    if (typeof haptic === 'function') {
+      haptic(10);
+    } else if (navigator.vibrate) {
+      try { navigator.vibrate(10); } catch (_) {}
+    }
+  };
+
+  card.addEventListener('click', activateCard);
+  card.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      activateCard(e);
+    }
+  });
 });
 
 document.getElementById('btnRebuild').onclick = () => {
