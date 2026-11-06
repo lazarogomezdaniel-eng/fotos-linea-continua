@@ -1298,8 +1298,8 @@
             <input type="range" id="bgClean" min="0.000" max="0.280" step="0.002" value="0.000" title="Preserva o aísla el fondo claro">
           </div>
           <div>
-            <label>Nodos <span id="vNodes">26000</span></label>
-            <input type="range" id="maxN" min="6000" max="60000" step="2000" value="26000">
+            <label>Nodos <span id="vNodes">38000</span></label>
+            <input type="range" id="maxN" min="8000" max="75000" step="2000" value="38000">
           </div>
           <div>
             <label>Grosor Línea <span id="vWidth">1.0</span></label>
@@ -1711,7 +1711,7 @@ let PENCIL_BLUR = 2.0;
 let SHADE_WEIGHT = 0.55;
 let BG_CLEAN = 0.000;
 
-let TARGET_NODES = isMobileDevice ? 22000 : 26000;
+let TARGET_NODES = isMobileDevice ? 38000 : 44000;
 let MIN_R = 1.5;
 let MAX_R = 4.8;
 let CHAIKIN_PASSES = 2;
@@ -6044,7 +6044,7 @@ function generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, si
   }
 
   const userIconSizeMult = Math.max(0.40, Math.min(2.20, (haringIconSize || 100) / 100.0));
-  const userScale = Math.max(0.38, Math.min(2.40, Math.sqrt(26000 / Math.max(8000, TARGET_NODES)) * (0.94 + (MAX_R - 4.8) * 0.05) * userIconSizeMult));
+  const userScale = Math.max(0.38, Math.min(2.40, Math.sqrt(38000 / Math.max(8000, TARGET_NODES)) * (0.94 + (MAX_R - 4.8) * 0.05) * userIconSizeMult));
   const maxFigs = Math.max(15, Math.min(280, Math.round((haringIconCount || 95) * 1.35)));
 
   const passes = [
@@ -6932,7 +6932,7 @@ function rebuildPortrait(needsStencilRebuild = true) {
     MAX_R,
     CHAIKIN_PASSES,
     seed: REBUILD_SEED,
-    maxTimeMs: isMobileDevice ? (TARGET_NODES > 35000 ? 1100 : 650) : (TARGET_NODES > 35000 ? 2000 : 1100),
+    maxTimeMs: isMobileDevice ? (TARGET_NODES > 35000 ? 1500 : 800) : (TARGET_NODES > 35000 ? 2600 : 1400),
     customFocalX,
     customFocalY,
     haringIconCount: HARING_ICON_COUNT,
@@ -7505,6 +7505,13 @@ function loadFromImageElement(img) {
   cachedGradMag = null;
   cachedBlurRadius = -1;
   cachedBlurFine = null;
+
+  // Garantizar alta definición por defecto al abrir una foto para que los rasgos se distingan nítidos de primeras
+  const optimalNodes = isMobileDevice ? 38000 : 44000;
+  if (TARGET_NODES < optimalNodes) {
+    TARGET_NODES = optimalNodes;
+    syncSlidersFromState();
+  }
 
   rebuildPortrait(true);
 }
@@ -8158,7 +8165,7 @@ document.getElementById('btnClear').onclick = () => {
 
 document.getElementById('btnResetDefaults').onclick = () => {
   stopColorFlow();
-  TARGET_NODES = isMobileDevice ? 22000 : 26000;
+  TARGET_NODES = isMobileDevice ? 38000 : 44000;
   HARING_ICON_COUNT = 95;
   HARING_ICON_SIZE = 100;
   LINE_W = 1.0;
