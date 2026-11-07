@@ -1739,7 +1739,13 @@
     <div class="header-layer-bar" role="radiogroup" aria-label="Capa visible en el lienzo">
       <button type="button" class="floating-layer-btn active" data-view-value="line" aria-pressed="true" title="Solo Línea Continua">✒️ Línea</button>
       <button type="button" class="floating-layer-btn" data-view-value="stencil" aria-pressed="false" title="Calco a Lápiz Solo">✏️ Calco</button>
-      <button type="button" class="floating-layer-btn" data-view-value="both" aria-pressed="false" title="Línea + Calco a Lápiz">👁️ Ambos</button>
+      <button type="button" class="floating-layer-btn" data-view-value="both" aria-pressed="false" title="Línea + Calco a Lápiz">
+        <svg class="layer-both-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 3 2 8.5 12 14 22 8.5 12 3"></polygon>
+          <path d="M2 14.5l10 5.5 10-5.5"></path>
+        </svg>
+        <span>Ambos</span>
+      </button>
     </div>
 
     <div class="header-right">
@@ -2252,7 +2258,7 @@
         <!-- Hidden Native Select & compatibility badge for viewMode -->
         <select id="viewMode" style="display:none;">
           <option value="line" selected>✒️ Solo Línea Continua (Final)</option>
-          <option value="both">👁️ Línea Continua + Calco Debajo</option>
+          <option value="both">📑 Línea Continua + Calco Debajo</option>
           <option value="stencil">✏️ Solo Calco a Lápiz / Silueta</option>
           <option value="photo">🖼️ Foto Original</option>
         </select>
