@@ -267,22 +267,33 @@
       position: absolute;
       bottom: 12px;
       left: 12px;
-      background: rgba(12, 16, 26, 0.82);
-      -webkit-backdrop-filter: blur(14px);
-      backdrop-filter: blur(14px);
+      background: rgba(12, 16, 26, 0.85);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      backdrop-filter: blur(16px) saturate(180%);
       border: 1px solid var(--border-light);
-      padding: 4px 11px;
+      padding: 5px 12px;
       border-radius: 999px;
-      font-size: 10.5px;
+      font-size: 11px;
       font-weight: 600;
-      color: #cbd5e1;
-      pointer-events: none;
-      z-index: 10;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      color: #f1f5f9;
+      cursor: pointer;
+      pointer-events: auto;
+      z-index: 20;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
       letter-spacing: 0.2px;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
+      transition: all 0.18s ease;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .floating-pill:hover {
+      border-color: var(--accent);
+      background: rgba(20, 27, 44, 0.95);
+    }
+    .floating-pill:active {
+      transform: scale(0.95);
     }
 
     /* HEADER LAYER SELECTOR (BARRA SUPERIOR FUERA DEL LIENZO) */
@@ -1739,19 +1750,13 @@
 
   <!-- HERO STAGE & CANVAS VIEWPORT (70%) -->
   <main id="stage">
-    <!-- INDICADOR DE ESTILO SELECCIONADO (ARRIBA A LA IZQUIERDA DEL LIENZO) -->
-    <div id="modePill" class="mode-pill" title="Tocar para cambiar estilo">
-      <span class="dot"></span>
-      <span id="modePillText">🧠 Coral</span>
-    </div>
-
     <div id="canvasWrapper">
       <canvas id="canvas" width="720" height="880"></canvas>
       <div id="focalMarker" class="focal-marker" style="display:none;" title="Centro de la Espiral Áurea"></div>
     </div>
     
     <!-- INDICADOR DE LA FUNCIÓN ACTIVA (ABAJO A LA IZQUIERDA) -->
-    <div class="floating-pill" id="statusPill">🎨 Estilos de Autor</div>
+    <div class="floating-pill" id="statusPill" title="Función activa / Tocar para expandir controles">🧠 Coral</div>
 
     <div class="stage-actions">
       <button id="btnResetZoom" class="stage-btn" title="Restablecer Zoom / Centrar">🔍</button>
@@ -9765,7 +9770,10 @@ function updateActiveFunctionPill() {
   const activeTabId = activeTabBtn ? activeTabBtn.dataset.tab : 'paneEstilo';
 
   if (activeTabId === 'paneEstilo') {
-    statusPill.textContent = '🎨 Estilos de Autor';
+    const activeCard = document.querySelector('.style-card.active') || document.querySelector(`.style-card[data-mode="${ENGINE_MODE}"]`);
+    const emoji = activeCard?.querySelector('.card-emoji')?.textContent || '🎨';
+    const title = activeCard?.querySelector('.card-title')?.textContent || 'Estilo';
+    statusPill.textContent = `${emoji} ${title}`;
   } else if (activeTabId === 'paneTrazo') {
     if (ENGINE_MODE === 'halftone_dots') {
       statusPill.textContent = '⚫ Trama de Puntos';
@@ -9794,14 +9802,9 @@ function syncStyleCards(selectedMode) {
     const isSel = (card.dataset.mode === selectedMode);
     card.classList.toggle('active', isSel);
     if (isSel) {
-      const modePillText = document.getElementById('modePillText');
-      if (modePillText) {
-        const emoji = card.querySelector('.card-emoji')?.textContent || '';
-        const title = card.querySelector('.card-title')?.textContent || '';
-        modePillText.textContent = emoji + " " + title;
-      }
       card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
       updateFocalMarker();
+      updateActiveFunctionPill();
     }
   });
 }
@@ -9906,14 +9909,11 @@ styleCards.forEach(card => {
   });
 });
 
-// Mode Pill tap opens Style tab and expands dock
-const modePill = document.getElementById('modePill');
-if (modePill) {
-  modePill.addEventListener('click', () => {
-    const tabEstilo = document.querySelector('[data-tab="paneEstilo"]');
-    if (tabEstilo) tabEstilo.click();
+// Status Pill tap expands dock controls
+const statusPillEl = document.getElementById('statusPill');
+if (statusPillEl) {
+  statusPillEl.addEventListener('click', () => {
     if (dockState === 'collapsed') setDockState('normal');
-    if (typeof updateActiveFunctionPill === 'function') updateActiveFunctionPill();
     haptic(8);
   });
 }
