@@ -106,19 +106,19 @@
     }
 
     .upload-btn {
-      height: 38px;
-      padding: 0 13px;
-      border-radius: 10px;
+      height: 36px;
+      padding: 0 10px;
+      border-radius: 9px;
       background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
       border: 1px solid rgba(147, 197, 253, 0.45);
       color: #ffffff;
-      font-size: 12.5px;
+      font-size: 11.5px;
       font-weight: 700;
       display: inline-flex;
       align-items: center;
-      gap: 7px;
+      gap: 5px;
       cursor: pointer;
-      box-shadow: 0 2px 12px rgba(37, 99, 235, 0.40);
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
       transition: all 0.18s var(--ease-spring);
       user-select: none;
       -webkit-user-select: none;
@@ -126,15 +126,15 @@
     }
     .upload-btn:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.55);
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.50);
     }
     .upload-btn:active {
       transform: scale(0.94);
       box-shadow: 0 1px 4px rgba(37, 99, 235, 0.3);
     }
     .upload-btn .upload-svg {
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       flex-shrink: 0;
       filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
       transition: transform 0.18s ease;
@@ -145,34 +145,43 @@
     .upload-btn .upload-text { letter-spacing: 0.2px; }
 
     .mode-pill {
+      position: absolute;
+      top: 12px;
+      left: 12px;
       display: flex;
       align-items: center;
-      gap: 7px;
-      padding: 6px 13px;
-      border-radius: 20px;
-      background: rgba(22, 29, 46, 0.85);
+      gap: 6px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: rgba(12, 16, 26, 0.82);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      backdrop-filter: blur(16px) saturate(180%);
       border: 1px solid var(--border-light);
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 600;
       color: #f1f5f9;
       cursor: pointer;
-      max-width: 190px;
+      max-width: 175px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
       transition: all 0.18s ease;
+      z-index: 25;
+      user-select: none;
+      -webkit-user-select: none;
     }
     .mode-pill:hover {
       border-color: var(--accent);
+      background: rgba(20, 27, 44, 0.92);
     }
     .mode-pill:active {
       transform: scale(0.95);
       background: rgba(30, 41, 64, 0.95);
     }
     .mode-pill .dot {
-      width: 7.5px;
-      height: 7.5px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: #10b981;
       box-shadow: 0 0 8px #10b981;
@@ -258,43 +267,42 @@
       position: absolute;
       bottom: 12px;
       left: 12px;
-      background: rgba(12, 16, 26, 0.78);
+      background: rgba(12, 16, 26, 0.82);
       -webkit-backdrop-filter: blur(14px);
       backdrop-filter: blur(14px);
       border: 1px solid var(--border-light);
-      padding: 4px 10px;
+      padding: 4px 11px;
       border-radius: 999px;
-      font-size: 10px;
-      font-weight: 500;
-      color: var(--text-dim);
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #cbd5e1;
       pointer-events: none;
       z-index: 10;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
       letter-spacing: 0.2px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
     }
 
-    /* FLOATING STUDIO LAYER SELECTOR (CANVAS VIEWPORT) */
-    .floating-layer-bar {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
+    /* HEADER LAYER SELECTOR (BARRA SUPERIOR FUERA DEL LIENZO) */
+    .header-layer-bar {
       display: flex;
       align-items: center;
-      gap: 3px;
-      background: rgba(10, 14, 24, 0.88);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      backdrop-filter: blur(20px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      gap: 2px;
+      background: rgba(14, 20, 32, 0.85);
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.10);
       border-radius: 999px;
-      padding: 3px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.55);
-      z-index: 30;
+      padding: 2px;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
       user-select: none;
       -webkit-user-select: none;
+      flex-shrink: 0;
     }
-    .floating-layer-btn {
-      padding: 5px 11px;
+    .header-layer-bar .floating-layer-btn {
+      padding: 5px 9px;
       border-radius: 999px;
       border: 1px solid transparent;
       background: transparent;
@@ -304,23 +312,23 @@
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 3px;
       transition: all 0.18s ease;
       -webkit-tap-highlight-color: transparent;
       white-space: nowrap;
     }
-    .floating-layer-btn:hover {
+    .header-layer-bar .floating-layer-btn:hover {
       color: #f1f5f9;
       background: rgba(255, 255, 255, 0.06);
     }
-    .floating-layer-btn:active {
+    .header-layer-bar .floating-layer-btn:active {
       transform: scale(0.95);
     }
-    .floating-layer-btn.active {
-      background: linear-gradient(135deg, rgba(30, 58, 138, 0.6) 0%, rgba(14, 28, 54, 0.95) 100%);
+    .header-layer-bar .floating-layer-btn.active {
+      background: linear-gradient(135deg, rgba(30, 58, 138, 0.7) 0%, rgba(14, 28, 54, 0.95) 100%);
       color: #38bdf8;
       border-color: rgba(56, 189, 248, 0.4);
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
       font-weight: 700;
     }
     .stage-actions {
@@ -1699,7 +1707,7 @@
   <header id="appHeader">
     <div class="header-left">
       <label id="btnUploadPhoto" class="upload-btn" title="Cargar Foto desde Galería o Cámara">
-        <svg class="upload-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg class="upload-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 7C3 5.89543 3.89543 5 5 5H9.58579C10.1162 5 10.625 5.21071 11 5.58579L12.4142 7H19C20.1046 7 21 7.89543 21 9V18C21 19.1046 20.1046 20 19 20H5C3.89543 20 3 19.1046 3 18V7Z" fill="url(#uploadFolderGrad)" stroke="rgba(255,255,255,0.7)" stroke-width="1.5" stroke-linejoin="round"/>
           <path d="M12 11V16M12 11L9.5 13.5M12 11L14.5 13.5" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
           <circle cx="17.5" cy="11.5" r="1.5" fill="#38bdf8"/>
@@ -1710,15 +1718,19 @@
             </linearGradient>
           </defs>
         </svg>
-        <span class="upload-text">Cargar Foto</span>
+        <span class="upload-text">Foto</span>
         <input type="file" id="imgInput" accept="image/*" style="display:none">
       </label>
       <button id="btnInstallApp" class="icon-btn" style="display:none;" title="Instalar App">📲</button>
-      <div id="modePill" class="mode-pill" title="Tocar para cambiar estilo">
-        <span class="dot"></span>
-        <span id="modePillText">🧠 Coral</span>
-      </div>
     </div>
+
+    <!-- SELECTOR DE CAPAS EN HEADER (CENTRO, FUERA DEL LIENZO) -->
+    <div class="header-layer-bar" role="radiogroup" aria-label="Capa visible en el lienzo">
+      <button type="button" class="floating-layer-btn active" data-view-value="line" aria-pressed="true" title="Solo Línea Continua">✒️ Línea</button>
+      <button type="button" class="floating-layer-btn" data-view-value="stencil" aria-pressed="false" title="Calco a Lápiz Solo">✏️ Calco</button>
+      <button type="button" class="floating-layer-btn" data-view-value="both" aria-pressed="false" title="Línea + Calco a Lápiz">👁️ Ambos</button>
+    </div>
+
     <div class="header-right">
       <button id="btnCompare" class="icon-btn" title="Mantén pulsado para comparar con foto original">👁️</button>
       <button id="btnRebuildTop" class="icon-btn primary" title="Recalcular Trazado">🔄</button>
@@ -1727,19 +1739,20 @@
 
   <!-- HERO STAGE & CANVAS VIEWPORT (70%) -->
   <main id="stage">
-    <!-- FLOATING LAYER SELECTOR (PROCREATE-STYLE GLASS CAPSULE) -->
-    <div class="floating-layer-bar" role="radiogroup" aria-label="Capa visible en el lienzo">
-      <button type="button" class="floating-layer-btn active" data-view-value="line" aria-pressed="true" title="Solo Línea Continua">✒️ Línea</button>
-      <button type="button" class="floating-layer-btn" data-view-value="both" aria-pressed="false" title="Línea + Calco a Lápiz">👁️ Ambos</button>
-      <button type="button" class="floating-layer-btn" data-view-value="stencil" aria-pressed="false" title="Calco a Lápiz Solo">✏️ Calco</button>
-      <button type="button" class="floating-layer-btn" data-view-value="photo" aria-pressed="false" title="Foto Original">🖼️ Foto</button>
+    <!-- INDICADOR DE ESTILO SELECCIONADO (ARRIBA A LA IZQUIERDA DEL LIENZO) -->
+    <div id="modePill" class="mode-pill" title="Tocar para cambiar estilo">
+      <span class="dot"></span>
+      <span id="modePillText">🧠 Coral</span>
     </div>
 
     <div id="canvasWrapper">
       <canvas id="canvas" width="720" height="880"></canvas>
       <div id="focalMarker" class="focal-marker" style="display:none;" title="Centro de la Espiral Áurea"></div>
     </div>
-    <div class="floating-pill" id="statusPill">Línea Continua · 100% Vectorial</div>
+    
+    <!-- INDICADOR DE LA FUNCIÓN ACTIVA (ABAJO A LA IZQUIERDA) -->
+    <div class="floating-pill" id="statusPill">🎨 Estilos de Autor</div>
+
     <div class="stage-actions">
       <button id="btnResetZoom" class="stage-btn" title="Restablecer Zoom / Centrar">🔍</button>
       <button id="btnAnimateFloat" class="stage-btn gold" title="Animar Trazado">🎬</button>
@@ -8538,6 +8551,7 @@ function startAnimation() {
   aCtx.clearRect(0, 0, W, H);
 
   document.getElementById('btnAnimate').textContent = '⏹ Mostrar Completo';
+  if (typeof updateActiveFunctionPill === 'function') updateActiveFunctionPill();
 
   function stepAnim() {
     if (!isAnimatingDraw) return;
@@ -8634,6 +8648,7 @@ function stopAnimation() {
     animRafId = null;
   }
   document.getElementById('btnAnimate').textContent = '🎬 Animar Dibujo';
+  if (typeof updateActiveFunctionPill === 'function') updateActiveFunctionPill();
 }
 
 // =========================================================
@@ -9427,6 +9442,9 @@ document.querySelectorAll('.studio-subnav-btn[data-subtab]').forEach(btn => {
     document.querySelectorAll('.subtrazo-pane').forEach(pane => {
       pane.classList.toggle('active', pane.id === targetSubtab);
     });
+    if (typeof updateActiveFunctionPill === 'function') {
+      updateActiveFunctionPill();
+    }
     if (typeof haptic === 'function') {
       haptic(8);
     } else if (navigator.vibrate) {
@@ -9725,18 +9743,49 @@ function updateFocalMarker() {
     } else {
       if (marker) marker.style.display = 'none';
       if (txt) txt.textContent = '👉 Centro automático en la mirada. Toca cualquier punto de la foto para situar el centro allí.';
-      if (statusPill) statusPill.textContent = '🌻 Toca cualquier punto para mover el centro';
+      updateActiveFunctionPill();
     }
   } else {
     if (marker) marker.style.display = 'none';
     if (box) box.style.display = 'none';
-    if (statusPill) {
-      if (ENGINE_MODE === 'halftone_dots') {
-        statusPill.textContent = '⚫ Trama Pop-Art · Retícula Litográfica';
+    updateActiveFunctionPill();
+  }
+}
+
+function updateActiveFunctionPill() {
+  const statusPill = document.getElementById('statusPill');
+  if (!statusPill) return;
+
+  if (typeof isAnimatingDraw !== 'undefined' && isAnimatingDraw) {
+    statusPill.textContent = (ENGINE_MODE === 'halftone_dots') ? '🎬 Animando Trama...' : '🎬 Animando Trazo...';
+    return;
+  }
+
+  const activeTabBtn = document.querySelector('#dockTabs .tab-btn.active');
+  const activeTabId = activeTabBtn ? activeTabBtn.dataset.tab : 'paneEstilo';
+
+  if (activeTabId === 'paneEstilo') {
+    statusPill.textContent = '🎨 Estilos de Autor';
+  } else if (activeTabId === 'paneTrazo') {
+    if (ENGINE_MODE === 'halftone_dots') {
+      statusPill.textContent = '⚫ Trama de Puntos';
+    } else {
+      const activeSubtab = document.querySelector('.studio-subnav-btn.active');
+      const subId = activeSubtab ? activeSubtab.getAttribute('data-subtab') : '';
+      if (subId === 'subTrazoSilueta') {
+        statusPill.textContent = '✏️ Calco Silueta';
+      } else if (subId === 'subTrazoEspaciado') {
+        statusPill.textContent = '📐 Espaciado & Curvas';
       } else {
-        statusPill.textContent = 'Línea Continua · 100% Vectorial';
+        statusPill.textContent = '✒️ Trazo & Nodos';
       }
     }
+  } else if (activeTabId === 'paneColor') {
+    statusPill.textContent = '🌈 Color & Paletas';
+  } else if (activeTabId === 'paneExportar') {
+    statusPill.textContent = '📤 Exportar & Guardar';
+  } else {
+    statusPill.textContent = '🎨 Estudio de Línea';
   }
 }
 
@@ -9836,6 +9885,9 @@ document.querySelectorAll('#dockTabs .tab-btn').forEach(btn => {
     if (dockState === 'collapsed') {
       setDockState('normal');
     }
+    if (typeof updateActiveFunctionPill === 'function') {
+      updateActiveFunctionPill();
+    }
     haptic(8);
   });
 });
@@ -9861,6 +9913,7 @@ if (modePill) {
     const tabEstilo = document.querySelector('[data-tab="paneEstilo"]');
     if (tabEstilo) tabEstilo.click();
     if (dockState === 'collapsed') setDockState('normal');
+    if (typeof updateActiveFunctionPill === 'function') updateActiveFunctionPill();
     haptic(8);
   });
 }
@@ -9998,7 +10051,7 @@ if (stage) {
 
   let lastTap = 0;
   stage.addEventListener('click', (e) => {
-    if (e.target.closest('.stage-actions') || e.target.closest('.floating-pill')) return;
+    if (e.target.closest('.stage-actions') || e.target.closest('.floating-pill') || e.target.closest('.mode-pill')) return;
     const now = Date.now();
     if (now - lastTap < 300) {
       if (scale > 1.2) {
@@ -10043,6 +10096,7 @@ syncStyleCards(ENGINE_MODE);
 syncColorModeCards(COLOR_MODE);
 syncPaletteCards(COLOR_PALETTE);
 syncBgThemeChips(BG_THEME);
+updateActiveFunctionPill();
 
 // =========================================================
 // PWA: Service Worker e Instalación en Pantalla de Inicio
