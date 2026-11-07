@@ -1091,20 +1091,15 @@
 
     .bg-theme-group {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 7px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
       background: rgba(10, 16, 26, 0.65);
-      padding: 5px;
+      padding: 4px;
       border-radius: 10px;
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
-    @media (min-width: 480px) {
-      .bg-theme-group {
-        grid-template-columns: repeat(6, 1fr);
-      }
-    }
     .bg-theme-chip {
-      height: 32px;
+      height: 30px;
       border-radius: 8px;
       border: 1px solid rgba(255, 255, 255, 0.06);
       background: rgba(255, 255, 255, 0.04);
@@ -1146,28 +1141,25 @@
     .bg-dot.kraft { background: #eee4d5; }
     .bg-dot.custom { background: #2a2e3d; border-color: rgba(255,255,255,0.45); }
 
-    .color-pickers-compact-bar {
+    .color-pickers-row {
       display: flex;
       align-items: center;
       justify-content: space-around;
-      background: rgba(10, 16, 26, 0.65);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
       border-radius: 10px;
-      padding: 8px 10px;
-      gap: 6px;
+      padding: 6px 10px;
     }
     .color-picker-item {
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 6px;
       cursor: pointer;
-      user-select: none;
-      -webkit-user-select: none;
-      flex: 1;
-      justify-content: center;
-      padding: 3px 6px;
-      border-radius: 8px;
-      transition: background 0.15s ease;
+    }
+    .color-picker-item span {
+      font-size: 10.5px;
+      color: var(--text-dim);
+      font-weight: 600;
     }
     .color-picker-item:hover {
       background: rgba(255, 255, 255, 0.04);
@@ -2243,164 +2235,78 @@
           </div>
         </div>
 
-        <!-- Matiz / Rueda Cromática -->
-        <div class="param-card full-width" id="boxHue" style="margin-bottom:10px;">
-          <div class="param-header">
-            <div class="param-title-group">
-              <span class="param-title">Rueda Cromática</span>
-              <span class="param-sub">Matiz y fase continua</span>
-            </div>
-            <span class="param-badge" id="vColHue">205°</span>
+        <!-- Matiz / Rueda Cromática (Como estaba antes) -->
+        <div id="boxHue" style="margin-bottom:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label style="margin:0; font-size:11px;">Rueda Cromática / Matiz</label>
+            <span id="vColHue" style="font-size:11px; font-weight:700; color:var(--accent);">205°</span>
           </div>
-          <div class="param-control-row">
-            <button type="button" class="stepper-btn" data-step-for="colorHue" data-step-dir="-5" aria-label="Girar tono a la izquierda">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </button>
-            <div class="slider-wrapper">
-              <input type="range" id="colorHue" min="0" max="360" step="1" value="205" style="background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%); height: 8px; border-radius:4px;">
-            </div>
-            <button type="button" class="stepper-btn" data-step-for="colorHue" data-step-dir="5" aria-label="Girar tono a la derecha">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </button>
+          <input type="range" id="colorHue" min="0" max="360" step="1" value="205" style="background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%); height: 8px; border-radius:4px;">
+        </div>
+
+        <!-- Muestras Triádicas (Simple, debajo de la rueda cromática) -->
+        <div id="boxPickers" class="color-pickers-row" style="margin-bottom:8px;">
+          <div class="color-picker-item" title="Tono 1 (Sombras)">
+            <input type="color" id="colPick1" class="color-picker-circle" value="#ff4d6d">
+            <span>Sombra</span>
+          </div>
+          <div class="color-picker-item" title="Tono 2 (Medios)">
+            <input type="color" id="colPick2" class="color-picker-circle" value="#00d2ff">
+            <span>Medio</span>
+          </div>
+          <div class="color-picker-item" title="Tono 3 (Luces)">
+            <input type="color" id="colPick3" class="color-picker-circle" value="#9b5de5">
+            <span>Luz</span>
           </div>
         </div>
 
-        <!-- FONDO DEL LIENZO (SUPERFICIE DE TRABAJO - ANCHO COMPLETO) -->
-        <div class="param-card full-width" style="margin-bottom:10px;">
-          <div class="param-header">
-            <div class="param-title-group">
-              <span class="param-title">Fondo del Lienzo</span>
-              <span class="param-sub">Superficie base y contraste de visualización</span>
-            </div>
-            <span class="param-badge" id="currentBgLabel">Blanco Puro</span>
+        <!-- Fondo del Lienzo con Color Personalizado Libre -->
+        <div style="margin-bottom:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label style="margin:0; font-size:11px; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:0.5px;">Lienzo</label>
+            <span id="currentBgLabel" style="font-size:10.5px; color:var(--accent); font-weight:700;">Blanco Puro</span>
           </div>
           <select id="bgTheme" style="display:none;">
             <option value="white" selected>📄 Fondo Blanco</option>
-            <option value="dark">🌑 Noche Oscura</option>
+            <option value="dark">🌑 Fondo Noche</option>
             <option value="cream">📜 Pergamino</option>
             <option value="slate">🪨 Pizarra Grafito</option>
             <option value="kraft">🏺 Papel Arena</option>
             <option value="custom">🎨 Color Libre</option>
           </select>
           <div class="bg-theme-group" id="bgThemeGroup">
-            <button type="button" class="bg-theme-chip active" data-theme="white" title="Blanco Puro">
+            <button type="button" class="bg-theme-chip active" data-theme="white" title="Lienzo Blanco">
               <span class="bg-dot white"></span> Blanco
             </button>
-            <button type="button" class="bg-theme-chip" data-theme="dark" title="Noche Oscura">
+            <button type="button" class="bg-theme-chip" data-theme="dark" title="Lienzo Noche">
               <span class="bg-dot dark"></span> Noche
             </button>
             <button type="button" class="bg-theme-chip" data-theme="cream" title="Pergamino">
-              <span class="bg-dot cream"></span> Pergamino
+              <span class="bg-dot cream"></span> Calma
             </button>
-            <button type="button" class="bg-theme-chip" data-theme="slate" title="Pizarra Grafito">
-              <span class="bg-dot slate"></span> Pizarra
-            </button>
-            <button type="button" class="bg-theme-chip" data-theme="kraft" title="Papel Arena / Kraft">
-              <span class="bg-dot kraft"></span> Arena
-            </button>
-            <button type="button" class="bg-theme-chip" data-theme="custom" id="chipCustomBg" title="Color de Fondo Libre / Personalizado" style="position:relative; overflow:hidden;">
-              <span class="bg-dot custom" id="bgCustomDot"></span>
+            <button type="button" class="bg-theme-chip" data-theme="custom" id="chipCustomBg" title="Fondo Personalizado Libre" style="position:relative; overflow:hidden;">
+              <span class="bg-dot custom" id="bgCustomDot" style="background:#2a2e3d;"></span>
               <span>🎨 Libre</span>
               <input type="color" id="bgCustomPicker" value="#2a2e3d" style="position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer;">
             </button>
           </div>
         </div>
 
-        <!-- TONOS PERSONALIZADOS (SOMBRA, MEDIO Y LUZ) -->
-        <div class="param-card full-width" id="boxPickers" style="margin-bottom:10px;">
-          <div class="param-header">
-            <div class="param-title-group">
-              <span class="param-title">Muestras Triádicas</span>
-              <span class="param-sub">Toca para personalizar los 3 tonos armónicos</span>
+        <!-- Sliders Mezcla e Intensidad (Como estaban antes) -->
+        <div class="controls-grid" style="align-items:center; margin-bottom:8px;">
+          <div id="boxScale">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+              <label style="margin:0;">Frecuencia / Ritmo</label>
+              <span id="vColScale" style="font-size:11px; font-weight:700; color:var(--accent);">3.5</span>
             </div>
-            <span class="param-badge">3 Tonos</span>
+            <input type="range" id="colorScale" min="0.5" max="10.0" step="0.2" value="3.5">
           </div>
-          <div class="color-pickers-compact-bar">
-            <!-- Tono 1: Sombra -->
-            <label class="color-picker-item" for="colPick1" title="Tono 1 (Sombras)">
-              <input type="color" id="colPick1" class="color-picker-circle" value="#ff4d6d">
-              <div class="picker-labels">
-                <span class="picker-role">Sombras</span>
-                <span class="picker-hint">Tono oscuro</span>
-              </div>
-            </label>
-            <div class="picker-divider"></div>
-            <!-- Tono 2: Medio -->
-            <label class="color-picker-item" for="colPick2" title="Tono 2 (Medios)">
-              <input type="color" id="colPick2" class="color-picker-circle" value="#00d2ff">
-              <div class="picker-labels">
-                <span class="picker-role">Medios</span>
-                <span class="picker-hint">Tono medio</span>
-              </div>
-            </label>
-            <div class="picker-divider"></div>
-            <!-- Tono 3: Luz -->
-            <label class="color-picker-item" for="colPick3" title="Tono 3 (Luces)">
-              <input type="color" id="colPick3" class="color-picker-circle" value="#9b5de5">
-              <div class="picker-labels">
-                <span class="picker-role">Luces</span>
-                <span class="picker-hint">Tono claro</span>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <!-- Sliders Mezcla e Intensidad (Diseño Estudio Unificado) -->
-        <div class="param-cards-grid" style="margin-bottom:10px;">
-          <!-- Frecuencia / Ritmo -->
-          <div class="param-card" id="boxScale">
-            <div class="param-header">
-              <div class="param-title-group">
-                <span class="param-title">Frecuencia Ritmo</span>
-                <span class="param-sub">Ciclo onda color</span>
-              </div>
-              <span class="param-badge" id="vColScale">3.5</span>
+          <div id="boxIntensity">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+              <label style="margin:0;">Saturación / Brillo</label>
+              <span id="vColIntensity" style="font-size:11px; font-weight:700; color:var(--accent);">100%</span>
             </div>
-            <div class="param-control-row">
-              <button type="button" class="stepper-btn" data-step-for="colorScale" data-step-dir="-0.2" aria-label="Menos frecuencia">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              </button>
-              <div class="slider-wrapper">
-                <input type="range" id="colorScale" min="0.5" max="10.0" step="0.2" value="3.5">
-              </div>
-              <button type="button" class="stepper-btn" data-step-for="colorScale" data-step-dir="0.2" aria-label="Más frecuencia">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              </button>
-            </div>
-            <div class="param-presets">
-              <button type="button" class="preset-pill" data-set-target="colorScale" data-set-value="1.5">1.5 Amplio</button>
-              <button type="button" class="preset-pill active" data-set-target="colorScale" data-set-value="3.5">3.5 Medio</button>
-              <button type="button" class="preset-pill" data-set-target="colorScale" data-set-value="6.0">6.0 Rápido</button>
-              <button type="button" class="preset-pill" data-set-target="colorScale" data-set-value="9.0">9.0 Denso</button>
-            </div>
-          </div>
-
-          <!-- Saturación / Intensidad -->
-          <div class="param-card" id="boxIntensity">
-            <div class="param-header">
-              <div class="param-title-group">
-                <span class="param-title">Intensidad Brillo</span>
-                <span class="param-sub">Vibración cromática</span>
-              </div>
-              <span class="param-badge" id="vColIntensity">100%</span>
-            </div>
-            <div class="param-control-row">
-              <button type="button" class="stepper-btn" data-step-for="colorIntensity" data-step-dir="-5" aria-label="Menos intensidad">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              </button>
-              <div class="slider-wrapper">
-                <input type="range" id="colorIntensity" min="15" max="200" step="5" value="100">
-              </div>
-              <button type="button" class="stepper-btn" data-step-for="colorIntensity" data-step-dir="5" aria-label="Más intensidad">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              </button>
-            </div>
-            <div class="param-presets">
-              <button type="button" class="preset-pill" data-set-target="colorIntensity" data-set-value="40">40% Sutil</button>
-              <button type="button" class="preset-pill" data-set-target="colorIntensity" data-set-value="75">75% Pastel</button>
-              <button type="button" class="preset-pill active" data-set-target="colorIntensity" data-set-value="100">100% Puro</button>
-              <button type="button" class="preset-pill" data-set-target="colorIntensity" data-set-value="150">150% Vivo</button>
-            </div>
+            <input type="range" id="colorIntensity" min="15" max="200" step="5" value="100">
           </div>
         </div>
 
@@ -2787,8 +2693,6 @@ function syncSlidersFromState() {
   syncPresetPills('maxN', TARGET_NODES, 500);
   syncPresetPills('haringIconCount', HARING_ICON_COUNT, 8);
   syncPresetPills('haringIconSize', HARING_ICON_SIZE, 8);
-  syncPresetPills('colorScale', COLOR_SCALE, 0.3);
-  syncPresetPills('colorIntensity', Math.round(COLOR_INTENSITY * 100), 8);
   syncViewLayerCards(VIEW_MODE);
 }
 syncSlidersFromState();
@@ -8916,7 +8820,6 @@ document.getElementById('colorIntensity').addEventListener('input', (e) => {
   const v = parseInt(e.target.value, 10);
   COLOR_INTENSITY = v / 100.0;
   document.getElementById('vColIntensity').textContent = `${v}%`;
-  syncPresetPills('colorIntensity', v, 8);
   lineCacheDirty = true;
   render();
 });
@@ -8941,7 +8844,6 @@ for (const pickId of ['colPick1', 'colPick2', 'colPick3']) {
 document.getElementById('colorScale').addEventListener('input', (e) => {
   COLOR_SCALE = parseFloat(e.target.value);
   document.getElementById('vColScale').textContent = COLOR_SCALE.toFixed(1);
-  syncPresetPills('colorScale', COLOR_SCALE, 0.3);
   lineCacheDirty = true;
   render();
 });

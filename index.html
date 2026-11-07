@@ -107,6 +107,115 @@
       border: 1px solid var(--border); line-height: 1.35; margin-top: auto;
     }
 
+    /* =========================================================
+       CAPA VISIBLE EN PANTALLA (TARJETAS DE COMPOSICIÓN 2x2)
+       ========================================================= */
+    .view-layer-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .view-layer-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      padding: 8px 9px;
+      border-radius: 8px;
+      background: #181d2c;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: all 0.18s ease;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
+    .view-layer-card:hover {
+      background: #22293e;
+      border-color: rgba(95, 164, 249, 0.4);
+    }
+    .view-layer-card.active {
+      background: linear-gradient(135deg, rgba(31, 59, 96, 0.75) 0%, rgba(18, 26, 44, 0.95) 100%);
+      border-color: var(--accent);
+      box-shadow: 0 0 10px rgba(95, 164, 249, 0.3), inset 0 0 0 1px rgba(95, 164, 249, 0.35);
+    }
+    .view-layer-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .view-layer-icon-wrap {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-dim);
+    }
+    .view-layer-card.active .view-layer-icon-wrap {
+      background: rgba(95, 164, 249, 0.22);
+      color: var(--accent);
+    }
+    .view-layer-radio {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .view-layer-card.active .view-layer-radio {
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+    .view-layer-radio::after {
+      content: '';
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #0b0d13;
+      opacity: 0;
+    }
+    .view-layer-card.active .view-layer-radio::after {
+      opacity: 1;
+    }
+    .view-layer-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: #f1f5f9;
+      line-height: 1.2;
+    }
+    .view-layer-card.active .view-layer-name {
+      color: #ffffff;
+    }
+    .view-layer-desc {
+      font-size: 8.5px;
+      color: var(--text-dim);
+      line-height: 1.1;
+    }
+    .view-layer-tag {
+      font-size: 7.5px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-dim);
+      margin-top: 1px;
+    }
+    .view-layer-card.active .view-layer-tag {
+      background: rgba(95, 164, 249, 0.22);
+      color: var(--accent);
+    }
+
     /* Diseño Responsivo para Teléfono Móvil y Tablet */
     @media (max-width: 860px) {
       body {
@@ -178,14 +287,57 @@
       <div id="modeDesc" class="mode-badge">
         🧠 Coral: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros en U de extremo a extremo.
       </div>
-      <div style="margin-top:2px;">
-        <label style="margin-bottom:2px;">Vista del Lienzo</label>
-        <select id="viewMode">
-          <option value="line">✒️ Solo Línea Continua (Resultado Final)</option>
+      <div style="margin-top:6px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+          <label style="margin:0; font-weight:700;">Capa Visible en Pantalla</label>
+          <span id="currentViewModeBadge" style="font-size:10px; color:var(--accent); font-weight:700;">Línea Pura</span>
+        </div>
+        <!-- Select nativo oculto para 100% retrocompatibilidad -->
+        <select id="viewMode" style="display:none;">
+          <option value="line" selected>✒️ Solo Línea Continua (Resultado Final)</option>
           <option value="both">👁️ Línea Continua + Calco a Lápiz Debajo</option>
           <option value="stencil">✏️ Ver Solo el Calco a Lápiz / Silueta</option>
           <option value="photo">🖼️ Ver Foto Original</option>
         </select>
+        <!-- Tarjetas Interactivas 2x2 de Composición de Capa -->
+        <div class="view-layer-grid" role="radiogroup" aria-label="Capa visible en el lienzo">
+          <div class="view-layer-card active" data-view-value="line" role="radio" aria-checked="true" tabindex="0">
+            <div class="view-layer-header">
+              <div class="view-layer-icon-wrap">✒️</div>
+              <div class="view-layer-radio"></div>
+            </div>
+            <span class="view-layer-name">Línea Continua</span>
+            <span class="view-layer-desc">Trazo único</span>
+            <span class="view-layer-tag">Arte Final</span>
+          </div>
+          <div class="view-layer-card" data-view-value="both" role="radio" aria-checked="false" tabindex="0">
+            <div class="view-layer-header">
+              <div class="view-layer-icon-wrap">👁️</div>
+              <div class="view-layer-radio"></div>
+            </div>
+            <span class="view-layer-name">Línea + Calco</span>
+            <span class="view-layer-desc">Superposición</span>
+            <span class="view-layer-tag">Guía</span>
+          </div>
+          <div class="view-layer-card" data-view-value="stencil" role="radio" aria-checked="false" tabindex="0">
+            <div class="view-layer-header">
+              <div class="view-layer-icon-wrap">✏️</div>
+              <div class="view-layer-radio"></div>
+            </div>
+            <span class="view-layer-name">Calco Lápiz</span>
+            <span class="view-layer-desc">Sombras</span>
+            <span class="view-layer-tag">Tatuador</span>
+          </div>
+          <div class="view-layer-card" data-view-value="photo" role="radio" aria-checked="false" tabindex="0">
+            <div class="view-layer-header">
+              <div class="view-layer-icon-wrap">🖼️</div>
+              <div class="view-layer-radio"></div>
+            </div>
+            <span class="view-layer-name">Foto Original</span>
+            <span class="view-layer-desc">Sin procesar</span>
+            <span class="view-layer-tag">Referencia</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -562,6 +714,30 @@ function syncSlidersFromState() {
   setSlider('chaikinPasses', 'vChaikin', CHAIKIN_PASSES);
   setSlider('lineW', 'vWidth', LINE_W, 1);
   setSlider('colorScale', 'vColScale', COLOR_SCALE, 1);
+  syncViewLayerCards(VIEW_MODE);
+}
+
+function syncViewLayerCards(val = VIEW_MODE) {
+  const badgeMap = {
+    'line': 'Línea Pura',
+    'both': 'Superposición',
+    'stencil': 'Calco a Lápiz',
+    'photo': 'Foto Original'
+  };
+  const badge = document.getElementById('currentViewModeBadge');
+  if (badge && badgeMap[val]) {
+    badge.textContent = badgeMap[val];
+  }
+  document.querySelectorAll('.view-layer-card[data-view-value]').forEach(card => {
+    const isTarget = card.getAttribute('data-view-value') === val;
+    if (isTarget) {
+      card.classList.add('active');
+      card.setAttribute('aria-checked', 'true');
+    } else {
+      card.classList.remove('active');
+      card.setAttribute('aria-checked', 'false');
+    }
+  });
 }
 syncSlidersFromState();
 
@@ -4717,7 +4893,28 @@ document.getElementById('engineMode').addEventListener('change', (e) => {
 
 document.getElementById('viewMode').addEventListener('change', (e) => {
   VIEW_MODE = e.target.value;
+  syncViewLayerCards(VIEW_MODE);
   render();
+});
+
+document.querySelectorAll('.view-layer-card[data-view-value]').forEach(card => {
+  const activateCard = (e) => {
+    e.preventDefault();
+    const val = card.getAttribute('data-view-value');
+    const sel = document.getElementById('viewMode');
+    if (!sel || !val) return;
+    if (sel.value !== val) {
+      sel.value = val;
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    syncViewLayerCards(val);
+  };
+  card.addEventListener('click', activateCard);
+  card.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      activateCard(e);
+    }
+  });
 });
 
 // Controles del Motor de Color Orgánico
