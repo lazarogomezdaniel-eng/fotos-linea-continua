@@ -342,6 +342,35 @@
       box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
       font-weight: 700;
     }
+    .fusion-source-toggle {
+      display: inline-flex;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .fusion-src-btn {
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .fusion-src-btn:hover {
+      color: #f1f5f9;
+    }
+    .fusion-src-btn.active {
+      background: var(--accent);
+      color: #040810;
+      box-shadow: 0 1px 4px rgba(56, 189, 248, 0.4);
+    }
     .stage-actions {
       position: absolute;
       bottom: 12px;
@@ -2736,6 +2765,36 @@
           </div>
         </div>
 
+        <!-- FUSIÓN CON RETRATO / TRANSPARENCIA DE REFERENCIA -->
+        <div id="boxFusion" style="margin-bottom:8px;">
+          <div class="studio-slider-card">
+            <div class="studio-slider-header">
+              <div class="studio-slider-title">
+                <span>Fusión con Retrato</span>
+                <span class="studio-slider-hint">Transparencia fondo</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <div class="fusion-source-toggle" id="fusionSourceToggle">
+                  <button type="button" class="fusion-src-btn active" id="btnFusionStencil" data-source="stencil" title="Fundir con Calco a Lápiz">✏️ Calco</button>
+                  <button type="button" class="fusion-src-btn" id="btnFusionPhoto" data-source="photo" title="Fundir con Foto Original">📷 Foto</button>
+                </div>
+                <span class="studio-val-badge" id="vFusionOpacity">0% (Off)</span>
+              </div>
+            </div>
+            <div class="studio-slider-track-wrap">
+              <button type="button" class="stepper-btn" data-step-for="fusionOpacity" data-step-dir="-1" aria-label="Menos opacidad">−</button>
+              <input type="range" id="fusionOpacity" min="0" max="100" step="1" value="0" style="background: linear-gradient(to right, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0.9) 100%);">
+              <button type="button" class="stepper-btn" data-step-for="fusionOpacity" data-step-dir="1" aria-label="Más opacidad">+</button>
+            </div>
+            <div class="studio-quick-pills">
+              <button type="button" class="studio-pill active" data-set-target="fusionOpacity" data-set-value="0">0% Off</button>
+              <button type="button" class="studio-pill" data-set-target="fusionOpacity" data-set-value="20">20% Sutil</button>
+              <button type="button" class="studio-pill" data-set-target="fusionOpacity" data-set-value="45">45% Medio</button>
+              <button type="button" class="studio-pill" data-set-target="fusionOpacity" data-set-value="70">70% Nítido</button>
+            </div>
+          </div>
+        </div>
+
         <!-- Muestras Triádicas (Simple, debajo de la rueda cromática) -->
         <div id="boxPickers" class="color-pickers-row" style="margin-bottom:8px;">
           <div class="color-picker-item" id="itemColPick1" title="Tono 1 (Sombras)">
@@ -3019,6 +3078,8 @@ let COLOR_HUE = 205;
 let COLOR_SCALE = 3.5;
 let COLOR_INTENSITY = 1.0;
 let BG_THEME = 'white';
+let FUSION_OPACITY = 0; // 0..100 (%)
+let FUSION_SOURCE = 'stencil'; // 'stencil' | 'photo'
 let customColorsRGB = [
   [255, 77, 109],  // #ff4d6d
   [0, 210, 255],   // #00d2ff
@@ -3262,6 +3323,11 @@ function syncSlidersFromState() {
   setSlider('halftoneSpacing', 'vHalftoneSpacing', HALFTONE_SPACING, 1, 'px');
   setSlider('halftoneScale', 'vHalftoneScale', HALFTONE_SCALE, null, '%');
   setSlider('halftoneAngle', 'vHalftoneAngle', HALFTONE_ANGLE, null, '°');
+  const fEl = document.getElementById('fusionOpacity');
+  if (fEl) fEl.value = FUSION_OPACITY;
+  const fLbl = document.getElementById('vFusionOpacity');
+  if (fLbl) fLbl.textContent = FUSION_OPACITY <= 0 ? '0% (Off)' : `${Math.round(FUSION_OPACITY)}%`;
+  syncPresetPills('fusionOpacity', FUSION_OPACITY, 6);
   syncPresetPills('maxN', TARGET_NODES, 500);
   syncPresetPills('lineW', LINE_W, 0.15);
   syncPresetPills('chaikinPasses', CHAIKIN_PASSES, 0.1);
@@ -8821,9 +8887,16 @@ function render() {
     return;
   }
 
-  if (VIEW_MODE === 'both') {
-    ctx.globalAlpha = isBgDark() ? 0.14 : 0.28;
-    ctx.drawImage(stencilCanvas, 0, 0);
+  // FUSIÓN CON RETRATO (FONDO SEMITRANSPARENTE AJUSTABLE):
+  // Se dibuja si FUSION_OPACITY > 0 o si VIEW_MODE === 'both'
+  const effOpacity = (FUSION_OPACITY > 0)
+    ? (FUSION_OPACITY / 100.0)
+    : (VIEW_MODE === 'both' ? (isBgDark() ? 0.14 : 0.28) : 0);
+
+  if (effOpacity > 0.005) {
+    const underlayCanvas = (FUSION_SOURCE === 'photo') ? photoCanvas : stencilCanvas;
+    ctx.globalAlpha = Math.min(1.0, Math.max(0.0, effOpacity));
+    ctx.drawImage(underlayCanvas, 0, 0);
     ctx.globalAlpha = 1.0;
   }
 
@@ -10054,6 +10127,56 @@ document.getElementById('lineW').addEventListener('input', (e) => {
   }
 });
 
+// Controles de Fusión con Retrato (Fondo Semitransparente Calco / Foto)
+const elFusion = document.getElementById('fusionOpacity');
+const lblFusion = document.getElementById('vFusionOpacity');
+const btnFusionStencil = document.getElementById('btnFusionStencil');
+const btnFusionPhoto = document.getElementById('btnFusionPhoto');
+
+function updateFusionPillBadge(v) {
+  if (!lblFusion) return;
+  if (v <= 0) {
+    lblFusion.textContent = '0% (Off)';
+  } else {
+    lblFusion.textContent = `${Math.round(v)}%`;
+  }
+}
+
+function setFusionSource(source) {
+  FUSION_SOURCE = source;
+  if (btnFusionStencil) btnFusionStencil.classList.toggle('active', source === 'stencil');
+  if (btnFusionPhoto) btnFusionPhoto.classList.toggle('active', source === 'photo');
+  render();
+  if (typeof haptic === 'function') haptic(8);
+}
+
+if (btnFusionStencil) {
+  btnFusionStencil.addEventListener('click', () => setFusionSource('stencil'));
+}
+if (btnFusionPhoto) {
+  btnFusionPhoto.addEventListener('click', () => setFusionSource('photo'));
+}
+
+if (elFusion) {
+  elFusion.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value) || 0;
+    FUSION_OPACITY = val;
+    updateFusionPillBadge(val);
+    if (typeof syncPresetPills === 'function') {
+      syncPresetPills('fusionOpacity', val, 6);
+    }
+    if (VIEW_MODE === 'stencil' || VIEW_MODE === 'photo') {
+      VIEW_MODE = 'both';
+      syncViewLayerCards('both');
+    } else if (VIEW_MODE === 'line' && FUSION_OPACITY > 0) {
+      syncViewLayerCards('both');
+    } else if (FUSION_OPACITY === 0 && VIEW_MODE === 'both') {
+      syncViewLayerCards('line');
+    }
+    render();
+  });
+}
+
 // =========================================================
 // STUDIO ERGONOMICS: STEPPER BUTTONS & ACCIDENTAL SCROLL GUARD
 // =========================================================
@@ -10093,6 +10216,7 @@ document.querySelectorAll('.stepper-btn[data-step-for]').forEach(btn => {
 
 // Píldoras Rápidas de Presets de Definición para Sliders de Estudio
 const pillToleranceMap = {
+  'fusionOpacity': 6,
   'maxN': 500,
   'lineW': 0.15,
   'chaikinPasses': 0.1,
@@ -10166,6 +10290,24 @@ document.querySelectorAll('.floating-layer-btn[data-view-value]').forEach(btn =>
     } else {
       syncViewLayerCards(val);
     }
+    if (val === 'both') {
+      if (FUSION_OPACITY <= 0) {
+        FUSION_OPACITY = isBgDark() ? 15 : 28;
+      }
+      FUSION_SOURCE = 'stencil';
+      const fEl = document.getElementById('fusionOpacity');
+      if (fEl) fEl.value = FUSION_OPACITY;
+      updateFusionPillBadge(FUSION_OPACITY);
+      setFusionSource('stencil');
+      syncPresetPills('fusionOpacity', FUSION_OPACITY, 6);
+    } else if (val === 'line') {
+      FUSION_OPACITY = 0;
+      const fEl = document.getElementById('fusionOpacity');
+      if (fEl) fEl.value = 0;
+      updateFusionPillBadge(0);
+      syncPresetPills('fusionOpacity', 0, 6);
+    }
+    render();
     if (typeof haptic === 'function') {
       haptic(10);
     } else if (navigator.vibrate) {
@@ -10292,6 +10434,13 @@ document.getElementById('btnResetDefaults').onclick = () => {
   syncColorModeCards(COLOR_MODE);
   syncPaletteCards(COLOR_PALETTE);
   syncBgThemeChips(BG_THEME);
+  FUSION_OPACITY = 0;
+  FUSION_SOURCE = 'stencil';
+  const fEl = document.getElementById('fusionOpacity');
+  if (fEl) fEl.value = 0;
+  updateFusionPillBadge(0);
+  setFusionSource('stencil');
+  syncPresetPills('fusionOpacity', 0, 6);
   updateColorPanelVisibility();
   applyModePreset(ENGINE_MODE);
   rebuildPortrait(true);
