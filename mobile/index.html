@@ -16,33 +16,41 @@
   <style>
     :root {
       --bg-dark: #07090e;
-      --bg-dock: rgba(12, 16, 25, 0.88);
+      --bg-dock: rgba(11, 15, 24, 0.94);
       --bg-panel: #0d121c;
-      --bg-card: rgba(21, 28, 44, 0.70);
-      --bg-card-hover: rgba(30, 41, 64, 0.85);
-      --border: rgba(255, 255, 255, 0.08);
+      --bg-card: rgba(18, 25, 40, 0.82);
+      --bg-card-hover: rgba(26, 36, 56, 0.92);
+      --border: rgba(255, 255, 255, 0.09);
       --border-light: rgba(255, 255, 255, 0.14);
       --border-active: #38bdf8;
       --accent: #38bdf8;
-      --accent-glow: rgba(56, 189, 248, 0.35);
+      --accent-glow: rgba(56, 189, 248, 0.30);
       --gold: #f59e0b;
-      --gold-glow: rgba(245, 158, 11, 0.35);
+      --gold-glow: rgba(245, 158, 11, 0.30);
       --green: #10b981;
-      --green-glow: rgba(16, 185, 129, 0.35);
+      --green-glow: rgba(16, 185, 129, 0.30);
       --danger: #ef4444;
       --text: #f8fafc;
+      --text-light: #e2e8f0;
       --text-dim: #94a3b8;
-      --text-muted: #64748b;
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --safe-top: env(safe-area-inset-top, 0px);
       --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+      --radius-card: 12px;
+      --radius-chip: 10px;
     }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
     }
+
+    .is-hidden {
+      display: none !important;
+    }
+
     body {
       background: var(--bg-dark);
       color: var(--text);
@@ -56,11 +64,13 @@
       -webkit-user-select: none;
     }
 
-    /* TOP HEADER BAR */
+    /* =========================================================
+       1. TOP HEADER BAR (ALTURA UNIFICADA 36PX EN CONTROLES)
+       ========================================================= */
     #appHeader {
-      height: calc(50px + var(--safe-top));
+      height: calc(52px + var(--safe-top));
       padding-top: var(--safe-top);
-      background: rgba(10, 14, 22, 0.88);
+      background: rgba(10, 14, 22, 0.92);
       -webkit-backdrop-filter: blur(24px) saturate(180%);
       backdrop-filter: blur(24px) saturate(180%);
       border-bottom: 1px solid var(--border);
@@ -69,6 +79,7 @@
       justify-content: space-between;
       padding-left: 12px;
       padding-right: 12px;
+      gap: 8px;
       z-index: 50;
       flex-shrink: 0;
     }
@@ -76,23 +87,24 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-shrink: 0;
     }
     .icon-btn {
-      width: 38px;
-      height: 38px;
+      width: 36px;
+      height: 36px;
       border-radius: 10px;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border-light);
-      color: #fff;
+      color: #ffffff;
       font-size: 16px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.18s var(--ease-spring);
+      transition: all 0.16s var(--ease-spring);
     }
     .icon-btn:hover {
-      background: rgba(255, 255, 255, 0.10);
+      background: rgba(255, 255, 255, 0.12);
       border-color: var(--accent);
     }
     .icon-btn:active {
@@ -107,93 +119,87 @@
 
     .upload-btn {
       height: 36px;
-      padding: 0 10px;
-      border-radius: 9px;
-      background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
+      padding: 0 12px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
       border: 1px solid rgba(147, 197, 253, 0.45);
       color: #ffffff;
-      font-size: 11.5px;
+      font-size: 12px;
       font-weight: 700;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       cursor: pointer;
-      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
-      transition: all 0.18s var(--ease-spring);
-      user-select: none;
-      -webkit-user-select: none;
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.30);
+      transition: all 0.16s var(--ease-spring);
       flex-shrink: 0;
-    }
-    .upload-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.50);
     }
     .upload-btn:active {
       transform: scale(0.94);
-      box-shadow: 0 1px 4px rgba(37, 99, 235, 0.3);
     }
     .upload-btn .upload-svg {
       width: 16px;
       height: 16px;
       flex-shrink: 0;
-      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
-      transition: transform 0.18s ease;
     }
-    .upload-btn:hover .upload-svg {
-      transform: translateY(-1px) scale(1.05);
-    }
-    .upload-btn .upload-text { letter-spacing: 0.2px; }
 
-    .mode-pill {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      display: flex;
+    /* Selector Bimodal Puro en Cabecera (Línea Pura vs Calco Puro) */
+    .header-layer-bar {
+      height: 36px;
+      display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 5px 11px;
-      border-radius: 999px;
-      background: rgba(12, 16, 26, 0.82);
-      -webkit-backdrop-filter: blur(16px) saturate(180%);
-      backdrop-filter: blur(16px) saturate(180%);
+      gap: 2px;
+      background: rgba(15, 22, 36, 0.90);
       border: 1px solid var(--border-light);
-      font-size: 11px;
-      font-weight: 600;
-      color: #f1f5f9;
-      cursor: pointer;
-      max-width: 175px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
-      transition: all 0.18s ease;
-      z-index: 25;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .mode-pill:hover {
-      border-color: var(--accent);
-      background: rgba(20, 27, 44, 0.92);
-    }
-    .mode-pill:active {
-      transform: scale(0.95);
-      background: rgba(30, 41, 64, 0.95);
-    }
-    .mode-pill .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 8px #10b981;
+      border-radius: 10px;
+      padding: 3px;
       flex-shrink: 0;
-      animation: liveDotPulse 2s infinite ease-in-out;
     }
-    @keyframes liveDotPulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.55; transform: scale(0.85); }
+    .header-layer-bar .floating-layer-btn {
+      height: 28px;
+      padding: 0 12px;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.16s ease;
+      white-space: nowrap;
+    }
+    .header-layer-bar .floating-layer-btn:hover {
+      color: #f8fafc;
+    }
+    .header-layer-bar .floating-layer-btn:active {
+      transform: scale(0.95);
+    }
+    .header-layer-bar .floating-layer-btn.active {
+      background: linear-gradient(135deg, rgba(30, 58, 138, 0.75) 0%, rgba(14, 28, 54, 0.98) 100%);
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.45);
+      box-shadow: 0 1px 8px rgba(56, 189, 248, 0.22);
+      font-weight: 700;
     }
 
-    /* HERO STAGE & CANVAS VIEWPORT */
+    @media (max-width: 360px) {
+      .header-layer-bar .floating-layer-btn {
+        padding: 0 8px;
+        font-size: 11px;
+      }
+      .upload-btn {
+        padding: 0 9px;
+        font-size: 11px;
+      }
+    }
+
+    /* =========================================================
+       2. HERO STAGE & CANVAS VIEWPORT
+       ========================================================= */
     #stage {
       flex: 1;
       position: relative;
@@ -216,14 +222,31 @@
       width: fit-content;
       height: fit-content;
     }
+    canvas {
+      display: block;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.82), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      max-width: 94vw;
+      max-height: calc(100dvh - 335px);
+      object-fit: contain;
+      transition: max-height 0.28s var(--ease-spring);
+    }
+    body.dock-collapsed canvas {
+      max-height: calc(100dvh - 125px) !important;
+    }
+    body.dock-expanded canvas {
+      max-height: calc(100dvh - 56dvh) !important;
+    }
+
     .focal-marker {
       position: absolute;
-      width: 34px;
-      height: 34px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       border: 2.5px solid #f59e0b;
-      background: radial-gradient(circle, rgba(245, 158, 11, 0.5) 0%, rgba(245, 158, 11, 0.08) 70%, transparent 100%);
-      box-shadow: 0 0 18px rgba(245, 158, 11, 0.9), inset 0 0 8px rgba(245, 158, 11, 0.5);
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.45) 0%, rgba(245, 158, 11, 0.08) 70%, transparent 100%);
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.85);
       pointer-events: none;
       transform: translate(-50%, -50%);
       animation: focalPulse 1.8s infinite ease-in-out;
@@ -239,202 +262,98 @@
       border-radius: 50%;
       background: #ffffff;
       transform: translate(-50%, -50%);
-      box-shadow: 0 0 6px #f59e0b;
     }
     @keyframes focalPulse {
       0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.95; }
-      50% { transform: translate(-50%, -50%) scale(1.35); opacity: 0.55; }
-    }
-    canvas {
-      display: block;
-      background: #ffffff;
-      border-radius: 8px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.82), 0 0 35px rgba(56, 189, 248, 0.07), 0 0 0 1px rgba(255, 255, 255, 0.08);
-      max-width: 94vw;
-      max-height: calc(100dvh - 300px);
-      object-fit: contain;
-      transition: max-height 0.3s var(--ease-spring);
-    }
-    body.dock-collapsed canvas {
-      max-height: calc(100dvh - 120px) !important;
-    }
-    body.dock-expanded canvas {
-      max-height: calc(100dvh - 54dvh) !important;
+      50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.55; }
     }
 
-    /* Floating Canvas Overlays */
     .floating-pill {
       position: absolute;
       bottom: 12px;
       left: 12px;
-      background: rgba(12, 16, 26, 0.85);
-      -webkit-backdrop-filter: blur(16px) saturate(180%);
-      backdrop-filter: blur(16px) saturate(180%);
+      height: 32px;
+      background: rgba(12, 16, 26, 0.88);
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
       border: 1px solid var(--border-light);
-      padding: 5px 12px;
+      padding: 0 12px;
       border-radius: 999px;
-      font-size: 11px;
+      font-size: 11.5px;
       font-weight: 600;
       color: #f1f5f9;
       cursor: pointer;
-      pointer-events: auto;
       z-index: 20;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
-      letter-spacing: 0.2px;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.18s ease;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .floating-pill:hover {
-      border-color: var(--accent);
-      background: rgba(20, 27, 44, 0.95);
+      transition: all 0.16s ease;
     }
     .floating-pill:active {
       transform: scale(0.95);
     }
 
-    /* HEADER LAYER SELECTOR (BARRA SUPERIOR FUERA DEL LIENZO) */
-    .header-layer-bar {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      background: rgba(14, 20, 32, 0.85);
-      -webkit-backdrop-filter: blur(16px);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.10);
-      border-radius: 999px;
-      padding: 2px;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
-      user-select: none;
-      -webkit-user-select: none;
-      flex-shrink: 0;
-    }
-    .header-layer-bar .floating-layer-btn {
-      padding: 5px 9px;
-      border-radius: 999px;
-      border: 1px solid transparent;
-      background: transparent;
-      color: #94a3b8;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      transition: all 0.18s ease;
-      -webkit-tap-highlight-color: transparent;
-      white-space: nowrap;
-    }
-    .header-layer-bar .floating-layer-btn:hover {
-      color: #f1f5f9;
-      background: rgba(255, 255, 255, 0.06);
-    }
-    .header-layer-bar .floating-layer-btn:active {
-      transform: scale(0.95);
-    }
-    .header-layer-bar .floating-layer-btn.active {
-      background: linear-gradient(135deg, rgba(30, 58, 138, 0.7) 0%, rgba(14, 28, 54, 0.95) 100%);
-      color: #38bdf8;
-      border-color: rgba(56, 189, 248, 0.4);
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
-      font-weight: 700;
-    }
-    .fusion-source-toggle {
-      display: inline-flex;
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 999px;
-      padding: 2px;
-      gap: 2px;
-    }
-    .fusion-src-btn {
-      border: none;
-      background: transparent;
-      color: #94a3b8;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 999px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      white-space: nowrap;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .fusion-src-btn:hover {
-      color: #f1f5f9;
-    }
-    .fusion-src-btn.active {
-      background: var(--accent);
-      color: #040810;
-      box-shadow: 0 1px 4px rgba(56, 189, 248, 0.4);
-    }
     .stage-actions {
       position: absolute;
       bottom: 12px;
       right: 12px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       z-index: 10;
     }
     .stage-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: rgba(20, 27, 42, 0.88);
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      background: rgba(16, 22, 36, 0.88);
       -webkit-backdrop-filter: blur(16px);
       backdrop-filter: blur(16px);
       border: 1px solid var(--border-light);
-      color: #fff;
-      font-size: 16px;
+      color: #ffffff;
+      font-size: 15px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.50);
       cursor: pointer;
-      transition: all 0.2s var(--ease-spring);
+      transition: all 0.18s var(--ease-spring);
     }
     .stage-btn:active {
-      transform: scale(0.90);
+      transform: scale(0.92);
     }
     .stage-btn.gold {
       background: linear-gradient(135deg, #78350f 0%, #b45309 100%);
-      border-color: rgba(251, 191, 36, 0.6);
-      box-shadow: 0 4px 16px var(--gold-glow);
+      border-color: rgba(251, 191, 36, 0.55);
     }
     .stage-btn.active {
       background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%) !important;
       color: #ffffff !important;
-      border-color: rgba(147, 197, 253, 0.6) !important;
-      box-shadow: 0 0 16px rgba(37, 99, 235, 0.65) !important;
+      border-color: rgba(147, 197, 253, 0.65) !important;
       font-weight: 700;
-      font-size: 13px;
+      font-size: 12.5px;
     }
-    .stage-btn.recording {
-      background: #dc2626 !important;
-      border-color: #f87171 !important;
-      animation: pulseRec 1.2s infinite;
+    @keyframes pulseRec {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.65; transform: scale(0.96); }
     }
-    @keyframes pulseRec { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.95); } }
 
-    /* BOTTOM STUDIO DOCK (COLLAPSIBLE SHEET) */
+    /* =========================================================
+       3. BOTTOM STUDIO DOCK & SYMMETRIC CONTAINER
+       ========================================================= */
     #studioDock {
       background: var(--bg-dock);
-      -webkit-backdrop-filter: blur(30px) saturate(190%);
-      backdrop-filter: blur(30px) saturate(190%);
+      -webkit-backdrop-filter: blur(30px) saturate(180%);
+      backdrop-filter: blur(30px) saturate(180%);
       border-top: 1px solid var(--border-light);
       z-index: 40;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.60);
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.55);
       flex-shrink: 0;
-      transition: all 0.3s var(--ease-spring);
+      transition: all 0.28s var(--ease-spring);
     }
-
-    /* Grabber Bar */
     .dock-grabber-bar {
       height: 20px;
       display: flex;
@@ -443,8 +362,6 @@
       cursor: pointer;
       touch-action: none;
       flex-shrink: 0;
-      user-select: none;
-      -webkit-user-select: none;
     }
     .dock-grabber-pill {
       width: 38px;
@@ -453,23 +370,18 @@
       background: rgba(255, 255, 255, 0.28);
       transition: all 0.2s ease;
     }
-    .dock-grabber-bar:hover .dock-grabber-pill {
-      background: rgba(255, 255, 255, 0.48);
-      width: 48px;
-    }
     .dock-grabber-bar:active .dock-grabber-pill {
       background: var(--accent);
-      transform: scaleY(1.3);
     }
 
     #dockContent {
-      height: 205px;
+      height: 242px;
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 6px 12px 10px 12px;
+      padding: 6px 14px 14px 14px;
       overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch;
-      transition: height 0.3s var(--ease-spring), padding 0.3s var(--ease-spring);
+      transition: height 0.28s var(--ease-spring), padding 0.28s var(--ease-spring);
     }
     #studioDock.collapsed #dockContent {
       height: 0px;
@@ -478,28 +390,31 @@
       overflow: hidden;
     }
     #studioDock.expanded #dockContent {
-      height: min(48dvh, 400px);
+      height: min(52dvh, 430px);
     }
 
-    .tab-pane { display: none; }
+    .tab-pane {
+      display: none;
+    }
     .tab-pane.active {
-      display: block;
-      animation: tabFadeIn 0.22s var(--ease-spring);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: tabFadeIn 0.2s var(--ease-spring);
     }
     @keyframes tabFadeIn {
-      from { opacity: 0; transform: translateY(6px); }
+      from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* DOCK TAB SWITCHER */
+    /* DOCK TABS (BARRA INFERIOR PRINCIPAL) */
     #dockTabs {
-      height: calc(52px + var(--safe-bottom));
+      height: calc(54px + var(--safe-bottom));
       padding-bottom: var(--safe-bottom);
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid var(--border);
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      background: rgba(10, 14, 22, 0.95);
-      position: relative;
+      background: rgba(9, 13, 21, 0.96);
     }
     .tab-btn {
       background: none;
@@ -510,53 +425,337 @@
       align-items: center;
       justify-content: center;
       gap: 3px;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.18s ease;
       position: relative;
       padding: 6px 0;
+      transition: color 0.16s ease;
     }
     .tab-btn .t-icon {
-      font-size: 18px;
-      transition: transform 0.18s var(--ease-spring);
-    }
-    .tab-btn:hover {
-      color: #cbd5e1;
+      font-size: 17px;
+      transition: transform 0.16s var(--ease-spring);
     }
     .tab-btn.active {
       color: var(--accent);
+      font-weight: 700;
     }
     .tab-btn.active .t-icon {
-      transform: scale(1.15) translateY(-1px);
-      filter: drop-shadow(0 0 6px var(--accent-glow));
+      transform: translateY(-1px) scale(1.1);
     }
     .tab-btn.active::after {
       content: '';
       position: absolute;
       bottom: var(--safe-bottom);
-      width: 22px;
+      width: 24px;
       height: 2.5px;
       border-radius: 999px;
       background: var(--accent);
-      box-shadow: 0 0 8px var(--accent);
     }
 
-    /* STYLE CAROUSEL (17 CARDS) */
-    .style-carousel {
+    /* =========================================================
+       4. SUB-NAVEGACIÓN UNIFICADA (TRAZO Y COLOR)
+       ========================================================= */
+    .studio-subnav {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 4px;
+      background: rgba(9, 13, 22, 0.85);
+      padding: 4px;
+      border-radius: 11px;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .studio-subnav-btn {
+      height: 32px;
+      padding: 0 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-dim);
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
       display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: all 0.16s ease;
+    }
+    .studio-subnav-btn:hover {
+      color: #f8fafc;
+    }
+    .studio-subnav-btn.active {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.35);
+      font-weight: 700;
+    }
+
+    .subtrazo-pane, .subcolor-pane {
+      display: none;
+    }
+    .subtrazo-pane.active, .subcolor-pane.active {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      animation: tabFadeIn 0.16s var(--ease-spring);
+    }
+
+    /* =========================================================
+       5. SISTEMA UNIFICADO DE SLIDERS (CERO SOLAPAMIENTOS)
+       ========================================================= */
+    .studio-2col-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      width: 100%;
+    }
+    @media (min-width: 600px) and (max-width: 860px) {
+      .studio-2col-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+    }
+
+    .studio-slider-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 100%;
+      min-width: 0;
+    }
+    .studio-slider-card.hero {
+      background: linear-gradient(135deg, rgba(16, 30, 56, 0.88) 0%, rgba(12, 20, 38, 0.92) 100%);
+      border-color: rgba(56, 189, 248, 0.30);
+    }
+
+    .studio-slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       gap: 10px;
+      min-height: 22px;
+      min-width: 0;
+    }
+    .studio-slider-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #f1f5f9;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+    .studio-val-badge {
+      font-size: 11.5px;
+      font-weight: 700;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      padding: 2px 8px;
+      border-radius: 6px;
+      min-width: 54px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .studio-slider-track-wrap {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      height: 28px;
+      min-width: 0;
+    }
+
+    /* Native Range Input con carril reservado de 28px */
+    input[type="range"]:not(.scp-hue-slider) {
+      --slider-progress: 50%;
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 28px;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      outline: none;
+      cursor: pointer;
+      touch-action: pan-y;
+    }
+    input[type="range"]:not(.scp-hue-slider)::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: linear-gradient(
+        to right,
+        #38bdf8 0%,
+        #38bdf8 var(--slider-progress),
+        #1e293b var(--slider-progress),
+        #1e293b 100%
+      );
+    }
+    input[type="range"].hue-rainbow-range::-webkit-slider-runnable-track {
+      background: linear-gradient(
+        to right,
+        #ff0000 0%,
+        #ffff00 17%,
+        #00ff00 33%,
+        #00ffff 50%,
+        #0000ff 67%,
+        #ff00ff 83%,
+        #ff0000 100%
+      );
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+    input[type="range"]:not(.scp-hue-slider)::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      margin-top: -7px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid #0f172a;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.55), 0 0 0 1.5px rgba(56, 189, 248, 0.65);
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+    }
+    input[type="range"]:not(.scp-hue-slider)::-webkit-slider-thumb:active {
+      transform: scale(1.16);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.85), 0 0 0 2px #38bdf8;
+    }
+
+    /* Firefox Range Rules (bloque independiente según especificación estándar) */
+    input[type="range"]:not(.scp-hue-slider)::-moz-range-track {
+      height: 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #1e293b;
+    }
+    input[type="range"].hue-rainbow-range::-moz-range-track {
+      background: linear-gradient(
+        to right,
+        #ff0000 0%,
+        #ffff00 17%,
+        #00ff00 33%,
+        #00ffff 50%,
+        #0000ff 67%,
+        #ff00ff 83%,
+        #ff0000 100%
+      );
+    }
+    input[type="range"]:not(.scp-hue-slider)::-moz-range-progress {
+      height: 6px;
+      border-radius: 999px;
+      background: #38bdf8;
+    }
+    input[type="range"].hue-rainbow-range::-moz-range-progress {
+      background: transparent;
+    }
+    input[type="range"]:not(.scp-hue-slider)::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid #0f172a;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.55), 0 0 0 1.5px rgba(56, 189, 248, 0.65);
+    }
+
+    input[type="range"]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 6px;
+    }
+
+    /* Quick Pills (Solo en controles clave con separación holgada) */
+    .studio-quick-pills {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 2px;
+      width: 100%;
+    }
+    .studio-pill {
+      height: 28px;
+      padding: 0 6px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      color: var(--text-light);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.14s ease;
+    }
+    .studio-pill:active {
+      transform: scale(0.96);
+    }
+    .studio-pill.active {
+      background: rgba(56, 189, 248, 0.20);
+      border-color: var(--accent);
+      color: #38bdf8;
+      font-weight: 700;
+    }
+
+    /* =========================================================
+       6. CARRUSELES VISUALES UNIFICADOS (ESTILOS, MODOS Y PALETAS)
+       ========================================================= */
+    .studio-group-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .studio-block-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 2px;
+    }
+    .studio-block-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-dim);
+      letter-spacing: 0.3px;
+    }
+    .studio-block-value {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .style-carousel, .color-carousel {
+      display: flex;
+      gap: 8px;
       overflow-x: auto;
-      padding: 4px 4px 10px 4px;
+      padding: 2px 2px 6px 2px;
       scrollbar-width: none;
       -webkit-overflow-scrolling: touch;
       scroll-snap-type: x mandatory;
     }
-    .style-carousel::-webkit-scrollbar { display: none; }
+    .style-carousel::-webkit-scrollbar, .color-carousel::-webkit-scrollbar {
+      display: none;
+    }
+
     .style-card {
-      flex: 0 0 110px;
-      height: 100px;
-      border-radius: 14px;
+      flex: 0 0 102px;
+      height: 88px;
+      border-radius: var(--radius-card);
       background: var(--bg-card);
       border: 1px solid var(--border-light);
       padding: 8px 6px;
@@ -565,938 +764,221 @@
       align-items: center;
       justify-content: space-between;
       cursor: pointer;
-      transition: all 0.2s var(--ease-spring);
+      transition: all 0.18s var(--ease-spring);
       text-align: center;
       scroll-snap-align: start;
-      position: relative;
-      user-select: none;
-      -webkit-user-select: none;
     }
-    .style-card:hover {
-      background: var(--bg-card-hover);
-      border-color: rgba(56, 189, 248, 0.4);
+    .style-card:active, .color-mode-card:active, .palette-card:active {
+      transform: scale(0.96);
     }
-    .style-card:active {
-      transform: scale(0.95);
-    }
-    .style-card.active {
-      background: linear-gradient(145deg, rgba(30, 58, 138, 0.35) 0%, rgba(15, 23, 42, 0.90) 100%);
+    .style-card.active, .color-mode-card.active, .palette-card.active {
+      background: linear-gradient(145deg, rgba(30, 58, 138, 0.48) 0%, rgba(15, 23, 42, 0.95) 100%);
       border-color: var(--accent);
-      box-shadow: 0 0 18px var(--accent-glow), inset 0 0 0 1px var(--accent);
-      transform: translateY(-2px);
+      box-shadow: 0 0 14px var(--accent-glow), inset 0 0 0 1px rgba(56, 189, 248, 0.45);
     }
-    .style-card .card-emoji-box {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.05);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
+    .style-card .card-emoji {
+      font-size: 21px;
+      line-height: 1;
     }
-    .style-card.active .card-emoji-box {
-      background: rgba(56, 189, 248, 0.22);
-      box-shadow: 0 0 12px var(--accent-glow);
-    }
-    .style-card .card-emoji { font-size: 22px; line-height: 1; }
-    .style-card .card-title {
-      font-size: 11px;
+    .style-card .card-title, .color-mode-title, .palette-title {
+      font-size: 11.5px;
       font-weight: 700;
       color: #f1f5f9;
-      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90px;
     }
-    .style-card.active .card-title {
+    .style-card.active .card-title, .color-mode-card.active .color-mode-title, .palette-card.active .palette-title {
       color: #ffffff;
-      font-weight: 800;
     }
-    .style-card .card-badge {
-      font-size: 8.5px;
+    .style-card .card-badge, .color-mode-badge, .palette-badge {
+      font-size: 10px;
       font-weight: 600;
       color: var(--text-dim);
       background: rgba(255, 255, 255, 0.06);
-      padding: 2px 6px;
-      border-radius: 6px;
-      letter-spacing: 0.2px;
+      padding: 1px 6px;
+      border-radius: 5px;
+      white-space: nowrap;
+      max-width: 92px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .style-card.active .card-badge {
+    .style-card.active .card-badge, .color-mode-card.active .color-mode-badge, .palette-card.active .palette-badge {
       color: var(--accent);
       background: rgba(56, 189, 248, 0.16);
-      font-weight: 700;
+    }
+
+    .color-mode-card, .palette-card {
+      flex: 0 0 102px;
+      height: 74px;
+      border-radius: var(--radius-card);
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      padding: 7px 7px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.18s var(--ease-spring);
+      text-align: center;
+      scroll-snap-align: start;
+    }
+    .color-mode-preview, .palette-swatch {
+      width: 100%;
+      height: 18px;
+      border-radius: 6px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
     }
 
     .mode-desc-bar {
-      font-size: 11px;
-      color: #cbd5e1;
-      margin-top: 8px;
+      font-size: 11.5px;
+      color: var(--text-light);
       line-height: 1.35;
-      background: rgba(13, 18, 28, 0.85);
+      background: rgba(14, 20, 33, 0.85);
       padding: 8px 12px;
-      border-radius: 8px;
+      border-radius: 10px;
       border: 1px solid var(--border);
     }
 
-    /* CONTROLS & RANGE SLIDERS */
-    .controls-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px 14px;
-    }
-    label {
-      font-size: 11px;
-      color: var(--text-dim);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 500;
-      margin-bottom: 2px;
-    }
-    label span {
-      color: #38bdf8;
-      font-weight: 700;
-      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-      background: rgba(56, 189, 248, 0.10);
-      padding: 1px 6px;
-      border-radius: 5px;
-      font-size: 10.5px;
-      border: 1px solid rgba(56, 189, 248, 0.22);
-    }
-    input[type="range"] {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 100%;
-      height: 6px;
-      border-radius: 999px;
-      background: #1c2438;
-      outline: none;
-      margin-top: 4px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      touch-action: pan-y !important;
-    }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #ffffff;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.85);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-      touch-action: pan-y !important;
-    }
-    input[type="range"]::-webkit-slider-thumb:active {
-      transform: scale(1.22);
-      box-shadow: 0 0 14px rgba(56, 189, 248, 0.8), 0 0 0 2px #38bdf8;
-      background: #ecfeff;
-    }
-    input[type="range"]::-moz-range-thumb {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #ffffff;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-    }
-    select {
-      background: #172033;
-      color: #f8fafc;
-      border: 1px solid var(--border-light);
-      padding: 7px 10px;
-      border-radius: 8px;
-      font-size: 11.5px;
-      font-weight: 600;
-      outline: none;
-      width: 100%;
-      transition: border-color 0.18s ease;
-    }
-    select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 10px var(--accent-glow);
-    }
-
-    /* STUDIO PARAMETER CARDS & SECTIONS (ERGONOMIC & SCROLL-SAFE) */
-    .studio-section-title {
-      font-size: 10.5px;
-      font-weight: 800;
-      color: #94a3b8;
-      letter-spacing: 0.7px;
-      text-transform: uppercase;
-      margin: 14px 2px 8px 2px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .studio-section-title .sec-icon {
-      font-size: 13px;
-    }
-    .param-cards-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    @media (max-width: 360px) {
-      .param-cards-grid {
-        grid-template-columns: 1fr;
-      }
-      .floating-layer-btn {
-        padding: 4px 7px;
-        font-size: 10px;
-        gap: 2px;
-      }
-      .studio-subnav-btn {
-        font-size: 9.5px;
-        padding: 5px 2px;
-      }
-    }
-    .param-card {
-      background: rgba(17, 24, 39, 0.78);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 10px 11px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      transition: border-color 0.18s ease, background 0.18s ease;
-      touch-action: pan-y !important;
-    }
-    .param-card:hover {
-      background: rgba(22, 31, 50, 0.88);
-      border-color: rgba(56, 189, 248, 0.28);
-    }
-    .param-card.hero {
-      background: linear-gradient(135deg, rgba(14, 28, 54, 0.90) 0%, rgba(10, 19, 36, 0.92) 100%);
-      border: 1px solid rgba(56, 189, 248, 0.38);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      margin-bottom: 2px;
-    }
-    .param-card.full-width {
-      width: 100%;
-    }
-    .param-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      touch-action: pan-y !important;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .param-title-group {
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-      touch-action: pan-y !important;
-    }
-    .param-title {
-      font-size: 11.5px;
-      font-weight: 700;
-      color: #f1f5f9;
-      line-height: 1.2;
-    }
-    .param-sub {
-      font-size: 9px;
-      color: #94a3b8;
-      font-weight: 500;
-    }
-    .param-badge {
-      font-size: 11px;
-      font-weight: 800;
-      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-      color: #38bdf8;
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.28);
-      padding: 2px 7px;
-      border-radius: 6px;
-      letter-spacing: 0.3px;
-      flex-shrink: 0;
-    }
-    .param-badge.hero {
-      font-size: 13px;
-      color: #67e8f9;
-      background: rgba(6, 182, 212, 0.18);
-      border-color: rgba(6, 182, 212, 0.45);
-      box-shadow: 0 0 10px rgba(6, 182, 212, 0.25);
-      padding: 3px 9px;
-    }
-    .param-control-row {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      touch-action: pan-y !important;
-    }
-    .stepper-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #e2e8f0;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: all 0.15s ease;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: manipulation;
-    }
-    .stepper-btn:hover {
-      background: rgba(56, 189, 248, 0.18);
-      border-color: rgba(56, 189, 248, 0.4);
-      color: #38bdf8;
-    }
-    .stepper-btn:active {
-      transform: scale(0.90);
-      background: rgba(56, 189, 248, 0.32);
-      color: #ffffff;
-    }
-    .slider-wrapper {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      position: relative;
-      touch-action: pan-y !important;
-    }
-    .slider-wrapper input[type="range"] {
-      width: 100%;
-      margin: 0;
-      touch-action: pan-y !important;
-    }
-    .param-presets {
-      display: flex;
-      gap: 6px;
-      margin-top: 2px;
-      overflow-x: auto;
-      scrollbar-width: none;
-      padding: 2px 0;
-    }
-    .param-presets::-webkit-scrollbar { display: none; }
-    .preset-pill {
-      flex: 1;
-      padding: 5px 8px;
-      font-size: 10px;
-      font-weight: 700;
-      border-radius: 7px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.10);
-      color: #cbd5e1;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      white-space: nowrap;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: manipulation;
-    }
-    .preset-pill:hover {
-      background: rgba(56, 189, 248, 0.15);
-      border-color: rgba(56, 189, 248, 0.3);
-      color: #f8fafc;
-    }
-    .preset-pill:active {
-      transform: scale(0.95);
-    }
-    .preset-pill.active {
-      background: rgba(56, 189, 248, 0.22);
-      border-color: var(--accent);
-      color: #38bdf8;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
-    }
-
     /* =========================================================
-       STUDIO VIEW LAYER CARDS (CAPA VISIBLE EN PANTALLA)
+       7. SISTEMA UNIFICADO DE MUESTRAS / CÍRCULOS 18PX (TRÍADA Y LIENZO)
        ========================================================= */
-    .view-layer-grid {
+    .swatch-grid-3 {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
-      margin-top: 4px;
-    }
-    @media (max-width: 340px) {
-      .view-layer-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-    .view-layer-card {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 6px;
-      padding: 10px 11px;
-      border-radius: 12px;
-      background: rgba(15, 23, 42, 0.65);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      cursor: pointer;
-      user-select: none;
-      -webkit-user-select: none;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      -webkit-tap-highlight-color: transparent;
-      outline: none;
-      touch-action: manipulation;
-    }
-    .view-layer-card:hover {
-      background: rgba(30, 41, 59, 0.85);
-      border-color: rgba(56, 189, 248, 0.35);
-      transform: translateY(-1px);
-    }
-    .view-layer-card:active {
-      transform: scale(0.97);
-    }
-    .view-layer-card.active {
-      background: linear-gradient(135deg, rgba(14, 38, 74, 0.90) 0%, rgba(10, 25, 48, 0.95) 100%);
-      border-color: #38bdf8;
-      box-shadow: 0 0 16px rgba(56, 189, 248, 0.28), inset 0 0 0 1px rgba(56, 189, 248, 0.35);
-    }
-    .view-layer-header {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .view-layer-icon-wrap {
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255, 255, 255, 0.06);
-      color: #94a3b8;
-      transition: all 0.2s ease;
-    }
-    .view-layer-card.active .view-layer-icon-wrap {
-      background: rgba(56, 189, 248, 0.22);
-      color: #38bdf8;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
-    }
-    .view-layer-radio {
-      width: 15px;
-      height: 15px;
-      border-radius: 50%;
-      border: 1.5px solid rgba(255, 255, 255, 0.25);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-    }
-    .view-layer-card.active .view-layer-radio {
-      border-color: #38bdf8;
-      background: #38bdf8;
-      box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
-    }
-    .view-layer-radio::after {
-      content: '';
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: #0b0f19;
-      opacity: 0;
-      transform: scale(0.4);
-      transition: all 0.18s ease;
-    }
-    .view-layer-card.active .view-layer-radio::after {
-      opacity: 1;
-      transform: scale(1);
-    }
-    .view-layer-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
       width: 100%;
     }
-    .view-layer-name {
-      font-size: 11.5px;
-      font-weight: 700;
-      color: #f1f5f9;
-      line-height: 1.2;
-    }
-    .view-layer-card.active .view-layer-name {
-      color: #ffffff;
-      font-weight: 800;
-    }
-    .view-layer-desc {
-      font-size: 9px;
-      color: #94a3b8;
-      font-weight: 500;
-      line-height: 1.2;
-    }
-    .view-layer-card.active .view-layer-desc {
-      color: #7dd3fc;
-    }
-    .view-layer-tag {
-      font-size: 8px;
-      font-weight: 800;
-      letter-spacing: 0.4px;
-      text-transform: uppercase;
-      padding: 1px 5px;
-      border-radius: 4px;
-      background: rgba(255, 255, 255, 0.06);
-      color: #94a3b8;
-      align-self: flex-start;
-      margin-top: 1px;
-    }
-    .view-layer-card.active .view-layer-tag {
-      background: rgba(56, 189, 248, 0.20);
-      color: #38bdf8;
-      border: 1px solid rgba(56, 189, 248, 0.35);
-    }
-    .view-layer-hint {
-      margin-top: 4px;
-      padding: 6px 9px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px dashed rgba(255, 255, 255, 0.08);
-      font-size: 9.5px;
-      color: #94a3b8;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      line-height: 1.3;
-    }
-    .view-layer-hint strong {
-      color: #e2e8f0;
-    }
-
-    /* STUDIO SUBNAV FOR ZERO-SCROLL CONTROL */
-    .studio-subnav {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 5px;
-      background: rgba(10, 14, 22, 0.75);
-      padding: 4px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      margin-bottom: 8px;
-    }
-    .studio-subnav-btn {
-      padding: 6px 4px;
-      font-size: 10.5px;
-      font-weight: 600;
-      color: var(--text-dim);
-      background: transparent;
-      border: 1px solid transparent;
-      border-radius: 7px;
-      cursor: pointer;
-      text-align: center;
-      white-space: nowrap;
-      transition: all 0.16s ease;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .studio-subnav-btn:hover {
-      color: #f1f5f9;
-      background: rgba(255, 255, 255, 0.04);
-    }
-    .studio-subnav-btn.active {
-      background: rgba(56, 189, 248, 0.14);
-      color: #38bdf8;
-      border-color: rgba(56, 189, 248, 0.32);
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
-      font-weight: 700;
-    }
-
-    .subtrazo-pane {
-      display: none;
-      animation: subFadeIn 0.18s var(--ease-spring);
-    }
-    .subtrazo-pane.active {
-      display: block;
-    }
-    @keyframes subFadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* HIGH-DENSITY STUDIO SLIDER CARDS */
-    .studio-2col-grid {
+    .swatch-grid-2 {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 7px;
-      width: 100%;
-    }
-    .studio-slider-card {
-      background: rgba(15, 22, 36, 0.70);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
-      padding: 7px 9px;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      min-width: 0;
-      transition: all 0.18s ease;
-    }
-    .studio-slider-card:hover {
-      background: rgba(20, 29, 48, 0.85);
-      border-color: rgba(56, 189, 248, 0.25);
-    }
-    .studio-slider-card.hero {
-      background: linear-gradient(135deg, rgba(14, 28, 54, 0.85) 0%, rgba(10, 19, 36, 0.90) 100%);
-      border-color: rgba(56, 189, 248, 0.35);
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
-      width: 100%;
-    }
-    .studio-slider-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      user-select: none;
-      -webkit-user-select: none;
-      min-width: 0;
-    }
-    .studio-slider-title {
-      font-size: 11px;
-      font-weight: 700;
-      color: #f1f5f9;
-      display: flex;
-      align-items: baseline;
-      gap: 5px;
-      line-height: 1.2;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .studio-slider-hint {
-      font-size: 8.5px;
-      color: #94a3b8;
-      font-weight: 500;
-    }
-    .studio-val-badge {
-      font-size: 10.5px;
-      font-weight: 800;
-      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-      color: #38bdf8;
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      padding: 1px 6px;
-      border-radius: 5px;
-      letter-spacing: 0.3px;
-      flex-shrink: 0;
-    }
-    .studio-val-badge.hero {
-      font-size: 12px;
-      color: #67e8f9;
-      background: rgba(6, 182, 212, 0.18);
-      border-color: rgba(6, 182, 212, 0.4);
-    }
-    .studio-slider-track-wrap {
-      display: flex;
-      align-items: center;
-      padding: 1px 0;
-      width: 100%;
-      min-width: 0;
-    }
-    .studio-slider-track-wrap input[type="range"] {
-      width: 100%;
-      margin: 0;
-      height: 5px;
-    }
-    .studio-quick-pills {
-      display: flex;
-      gap: 4px;
-      margin-top: 1px;
-      width: 100%;
-      min-width: 0;
-      overflow-x: auto;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
-    }
-    .studio-quick-pills::-webkit-scrollbar { display: none; }
-    .studio-pill {
-      flex: 1 1 0;
-      min-width: 0;
-      padding: 4px 4px;
-      font-size: 9.5px;
-      font-weight: 700;
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.09);
-      color: #cbd5e1;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.14s ease;
-      white-space: nowrap;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .studio-pill:hover {
-      background: rgba(56, 189, 248, 0.15);
-      color: #ffffff;
-    }
-    .studio-pill:active { transform: scale(0.95); }
-    .studio-pill.active {
-      background: rgba(56, 189, 248, 0.22);
-      border-color: var(--accent);
-      color: #38bdf8;
-      box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
-    }
-
-    /* COLOR STUDIO: CAROUSELS & SWATCH CARDS */
-    .color-carousel {
-      display: flex;
       gap: 8px;
-      overflow-x: auto;
-      padding: 4px 2px 8px 2px;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
-      scroll-snap-type: x mandatory;
-    }
-    .color-carousel::-webkit-scrollbar { display: none; }
-    .color-mode-card {
-      flex: 0 0 96px;
-      height: 72px;
-      border-radius: 12px;
-      background: var(--bg-card);
-      border: 1px solid var(--border-light);
-      padding: 6px 6px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      transition: all 0.2s var(--ease-spring);
-      text-align: center;
-      scroll-snap-align: start;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .color-mode-card:hover {
-      background: var(--bg-card-hover);
-      border-color: rgba(56, 189, 248, 0.4);
-    }
-    .color-mode-card:active { transform: scale(0.95); }
-    .color-mode-card.active {
-      background: linear-gradient(145deg, rgba(30, 58, 138, 0.45) 0%, rgba(15, 23, 42, 0.95) 100%);
-      border-color: var(--accent);
-      box-shadow: 0 0 16px var(--accent-glow), inset 0 0 0 1px var(--accent);
-      transform: translateY(-2px);
-    }
-    .color-mode-preview {
       width: 100%;
-      height: 18px;
-      border-radius: 6px;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18), 0 2px 6px rgba(0,0,0,0.3);
     }
-    .color-mode-title {
-      font-size: 10.5px;
-      font-weight: 700;
-      color: #f1f5f9;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 84px;
-    }
-    .color-mode-card.active .color-mode-title {
-      color: #ffffff;
-      font-weight: 800;
-    }
-    .color-mode-badge {
-      font-size: 8px;
-      color: var(--text-dim);
-      background: rgba(255,255,255,0.06);
-      padding: 1px 5px;
-      border-radius: 4px;
-    }
-    .color-mode-card.active .color-mode-badge {
-      color: var(--accent);
-      background: rgba(56, 189, 248, 0.16);
-      font-weight: 700;
+    @media (min-width: 600px) and (max-width: 860px) {
+      .swatch-grid-2 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
     }
 
-    .palette-card {
-      flex: 0 0 106px;
-      height: 72px;
-      border-radius: 12px;
+    .swatch-chip {
+      height: 40px;
+      padding: 0 10px;
+      border-radius: var(--radius-chip);
       background: var(--bg-card);
       border: 1px solid var(--border-light);
-      padding: 6px 6px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      transition: all 0.2s var(--ease-spring);
-      text-align: center;
-      scroll-snap-align: start;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .palette-card:hover {
-      background: var(--bg-card-hover);
-      border-color: rgba(56, 189, 248, 0.4);
-    }
-    .palette-card:active { transform: scale(0.95); }
-    .palette-card.active {
-      background: linear-gradient(145deg, rgba(30, 58, 138, 0.45) 0%, rgba(15, 23, 42, 0.95) 100%);
-      border-color: var(--accent);
-      box-shadow: 0 0 16px var(--accent-glow), inset 0 0 0 1px var(--accent);
-      transform: translateY(-2px);
-    }
-    .palette-swatch {
-      width: 100%;
-      height: 18px;
-      border-radius: 6px;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18), 0 2px 6px rgba(0,0,0,0.3);
-    }
-    .palette-title {
-      font-size: 10.5px;
-      font-weight: 700;
-      color: #f1f5f9;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 94px;
-    }
-    .palette-card.active .palette-title {
-      color: #ffffff;
-      font-weight: 800;
-    }
-    .palette-badge {
-      font-size: 8px;
-      color: var(--text-dim);
-      background: rgba(255,255,255,0.06);
-      padding: 1px 5px;
-      border-radius: 4px;
-    }
-    .palette-card.active .palette-badge {
-      color: var(--accent);
-      background: rgba(56, 189, 248, 0.16);
-      font-weight: 700;
-    }
-
-    .bg-theme-group {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      background: rgba(10, 16, 26, 0.65);
-      padding: 4px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .bg-theme-chip {
-      height: 30px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(255, 255, 255, 0.04);
-      color: #cbd5e1;
-      font-size: 11px;
+      color: var(--text-light);
+      font-size: 12px;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 9px;
+      cursor: pointer;
+      transition: all 0.16s var(--ease-spring);
+      min-width: 0;
+    }
+    .swatch-chip:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+    .swatch-chip:active {
+      transform: scale(0.96);
+    }
+    .swatch-chip.active {
+      background: linear-gradient(135deg, rgba(30, 58, 138, 0.52) 0%, rgba(15, 23, 42, 0.96) 100%);
+      border-color: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.20);
+      font-weight: 700;
+    }
+
+    .swatch-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.38), 0 1px 4px rgba(0, 0, 0, 0.45);
+    }
+    .swatch-dot.white {
+      background: #ffffff;
+      box-shadow: inset 0 0 0 1.5px rgba(15, 23, 42, 0.35), 0 1px 4px rgba(0, 0, 0, 0.35);
+    }
+    .swatch-dot.dark {
+      background: #0b0d13;
+      box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55), 0 1px 4px rgba(0, 0, 0, 0.5);
+    }
+    .swatch-dot.cream {
+      background: #f5f0e6;
+      box-shadow: inset 0 0 0 1.5px rgba(15, 23, 42, 0.30), 0 1px 4px rgba(0, 0, 0, 0.35);
+    }
+    .swatch-dot.custom {
+      background: #2a2e3d;
+    }
+
+    .swatch-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    /* Selector segmentado Calco vs Foto dentro de Fusión */
+    .fusion-source-bar {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4px;
+      background: rgba(9, 13, 22, 0.78);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 3px;
+      margin-top: 2px;
+    }
+    .fusion-src-btn {
+      height: 30px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 11.5px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
-      cursor: pointer;
-      transition: all 0.18s var(--ease-spring);
-      user-select: none;
-      -webkit-user-select: none;
+      transition: all 0.15s ease;
     }
-    .bg-theme-chip:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: #f8fafc;
-    }
-    .bg-theme-chip:active { transform: scale(0.96); }
-    .bg-theme-chip.active {
-      background: linear-gradient(135deg, rgba(30, 58, 138, 0.5) 0%, rgba(15, 23, 42, 0.95) 100%);
-      color: #ffffff;
-      border-color: #38bdf8;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25), inset 0 0 0 1px rgba(56, 189, 248, 0.35);
+    .fusion-src-btn.active {
+      background: rgba(56, 189, 248, 0.20);
+      border-color: rgba(56, 189, 248, 0.45);
+      color: #38bdf8;
       font-weight: 700;
     }
-    .bg-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      border: 1.5px solid rgba(0,0,0,0.3);
-      flex-shrink: 0;
-    }
-    .bg-dot.white { background: #ffffff; }
-    .bg-dot.dark { background: #0b0d13; border-color: rgba(255,255,255,0.45); }
-    .bg-dot.cream { background: #fdfbf7; }
-    .bg-dot.slate { background: #1c2331; border-color: rgba(255,255,255,0.4); }
-    .bg-dot.kraft { background: #eee4d5; }
-    .bg-dot.custom { background: #2a2e3d; border-color: rgba(255,255,255,0.45); }
 
-    .color-pickers-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-      background: var(--bg-card);
-      border: 1px solid var(--border-light);
-      border-radius: 10px;
-      padding: 6px 10px;
-    }
-    .color-picker-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-    }
-    .color-picker-item span {
-      font-size: 10.5px;
+    /* Notas informativas limpias y botones de acción en paneles */
+    .studio-info-note {
+      background: rgba(15, 22, 36, 0.75);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 10px 12px;
+      font-size: 11.5px;
       color: var(--text-dim);
-      font-weight: 600;
-    }
-    .color-picker-item:hover {
-      background: rgba(255, 255, 255, 0.04);
-    }
-    .color-picker-circle {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.35);
-      cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-      padding: 0;
-      background: none;
-      -webkit-appearance: none;
-      flex-shrink: 0;
-    }
-    .color-picker-circle::-webkit-color-swatch-wrapper { padding: 0; }
-    .color-picker-circle::-webkit-color-swatch { border: none; border-radius: 50%; }
-    .color-picker-circle:hover {
-      border-color: #38bdf8;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
-    }
-    .color-picker-circle:active {
-      transform: scale(1.15);
-      box-shadow: 0 0 12px var(--accent);
-    }
-    .picker-labels {
+      line-height: 1.4;
       display: flex;
-      flex-direction: column;
-      gap: 1px;
-    }
-    .picker-role {
-      font-size: 11px;
-      font-weight: 700;
-      color: #f1f5f9;
-      line-height: 1.2;
-    }
-    .picker-hint {
-      font-size: 8.5px;
-      font-weight: 500;
-      color: #94a3b8;
-    }
-    .picker-divider {
-      width: 1px;
-      height: 24px;
-      background: rgba(255, 255, 255, 0.10);
-      flex-shrink: 0;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
     }
 
     .flow-btn {
-      height: 38px;
+      height: 40px;
       width: 100%;
-      border-radius: 10px;
-      background: linear-gradient(135deg, rgba(236,72,153,0.20) 0%, rgba(56,189,248,0.20) 100%);
-      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: var(--radius-chip);
+      background: linear-gradient(135deg, rgba(236, 72, 153, 0.22) 0%, rgba(56, 189, 248, 0.22) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.42);
       color: #ffffff;
       font-size: 12px;
       font-weight: 700;
@@ -1505,42 +987,59 @@
       justify-content: center;
       gap: 8px;
       cursor: pointer;
-      transition: all 0.2s var(--ease-spring);
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    }
-    .flow-btn:hover {
-      background: linear-gradient(135deg, rgba(236,72,153,0.35) 0%, rgba(56,189,248,0.35) 100%);
-      border-color: var(--accent);
-      box-shadow: 0 4px 16px var(--accent-glow);
+      transition: all 0.18s var(--ease-spring);
     }
     .flow-btn:active {
-      transform: scale(0.96);
+      transform: scale(0.97);
     }
     .flow-btn.flowing {
       background: linear-gradient(135deg, #ec4899 0%, #38bdf8 100%) !important;
       border-color: #ffffff !important;
-      box-shadow: 0 0 16px rgba(236, 72, 153, 0.6) !important;
-      animation: flowPulse 2s infinite ease-in-out;
-    }
-    @keyframes flowPulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.88; transform: scale(0.98); }
+      box-shadow: 0 0 14px rgba(236, 72, 153, 0.5) !important;
     }
 
-    /* ========================================================= */
-    /* STUDIO COLOR PICKER MODAL (PROFESIONAL & SIN CUADRADOS DEL OS) */
-    /* ========================================================= */
+    .style-reset-box {
+      padding-top: 2px;
+      display: flex;
+    }
+    .btn-reset-style {
+      width: 100%;
+      height: 36px;
+      background: rgba(24, 33, 52, 0.72);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-chip);
+      color: var(--text-light);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.16s ease;
+    }
+    .btn-reset-style:active {
+      transform: scale(0.97);
+      background: rgba(51, 65, 85, 0.85);
+    }
+    .btn-reset-icon {
+      font-size: 13px;
+      color: var(--accent);
+    }
+
+    /* =========================================================
+       8. STUDIO COLOR PICKER MODAL
+       ========================================================= */
     .studio-color-modal-backdrop {
       position: fixed;
       inset: 0;
       z-index: 99999;
-      background: rgba(4, 8, 16, 0.78);
+      background: rgba(4, 8, 16, 0.80);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       display: flex;
       align-items: flex-end;
       justify-content: center;
-      animation: scpFadeIn 0.22s var(--ease-spring);
     }
     @media (min-width: 600px) {
       .studio-color-modal-backdrop {
@@ -1549,37 +1048,26 @@
     }
     .studio-color-sheet {
       width: 100%;
-      max-width: 440px;
+      max-width: 420px;
       background: #0d1524;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid var(--border-light);
       border-radius: 20px 20px 0 0;
-      padding: 14px 16px 20px 16px;
-      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(56, 189, 248, 0.15);
+      padding: 16px 16px max(20px, var(--safe-bottom)) 16px;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.75);
       display: flex;
       flex-direction: column;
       gap: 12px;
-      animation: scpSlideUp 0.25s var(--ease-spring);
-      padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
     }
     @media (min-width: 600px) {
       .studio-color-sheet {
         border-radius: 20px;
-        box-shadow: 0 16px 50px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(56, 189, 248, 0.2);
+        padding: 16px;
       }
-    }
-    @keyframes scpFadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @keyframes scpSlideUp {
-      from { transform: translateY(30px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
     }
     .studio-color-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 2px;
     }
     .studio-color-title-group {
       display: flex;
@@ -1588,46 +1076,35 @@
     }
     .studio-color-title {
       font-size: 14px;
-      font-weight: 800;
+      font-weight: 700;
       color: #f8fafc;
-      letter-spacing: -0.2px;
     }
     .studio-color-sub {
-      font-size: 10px;
-      color: #94a3b8;
+      font-size: 11px;
+      color: var(--text-dim);
     }
     .studio-color-close {
-      width: 30px;
-      height: 30px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.07);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-light);
       color: #cbd5e1;
       font-size: 14px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.15s ease;
     }
-    .studio-color-close:hover {
-      background: rgba(239, 68, 68, 0.2);
-      color: #f87171;
-      border-color: rgba(239, 68, 68, 0.4);
-    }
-
-    /* 2D Spectrum Box */
     .scp-spectrum-wrap {
       position: relative;
       width: 100%;
-      height: 180px;
+      height: 175px;
       border-radius: 12px;
       overflow: hidden;
       cursor: crosshair;
       touch-action: none;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 4px 14px rgba(0,0,0,0.4);
-      user-select: none;
-      -webkit-user-select: none;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
     }
     .scp-spectrum-base {
       position: absolute;
@@ -1650,18 +1127,16 @@
       height: 22px;
       border-radius: 50%;
       border: 2.5px solid #ffffff;
-      box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.55), 0 3px 8px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.6), 0 3px 8px rgba(0, 0, 0, 0.7);
       transform: translate(-50%, -50%);
       pointer-events: none;
       top: 50%;
       left: 50%;
     }
-
-    /* Hue Range Slider */
     .scp-hue-wrap {
       display: flex;
-      flex-direction: column;
-      gap: 3px;
+      align-items: center;
+      height: 28px;
     }
     .scp-hue-slider {
       -webkit-appearance: none;
@@ -1671,8 +1146,7 @@
       border-radius: 999px;
       background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);
       outline: none;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255, 255, 255, 0.22);
       cursor: pointer;
       margin: 0;
     }
@@ -1684,7 +1158,7 @@
       border-radius: 50%;
       background: #ffffff;
       border: 2.5px solid #0f172a;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
       cursor: pointer;
     }
     .scp-hue-slider::-moz-range-thumb {
@@ -1693,90 +1167,73 @@
       border-radius: 50%;
       background: #ffffff;
       border: 2.5px solid #0f172a;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
       cursor: pointer;
     }
-
-    /* Preview & Quick Swatches */
     .scp-preview-row {
       display: flex;
       align-items: center;
       gap: 10px;
-      background: rgba(15, 23, 42, 0.65);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 6px 10px;
+      padding: 8px 10px;
     }
     .scp-swatch {
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       border-radius: 8px;
-      border: 2px solid rgba(255, 255, 255, 0.35);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      border: 1.5px solid rgba(255, 255, 255, 0.35);
       flex-shrink: 0;
       background: #2a2e3d;
-      transition: background 0.06s ease;
     }
     .scp-hex-badge {
-      font-size: 13px;
-      font-weight: 800;
+      font-size: 12px;
+      font-weight: 700;
       font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
       color: #38bdf8;
       background: rgba(56, 189, 248, 0.12);
       border: 1px solid rgba(56, 189, 248, 0.28);
       padding: 3px 8px;
       border-radius: 6px;
-      letter-spacing: 0.8px;
       flex-shrink: 0;
     }
     .scp-tones-row {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 7px;
       margin-left: auto;
       overflow-x: auto;
       scrollbar-width: none;
     }
-    .scp-tones-row::-webkit-scrollbar { display: none; }
+    .scp-tones-row::-webkit-scrollbar {
+      display: none;
+    }
     .scp-tone-dot {
       width: 22px;
       height: 22px;
       border-radius: 50%;
-      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      border: 1.5px solid rgba(255, 255, 255, 0.30);
       cursor: pointer;
       flex-shrink: 0;
-      transition: transform 0.14s ease, border-color 0.14s ease;
     }
-    .scp-tone-dot:hover {
-      transform: scale(1.18);
-      border-color: #38bdf8;
-    }
-    .scp-tone-dot:active { transform: scale(0.92); }
-
-    /* Action Buttons */
     .studio-color-actions {
       display: grid;
-      grid-template-columns: 1fr 1.6fr;
+      grid-template-columns: 1fr 1.5fr;
       gap: 8px;
-      margin-top: 2px;
     }
     .scp-btn-cancel {
-      height: 38px;
+      height: 40px;
       border-radius: 10px;
       background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #94a3b8;
+      border: 1px solid var(--border-light);
+      color: var(--text-light);
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .scp-btn-cancel:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #f1f5f9;
     }
     .scp-btn-apply {
-      height: 38px;
+      height: 40px;
       border-radius: 10px;
       background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
       border: none;
@@ -1784,37 +1241,25 @@
       font-size: 12.5px;
       font-weight: 800;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
-      transition: all 0.15s ease;
-    }
-    .scp-btn-apply:hover {
-      background: linear-gradient(135deg, #0369a1 0%, #7dd3fc 100%);
-      box-shadow: 0 6px 18px rgba(56, 189, 248, 0.5);
-    }
-    .scp-btn-apply:active {
-      transform: scale(0.97);
     }
 
-    /* EXPORT SUITE (STUDIO CARDS) */
+    /* =========================================================
+       9. EXPORT SUITE (TARJETAS Y BOTONES ALINEADOS)
+       ========================================================= */
     .export-cards-grid {
       display: flex;
       flex-direction: column;
-      gap: 9px;
+      gap: 8px;
     }
     .export-card {
       background: var(--bg-card);
       border: 1px solid var(--border-light);
-      border-radius: 12px;
+      border-radius: var(--radius-card);
       padding: 10px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      transition: all 0.18s ease;
-    }
-    .export-card:hover {
-      border-color: rgba(56, 189, 248, 0.4);
-      background: var(--bg-card-hover);
+      gap: 10px;
     }
     .export-card-left {
       display: flex;
@@ -1832,16 +1277,20 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 17px;
       flex-shrink: 0;
     }
     .export-card.primary .export-card-icon {
-      background: rgba(56, 189, 248, 0.15);
-      border-color: rgba(56, 189, 248, 0.35);
+      background: rgba(56, 189, 248, 0.14);
+      border-color: rgba(56, 189, 248, 0.32);
     }
     .export-card.motion .export-card-icon {
-      background: rgba(245, 158, 11, 0.15);
-      border-color: rgba(245, 158, 11, 0.35);
+      background: rgba(245, 158, 11, 0.14);
+      border-color: rgba(245, 158, 11, 0.32);
+    }
+    .export-card.share .export-card-icon {
+      background: rgba(16, 185, 129, 0.14);
+      border-color: rgba(16, 185, 129, 0.32);
     }
     .export-card-info {
       min-width: 0;
@@ -1862,38 +1311,40 @@
       text-overflow: ellipsis;
     }
     .export-card-badge {
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 700;
-      padding: 2px 6px;
+      padding: 1px 6px;
       border-radius: 5px;
       background: rgba(255, 255, 255, 0.08);
       color: var(--text-dim);
-      letter-spacing: 0.2px;
       flex-shrink: 0;
     }
     .export-card-badge.pro {
-      background: rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.16);
       color: var(--accent);
-      border: 1px solid rgba(56, 189, 248, 0.3);
     }
     .export-card-badge.video {
-      background: rgba(245, 158, 11, 0.18);
+      background: rgba(245, 158, 11, 0.16);
       color: #fbbf24;
-      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .export-card-badge.share {
+      background: rgba(16, 185, 129, 0.16);
+      color: #34d399;
     }
     .export-card-desc {
-      font-size: 10px;
+      font-size: 11px;
       color: var(--text-dim);
-      line-height: 1.25;
+      line-height: 1.3;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
     .export-action-btn {
-      height: 34px;
+      height: 36px;
+      min-width: 112px;
       padding: 0 12px;
-      border-radius: 8px;
+      border-radius: 9px;
       font-size: 11.5px;
       font-weight: 700;
       border: 1px solid transparent;
@@ -1903,17 +1354,16 @@
       justify-content: center;
       gap: 5px;
       white-space: nowrap;
-      transition: all 0.18s var(--ease-spring);
+      transition: all 0.16s var(--ease-spring);
       flex-shrink: 0;
     }
     .export-action-btn:active {
-      transform: scale(0.94);
+      transform: scale(0.95);
     }
     .export-action-btn.primary {
       background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      border-color: rgba(125, 211, 252, 0.5);
+      border-color: rgba(125, 211, 252, 0.45);
       color: #ffffff;
-      box-shadow: 0 2px 10px var(--accent-glow);
     }
     .export-action-btn.secondary {
       background: #1e293b;
@@ -1921,12 +1371,13 @@
       color: #ffffff;
     }
     .export-action-btn.gold {
+      min-width: auto;
       background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
-      border-color: rgba(251, 191, 36, 0.5);
+      border-color: rgba(251, 191, 36, 0.45);
       color: #fef3c7;
-      box-shadow: 0 2px 10px var(--gold-glow);
     }
     .export-action-btn.rec {
+      min-width: auto;
       background: #1e293b;
       border-color: var(--border-light);
       color: #f1f5f9;
@@ -1934,8 +1385,13 @@
     .export-action-btn.rec.recording {
       background: #dc2626 !important;
       border-color: #f87171 !important;
-      color: #fff !important;
+      color: #ffffff !important;
       animation: pulseRec 1.2s infinite;
+    }
+    .export-action-btn.share {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      border-color: rgba(110, 231, 183, 0.45);
+      color: #ffffff;
     }
     .export-btn-group {
       display: flex;
@@ -1943,96 +1399,31 @@
       flex-shrink: 0;
     }
 
-    /* EXPORT SHARE CARD */
-    .export-card.share .export-card-icon {
-      background: rgba(16, 185, 129, 0.15);
-      border-color: rgba(16, 185, 129, 0.35);
-    }
-    .export-card-badge.share {
-      background: rgba(16, 185, 129, 0.18);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-    .export-action-btn.share {
-      background: linear-gradient(135deg, #059669 0%, #047857 100%);
-      border-color: rgba(110, 231, 183, 0.45);
-      color: #ffffff;
-      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.25);
-    }
-
-    /* STYLE RESET IN TRAZO PANE */
-    .style-reset-box {
-      margin-top: 14px;
-      margin-bottom: 6px;
-      padding-top: 10px;
-      border-top: 1px dashed rgba(255, 255, 255, 0.08);
-      display: flex;
-      justify-content: center;
-    }
-    .btn-reset-style {
-      width: 100%;
-      height: 38px;
-      background: rgba(30, 41, 59, 0.65);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 9px;
-      color: var(--text-dim);
-      font-size: 11.5px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      transition: all 0.18s ease;
-    }
-    .btn-reset-style:active {
-      transform: scale(0.97);
-      background: rgba(51, 65, 85, 0.8);
-      color: #ffffff;
-    }
-    .btn-reset-style:hover {
-      border-color: rgba(56, 189, 248, 0.35);
-      color: var(--text-light);
-    }
-    .btn-reset-icon {
-      font-size: 13px;
-      color: var(--accent);
-    }
-
-    .action-btn {
-      background: #1e2638;
-      color: #fff;
-      border: 1px solid var(--border-light);
-      padding: 8px 10px;
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-      cursor: pointer;
-      transition: background 0.15s ease;
-    }
-    .action-btn:active { transform: scale(0.96); }
-
     .stats-card {
       font-family: ui-monospace, "SF Mono", Menlo, monospace;
-      font-size: 10px;
+      font-size: 10.5px;
       color: var(--text-dim);
       background: rgba(9, 13, 20, 0.9);
-      padding: 7px 10px;
-      border-radius: 8px;
+      padding: 8px 12px;
+      border-radius: 9px;
       border: 1px solid var(--border);
-      margin-top: 10px;
       line-height: 1.35;
     }
 
-    /* DESKTOP RESPONSIVE ADJUSTMENT */
+    /* DESKTOP SIDEBAR LAYOUT */
     @media (min-width: 861px) {
       body { flex-direction: row; }
-      #appHeader { display: none; }
       #stage { order: 2; height: 100vh; }
+      #appHeader {
+        position: fixed;
+        top: 12px;
+        right: 16px;
+        left: 406px;
+        height: 48px;
+        padding-top: 0;
+        border-radius: 12px;
+        border: 1px solid var(--border-light);
+      }
       #studioDock {
         width: 390px;
         height: 100vh;
@@ -2041,9 +1432,9 @@
         border-right: 1px solid var(--border);
       }
       .dock-grabber-bar { display: none; }
-      #dockContent { height: calc(100vh - 60px) !important; padding: 16px; }
-      #dockTabs { height: 60px; }
-      canvas { max-height: 92vh !important; }
+      #dockContent { height: calc(100vh - 58px) !important; padding: 14px; }
+      #dockTabs { height: 58px; }
+      canvas { max-height: 82vh !important; margin-top: 44px; }
     }
   </style>
 </head>
@@ -2070,17 +1461,10 @@
       <button id="btnInstallApp" class="icon-btn" style="display:none;" title="Instalar App">📲</button>
     </div>
 
-    <!-- SELECTOR DE CAPAS EN HEADER (CENTRO, FUERA DEL LIENZO) -->
-    <div class="header-layer-bar" role="radiogroup" aria-label="Capa visible en el lienzo">
-      <button type="button" class="floating-layer-btn active" data-view-value="line" aria-pressed="true" title="Solo Línea Continua">✒️ Línea</button>
-      <button type="button" class="floating-layer-btn" data-view-value="stencil" aria-pressed="false" title="Calco a Lápiz Solo">✏️ Calco</button>
-      <button type="button" class="floating-layer-btn" data-view-value="both" aria-pressed="false" title="Línea + Calco a Lápiz">
-        <svg class="layer-both-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="12 3 2 8.5 12 14 22 8.5 12 3"></polygon>
-          <path d="M2 14.5l10 5.5 10-5.5"></path>
-        </svg>
-        <span>Ambos</span>
-      </button>
+    <!-- SELECTOR BIMODAL PURO EN CABECERA (SIEMPRE FUSIÓN 0%) -->
+    <div class="header-layer-bar" role="radiogroup" aria-label="Vista pura en el lienzo">
+      <button type="button" class="floating-layer-btn active" data-view-value="line" aria-pressed="true" title="Línea Continua Pura (0% Fusión)">✒️ Línea</button>
+      <button type="button" class="floating-layer-btn" data-view-value="stencil" aria-pressed="false" title="Calco a Lápiz Puro (0% Fusión)">✏️ Calco</button>
     </div>
 
     <div class="header-right">
@@ -2089,14 +1473,13 @@
     </div>
   </header>
 
-  <!-- HERO STAGE & CANVAS VIEWPORT (70%) -->
+  <!-- HERO STAGE & CANVAS VIEWPORT -->
   <main id="stage">
     <div id="canvasWrapper">
       <canvas id="canvas" width="720" height="880"></canvas>
       <div id="focalMarker" class="focal-marker" style="display:none;" title="Centro de la Espiral Áurea"></div>
     </div>
-    
-    <!-- INDICADOR DE LA FUNCIÓN ACTIVA (ABAJO A LA IZQUIERDA) -->
+
     <div class="floating-pill" id="statusPill" title="Función activa / Tocar para expandir controles">🧠 Coral</div>
 
     <div class="stage-actions">
@@ -2107,11 +1490,10 @@
 
   <!-- STUDIO DOCK & CONTROL SUITE -->
   <section id="studioDock">
-    <!-- Grabber Handle Bar -->
     <div class="dock-grabber-bar" id="dockGrabber" title="Toca o desliza para expandir/plegar">
       <div class="dock-grabber-pill"></div>
     </div>
-    <!-- Select nativo sincronizado para compatibilidad 100% con el motor existente -->
+
     <select id="engineMode" style="display:none;">
       <option value="coral" selected>🧠 1. Coral Cerebral Dendrítico (100% Relleno de Silueta)</option>
       <option value="coral_tsp">🌊 2. Coral Orgánico TSP (Stippling + 2-Opt + Chaikin)</option>
@@ -2134,252 +1516,193 @@
     </select>
 
     <div id="dockContent">
-      <!-- TAB 1: ESTILOS (17 CARDS EN CARRUSEL VISUAL) -->
+      <!-- =========================================================
+           TAB 1: ESTILOS (18 ESTILOS + AJUSTES ESPECÍFICOS)
+           ========================================================= -->
       <div class="tab-pane active" id="paneEstilo">
-        <div class="style-carousel" id="styleCarousel">
-          <div class="style-card active" data-mode="coral">
-            <span class="card-emoji">🧠</span>
-            <span class="card-title">Coral</span>
-            <span class="card-badge">Dendrítico</span>
+        <div class="studio-group-block">
+          <div class="studio-block-header">
+            <span class="studio-block-label">Algoritmo de Trazado</span>
+            <span class="studio-block-value">18 Estilos</span>
           </div>
-          <div class="style-card" data-mode="coral_tsp">
-            <span class="card-emoji">🌊</span>
-            <span class="card-title">Coral TSP</span>
-            <span class="card-badge">2-Opt + Chaikin</span>
-          </div>
-          <div class="style-card" data-mode="stencil_clean">
-            <span class="card-emoji">✏️</span>
-            <span class="card-title">Calco Limpio</span>
-            <span class="card-badge">Sin Cruces</span>
-          </div>
-          <div class="style-card" data-mode="stencil_cross">
-            <span class="card-emoji">✍️</span>
-            <span class="card-title">Calco Cruces</span>
-            <span class="card-badge">Boceto</span>
-          </div>
-          <div class="style-card" data-mode="live_growth">
-            <span class="card-emoji">🌱</span>
-            <span class="card-title">Crecimiento</span>
-            <span class="card-badge">En Vivo</span>
-          </div>
-          <div class="style-card" data-mode="golden">
-            <span class="card-emoji">🌻</span>
-            <span class="card-title">Áurea φ</span>
-            <span class="card-badge">Filotaxis 137.5°</span>
-          </div>
-          <div class="style-card" data-mode="fractal">
-            <span class="card-emoji">❄️</span>
-            <span class="card-title">Fractal</span>
-            <span class="card-badge">Hilbert Multiescala</span>
-          </div>
-          <div class="style-card" data-mode="hex_spiral">
-            <span class="card-emoji">🌀</span>
-            <span class="card-title">Hexagonal</span>
-            <span class="card-badge">Mosaico Espiral</span>
-          </div>
-          <div class="style-card" data-mode="iso_diamond">
-            <span class="card-emoji">💎</span>
-            <span class="card-title">Isométrico</span>
-            <span class="card-badge">Rombos 3D</span>
-          </div>
-          <div class="style-card" data-mode="pursuit_vortex">
-            <span class="card-emoji">🌪️</span>
-            <span class="card-title">Vórtice</span>
-            <span class="card-badge">Espiral Dinámica</span>
-          </div>
-          <div class="style-card" data-mode="panot_bcn">
-            <span class="card-emoji">🧱</span>
-            <span class="card-title">Panot BCN</span>
-            <span class="card-badge">Con Marco</span>
-          </div>
-          <div class="style-card" data-mode="flor_bcn">
-            <span class="card-emoji">🌺</span>
-            <span class="card-title">Flor BCN</span>
-            <span class="card-badge">Concéntrica</span>
-          </div>
-          <div class="style-card" data-mode="flor_fractal">
-            <span class="card-emoji">🌸</span>
-            <span class="card-title">Flor Fractal</span>
-            <span class="card-badge">Sin Cruces</span>
-          </div>
-          <div class="style-card" data-mode="golden_spiral">
-            <span class="card-emoji">🌻</span>
-            <span class="card-title">Espiral Áurea</span>
-            <span class="card-badge">Fibonacci φ</span>
-          </div>
-          <div class="style-card" data-mode="keith_haring">
-            <span class="card-emoji">🕺</span>
-            <span class="card-title">Keith Haring</span>
-            <span class="card-badge">Pop-Art 80s</span>
-          </div>
-          <div class="style-card" data-mode="haring_croc">
-            <span class="card-emoji">🐊</span>
-            <span class="card-title">Cocodrilos</span>
-            <span class="card-badge">Haring Bestiario</span>
-          </div>
-          <div class="style-card" data-mode="haring_puzzle">
-            <span class="card-emoji">🧩</span>
-            <span class="card-title">Puzle Humano</span>
-            <span class="card-badge">Haring Formas</span>
-          </div>
-          <div class="style-card" data-mode="halftone_dots">
-            <span class="card-emoji">⚫</span>
-            <span class="card-title">Trama Puntos</span>
-            <span class="card-badge">Halftone Pop-Art</span>
+          <div class="style-carousel" id="styleCarousel">
+            <div class="style-card active" data-mode="coral">
+              <span class="card-emoji">🧠</span>
+              <span class="card-title">Coral</span>
+              <span class="card-badge">Dendrítico</span>
+            </div>
+            <div class="style-card" data-mode="coral_tsp">
+              <span class="card-emoji">🌊</span>
+              <span class="card-title">Coral TSP</span>
+              <span class="card-badge">2-Opt + Chaikin</span>
+            </div>
+            <div class="style-card" data-mode="stencil_clean">
+              <span class="card-emoji">✏️</span>
+              <span class="card-title">Calco Limpio</span>
+              <span class="card-badge">Sin Cruces</span>
+            </div>
+            <div class="style-card" data-mode="stencil_cross">
+              <span class="card-emoji">✍️</span>
+              <span class="card-title">Calco Cruces</span>
+              <span class="card-badge">Boceto</span>
+            </div>
+            <div class="style-card" data-mode="live_growth">
+              <span class="card-emoji">🌱</span>
+              <span class="card-title">Crecimiento</span>
+              <span class="card-badge">En Vivo</span>
+            </div>
+            <div class="style-card" data-mode="golden">
+              <span class="card-emoji">🌻</span>
+              <span class="card-title">Áurea φ</span>
+              <span class="card-badge">Filotaxis 137.5°</span>
+            </div>
+            <div class="style-card" data-mode="fractal">
+              <span class="card-emoji">❄️</span>
+              <span class="card-title">Fractal</span>
+              <span class="card-badge">Hilbert 2ⁿ</span>
+            </div>
+            <div class="style-card" data-mode="hex_spiral">
+              <span class="card-emoji">🌀</span>
+              <span class="card-title">Hexagonal</span>
+              <span class="card-badge">Mosaico Espiral</span>
+            </div>
+            <div class="style-card" data-mode="iso_diamond">
+              <span class="card-emoji">💎</span>
+              <span class="card-title">Isométrico</span>
+              <span class="card-badge">Rombos 3D</span>
+            </div>
+            <div class="style-card" data-mode="pursuit_vortex">
+              <span class="card-emoji">🌪️</span>
+              <span class="card-title">Vórtice</span>
+              <span class="card-badge">Espiral Dinámica</span>
+            </div>
+            <div class="style-card" data-mode="panot_bcn">
+              <span class="card-emoji">🧱</span>
+              <span class="card-title">Panot BCN</span>
+              <span class="card-badge">Con Marco</span>
+            </div>
+            <div class="style-card" data-mode="flor_bcn">
+              <span class="card-emoji">🌺</span>
+              <span class="card-title">Flor BCN</span>
+              <span class="card-badge">Concéntrica</span>
+            </div>
+            <div class="style-card" data-mode="flor_fractal">
+              <span class="card-emoji">🌸</span>
+              <span class="card-title">Flor Fractal</span>
+              <span class="card-badge">Sin Cruces</span>
+            </div>
+            <div class="style-card" data-mode="golden_spiral">
+              <span class="card-emoji">🌻</span>
+              <span class="card-title">Espiral Áurea</span>
+              <span class="card-badge">Fibonacci φ</span>
+            </div>
+            <div class="style-card" data-mode="keith_haring">
+              <span class="card-emoji">🕺</span>
+              <span class="card-title">Keith Haring</span>
+              <span class="card-badge">Pop-Art 80s</span>
+            </div>
+            <div class="style-card" data-mode="haring_croc">
+              <span class="card-emoji">🐊</span>
+              <span class="card-title">Cocodrilos</span>
+              <span class="card-badge">Haring Bestiario</span>
+            </div>
+            <div class="style-card" data-mode="haring_puzzle">
+              <span class="card-emoji">🧩</span>
+              <span class="card-title">Puzle Humano</span>
+              <span class="card-badge">Haring Formas</span>
+            </div>
+            <div class="style-card" data-mode="halftone_dots">
+              <span class="card-emoji">⚫</span>
+              <span class="card-title">Trama Puntos</span>
+              <span class="card-badge">Halftone Pop-Art</span>
+            </div>
           </div>
         </div>
+
         <!-- CONTROLES DINÁMICOS DE ESPIRAL ÁUREA -->
-        <div id="boxSpiralControls" style="display:none; margin-top:10px;">
-          <div class="studio-section-title" style="margin-top:4px; margin-bottom:6px;">
-            <span class="sec-icon">🌻</span> CENTRO FOCAL ESPIRAL ÁUREA
-          </div>
-          <div class="param-card full-width">
-            <div class="param-header">
-              <div class="param-title-group">
-                <span class="param-title">Foco de Crecimiento φ</span>
-                <span class="param-sub" id="focalCoordsText">Centro automático en la mirada</span>
-              </div>
-              <button id="btnAutoFocal" type="button" class="preset-pill active" style="padding:4px 10px; font-size:10px; flex:none;">
+        <div id="boxSpiralControls" class="studio-group-block is-hidden">
+          <div class="studio-slider-card hero">
+            <div class="studio-slider-header">
+              <span class="studio-slider-title">🌻 Centro Focal Espiral Áurea</span>
+              <button id="btnAutoFocal" type="button" class="studio-pill active" style="padding:0 10px; flex:none;">
                 🎯 Auto Mirada
               </button>
             </div>
-            <div class="view-layer-hint" style="margin-top:2px;">
-              <span>👉</span>
-              <span>Toca cualquier punto de la foto en el lienzo para colocar el centro de la espiral en esa posición.</span>
+            <div class="studio-info-note" style="padding:8px 10px;">
+              <span id="focalCoordsText" style="color:var(--accent); font-weight:600;">Centro automático en la mirada</span>
+              <span>👉 Toca la foto para moverlo</span>
             </div>
           </div>
         </div>
 
         <!-- CONTROLES DINÁMICOS DE KEITH HARING / COCODRILOS / PUZLE -->
-        <div id="boxHaringIconControls" style="display:none; margin-top:8px;">
-          <div class="studio-section-title" style="margin-top:2px; margin-bottom:6px;">
-            <span class="sec-icon">🕺🐊🧩</span> PARÁMETROS POP-ART & PUZLE
-          </div>
-
+        <div id="boxHaringIconControls" class="studio-group-block is-hidden">
           <div class="studio-2col-grid">
-            <!-- Cantidad de Figuras / Iconos -->
             <div class="studio-slider-card">
               <div class="studio-slider-header">
-                <div class="studio-slider-title">
-                  <span>Figuras</span>
-                  <span class="studio-slider-hint">Densidad</span>
-                </div>
+                <span class="studio-slider-title">Cantidad de Figuras</span>
                 <span class="studio-val-badge" id="vHaringIcons">95</span>
               </div>
               <div class="studio-slider-track-wrap">
                 <input type="range" id="haringIconCount" min="15" max="180" step="5" value="95">
               </div>
-              <div class="studio-quick-pills">
-                <button type="button" class="studio-pill" data-set-target="haringIconCount" data-set-value="35">35</button>
-                <button type="button" class="studio-pill" data-set-target="haringIconCount" data-set-value="65">65</button>
-                <button type="button" class="studio-pill active" data-set-target="haringIconCount" data-set-value="95">95</button>
-                <button type="button" class="studio-pill" data-set-target="haringIconCount" data-set-value="160">160</button>
-              </div>
             </div>
 
-            <!-- Escala / Tamaño de Figuras -->
             <div class="studio-slider-card">
               <div class="studio-slider-header">
-                <div class="studio-slider-title">
-                  <span>Escala</span>
-                  <span class="studio-slider-hint">Tamaño</span>
-                </div>
+                <span class="studio-slider-title">Escala de Figuras</span>
                 <span class="studio-val-badge" id="vHaringSize">100%</span>
               </div>
               <div class="studio-slider-track-wrap">
                 <input type="range" id="haringIconSize" min="40" max="200" step="5" value="100">
-              </div>
-              <div class="studio-quick-pills">
-                <button type="button" class="studio-pill" data-set-target="haringIconSize" data-set-value="60">60%</button>
-                <button type="button" class="studio-pill" data-set-target="haringIconSize" data-set-value="90">90%</button>
-                <button type="button" class="studio-pill active" data-set-target="haringIconSize" data-set-value="100">100%</button>
-                <button type="button" class="studio-pill" data-set-target="haringIconSize" data-set-value="150">150%</button>
               </div>
             </div>
           </div>
         </div>
 
         <!-- CONTROLES DINÁMICOS DE TRAMA DE PUNTOS / HALFTONE -->
-        <div id="boxHalftoneControls" style="display:none; margin-top:8px;">
-          <div class="studio-section-title" style="margin-top:2px; margin-bottom:6px;">
-            <span class="sec-icon">⚫📐</span> PARÁMETROS TRAMA DE PUNTOS
-          </div>
-
+        <div id="boxHalftoneControls" class="studio-group-block is-hidden">
           <div class="studio-2col-grid">
-            <!-- Paso / Separación de Puntos -->
             <div class="studio-slider-card">
               <div class="studio-slider-header">
-                <div class="studio-slider-title">
-                  <span>Paso Trama</span>
-                  <span class="studio-slider-hint">Separación</span>
-                </div>
+                <span class="studio-slider-title">Paso de Trama</span>
                 <span class="studio-val-badge" id="vHalftoneSpacing">6.5px</span>
               </div>
               <div class="studio-slider-track-wrap">
                 <input type="range" id="halftoneSpacing" min="4.0" max="15.0" step="0.5" value="6.5">
               </div>
-              <div class="studio-quick-pills">
-                <button type="button" class="studio-pill" data-set-target="halftoneSpacing" data-set-value="4.5">4.5</button>
-                <button type="button" class="studio-pill active" data-set-target="halftoneSpacing" data-set-value="6.5">6.5</button>
-                <button type="button" class="studio-pill" data-set-target="halftoneSpacing" data-set-value="9.0">9.0</button>
-                <button type="button" class="studio-pill" data-set-target="halftoneSpacing" data-set-value="13.0">13</button>
-              </div>
             </div>
 
-            <!-- Cobertura / Ganancia de Punto -->
             <div class="studio-slider-card">
               <div class="studio-slider-header">
-                <div class="studio-slider-title">
-                  <span>Cobertura</span>
-                  <span class="studio-slider-hint">Ganancia punto</span>
-                </div>
+                <span class="studio-slider-title">Ganancia de Punto</span>
                 <span class="studio-val-badge" id="vHalftoneScale">115%</span>
               </div>
               <div class="studio-slider-track-wrap">
                 <input type="range" id="halftoneScale" min="70" max="160" step="5" value="115">
               </div>
-              <div class="studio-quick-pills">
-                <button type="button" class="studio-pill" data-set-target="halftoneScale" data-set-value="85">85%</button>
-                <button type="button" class="studio-pill active" data-set-target="halftoneScale" data-set-value="115">115%</button>
-                <button type="button" class="studio-pill" data-set-target="halftoneScale" data-set-value="135">135%</button>
-                <button type="button" class="studio-pill" data-set-target="halftoneScale" data-set-value="155">155%</button>
-              </div>
             </div>
           </div>
 
-          <div class="studio-2col-grid" style="margin-top:6px;">
-            <!-- Ángulo de Retícula -->
+          <div class="studio-2col-grid">
             <div class="studio-slider-card">
               <div class="studio-slider-header">
-                <div class="studio-slider-title">
-                  <span>Ángulo Retícula</span>
-                  <span class="studio-slider-hint">Inclinación</span>
-                </div>
+                <span class="studio-slider-title">Ángulo de Retícula</span>
                 <span class="studio-val-badge" id="vHalftoneAngle">45°</span>
               </div>
               <div class="studio-slider-track-wrap">
                 <input type="range" id="halftoneAngle" min="0" max="90" step="5" value="45">
               </div>
-              <div class="studio-quick-pills">
-                <button type="button" class="studio-pill" data-set-target="halftoneAngle" data-set-value="0">0°</button>
-                <button type="button" class="studio-pill" data-set-target="halftoneAngle" data-set-value="30">30°</button>
-                <button type="button" class="studio-pill active" data-set-target="halftoneAngle" data-set-value="45">45°</button>
-                <button type="button" class="studio-pill" data-set-target="halftoneAngle" data-set-value="60">60°</button>
-              </div>
             </div>
 
-            <!-- Modo de Trazo: Puntos vs Espiral Continua -->
             <div class="studio-slider-card">
               <div class="studio-slider-header">
-                <div class="studio-slider-title">
-                  <span>Modo Trazo</span>
-                  <span class="studio-slider-hint">Plotter vs Puntos</span>
-                </div>
+                <span class="studio-slider-title">Geometría Halftone</span>
                 <span class="studio-val-badge" id="vHalftoneMode">Círculos</span>
               </div>
-              <div class="studio-quick-pills" style="margin-top:7px;">
-                <button type="button" class="studio-pill active" id="btnHalftoneTypeDots" data-htype="dots" title="Círculos Vectoriales">⚫ Puntos</button>
-                <button type="button" class="studio-pill" id="btnHalftoneTypeLine" data-htype="spiral" title="Trazado continuo en una sola línea para plotter">🌀 1-Trazo</button>
+              <div class="studio-quick-pills">
+                <button type="button" class="studio-pill active" id="btnHalftoneTypeDots" data-htype="dots">⚫ Puntos</button>
+                <button type="button" class="studio-pill" id="btnHalftoneTypeLine" data-htype="spiral">🌀 1-Trazo</button>
               </div>
             </div>
           </div>
@@ -2390,32 +1713,28 @@
         </div>
       </div>
 
-      <!-- TAB 2: TRAZO & SILUETA (STUDIO SUITE CON SUBNAVEGACIÓN ZERO-SCROLL) -->
+      <!-- =========================================================
+           TAB 2: TRAZO & SILUETA (3 SUB-PESTAÑAS LIMPIAS)
+           ========================================================= -->
       <div class="tab-pane" id="paneTrazo">
-        
-        <!-- SUBNAVEGACIÓN DE TRAZO (CERO SCROLL) -->
         <div class="studio-subnav" role="tablist" aria-label="Secciones de Trazo">
           <button type="button" class="studio-subnav-btn active" data-subtab="subTrazoLine" role="tab" aria-selected="true">
-            ✒️ Trazo & Nodos
+            ✒️ Pluma & Nodos
           </button>
           <button type="button" class="studio-subnav-btn" data-subtab="subTrazoSilueta" role="tab" aria-selected="false">
-            ✏️ Calco Silueta
+            ✏️ Lectura Retrato
           </button>
           <button type="button" class="studio-subnav-btn" data-subtab="subTrazoEspaciado" role="tab" aria-selected="false">
-            📐 Canales
+            📐 Densidad
           </button>
         </div>
 
-        <!-- SUBPANE 1: TRAZO & NODOS -->
+        <!-- SUBPANE 1: PLUMA & NODOS -->
         <div class="subtrazo-pane active" id="subTrazoLine">
-          <!-- HERO: NODOS ACTIVOS -->
-          <div class="studio-slider-card hero" style="margin-bottom:7px;">
+          <div class="studio-slider-card hero">
             <div class="studio-slider-header">
-              <div class="studio-slider-title">
-                <span>Nodos Activos</span>
-                <span class="studio-slider-hint">Puntos vectoriales</span>
-              </div>
-              <span class="studio-val-badge hero" id="vNodes">38000</span>
+              <span class="studio-slider-title">Nodos Vectoriales Activos</span>
+              <span class="studio-val-badge" id="vNodes">38000</span>
             </div>
             <div class="studio-slider-track-wrap">
               <input type="range" id="maxN" min="8000" max="75000" step="2000" value="38000">
@@ -2428,498 +1747,438 @@
             </div>
           </div>
 
-          <!-- 2-COL: GROSOR Y CHAIKIN -->
           <div class="studio-2col-grid">
             <div class="studio-slider-card">
               <div class="studio-slider-header">
-                <div class="studio-slider-title">
-                  <span>Grosor</span>
-                  <span class="studio-slider-hint">Pluma</span>
-                </div>
+                <span class="studio-slider-title">Grosor de Pluma</span>
                 <span class="studio-val-badge" id="vWidth">1.0</span>
               </div>
               <div class="studio-slider-track-wrap">
                 <input type="range" id="lineW" min="0.4" max="2.8" step="0.1" value="1.0">
               </div>
-              <div class="studio-quick-pills">
-                <button type="button" class="studio-pill" data-set-target="lineW" data-set-value="0.6">0.6 Fino</button>
-                <button type="button" class="studio-pill active" data-set-target="lineW" data-set-value="1.0">1.0 Normal</button>
-                <button type="button" class="studio-pill" data-set-target="lineW" data-set-value="1.8">1.8 Grueso</button>
-              </div>
             </div>
 
             <div class="studio-slider-card">
               <div class="studio-slider-header">
-                <div class="studio-slider-title">
-                  <span>Curvas U</span>
-                  <span class="studio-slider-hint">Chaikin</span>
-                </div>
+                <span class="studio-slider-title">Suavizado de Curva (Chaikin)</span>
                 <span class="studio-val-badge" id="vChaikin">2</span>
               </div>
               <div class="studio-slider-track-wrap">
                 <input type="range" id="chaikinPasses" min="0" max="2" step="1" value="2">
               </div>
-              <div class="studio-quick-pills">
-                <button type="button" class="studio-pill" data-set-target="chaikinPasses" data-set-value="0">0 Recto</button>
-                <button type="button" class="studio-pill" data-set-target="chaikinPasses" data-set-value="1">1 Medio</button>
-                <button type="button" class="studio-pill active" data-set-target="chaikinPasses" data-set-value="2">2 Suave</button>
-              </div>
             </div>
           </div>
         </div>
 
-        <!-- SUBPANE 2: CALCO SILUETA -->
+        <!-- SUBPANE 2: LECTURA DEL RETRATO / CALCO -->
         <div class="subtrazo-pane" id="subTrazoSilueta">
-          <div class="studio-2col-grid" style="margin-bottom:7px;">
+          <div class="studio-2col-grid">
             <div class="studio-slider-card">
               <div class="studio-slider-header">
-                <div class="studio-slider-title">
-                  <span>Fuerza Lápiz</span>
-                  <span class="studio-slider-hint">Contraste</span>
-                </div>
+                <span class="studio-slider-title">Fuerza de Lápiz (Contraste)</span>
                 <span class="studio-val-badge" id="vPencil">8.5</span>
               </div>
               <div class="studio-slider-track-wrap">
                 <input type="range" id="pencilStr" min="2.0" max="14.0" step="0.5" value="8.5">
               </div>
-              <div class="studio-quick-pills">
-                <button type="button" class="studio-pill" data-set-target="pencilStr" data-set-value="4.0">4 Suave</button>
-                <button type="button" class="studio-pill active" data-set-target="pencilStr" data-set-value="8.5">8.5 Medio</button>
-                <button type="button" class="studio-pill" data-set-target="pencilStr" data-set-value="12.0">12 Fuerte</button>
-              </div>
             </div>
 
             <div class="studio-slider-card">
               <div class="studio-slider-header">
-                <div class="studio-slider-title">
-                  <span>Sombras/Pelo</span>
-                  <span class="studio-slider-hint">Oscuros</span>
-                </div>
+                <span class="studio-slider-title">Peso de Sombras y Pelo</span>
                 <span class="studio-val-badge" id="vShade">0.55</span>
               </div>
               <div class="studio-slider-track-wrap">
                 <input type="range" id="shadeWeight" min="0.00" max="0.90" step="0.05" value="0.55">
               </div>
-              <div class="studio-quick-pills">
-                <button type="button" class="studio-pill" data-set-target="shadeWeight" data-set-value="0.20">0.2 Claro</button>
-                <button type="button" class="studio-pill active" data-set-target="shadeWeight" data-set-value="0.55">0.55 Medio</button>
-                <button type="button" class="studio-pill" data-set-target="shadeWeight" data-set-value="0.80">0.80 Oscuro</button>
-              </div>
             </div>
           </div>
 
           <div class="studio-2col-grid">
             <div class="studio-slider-card">
               <div class="studio-slider-header">
-                <div class="studio-slider-title">
-                  <span>Grosor Calco</span>
-                  <span class="studio-slider-hint">Difuminado</span>
-                </div>
+                <span class="studio-slider-title">Difuminado del Calco</span>
                 <span class="studio-val-badge" id="vBlur">2.0</span>
               </div>
               <div class="studio-slider-track-wrap">
                 <input type="range" id="pencilBlur" min="1.0" max="5.0" step="0.5" value="2.0">
               </div>
-              <div class="studio-quick-pills">
-                <button type="button" class="studio-pill" data-set-target="pencilBlur" data-set-value="1.0">1 Fino</button>
-                <button type="button" class="studio-pill active" data-set-target="pencilBlur" data-set-value="2.0">2 Normal</button>
-                <button type="button" class="studio-pill" data-set-target="pencilBlur" data-set-value="4.0">4 Ancho</button>
-              </div>
             </div>
 
             <div class="studio-slider-card">
               <div class="studio-slider-header">
-                <div class="studio-slider-title">
-                  <span>Limpieza Fondo</span>
-                  <span class="studio-slider-hint">Aislamiento</span>
-                </div>
+                <span class="studio-slider-title">Limpieza de Fondo</span>
                 <span class="studio-val-badge" id="vClean">0.000</span>
               </div>
               <div class="studio-slider-track-wrap">
                 <input type="range" id="bgClean" min="0.000" max="0.280" step="0.002" value="0.000">
               </div>
-              <div class="studio-quick-pills">
-                <button type="button" class="studio-pill active" data-set-target="bgClean" data-set-value="0.000">0 Off</button>
-                <button type="button" class="studio-pill" data-set-target="bgClean" data-set-value="0.060">0.06 Sutil</button>
-                <button type="button" class="studio-pill" data-set-target="bgClean" data-set-value="0.160">0.16 Puro</button>
-              </div>
             </div>
           </div>
         </div>
 
-        <!-- SUBPANE 3: CANALES & ESPACIADO -->
+        <!-- SUBPANE 3: DENSIDAD & ESPACIADO -->
         <div class="subtrazo-pane" id="subTrazoEspaciado">
           <div class="studio-2col-grid">
             <div class="studio-slider-card">
               <div class="studio-slider-header">
-                <div class="studio-slider-title">
-                  <span>Sep. Sombras</span>
-                  <span class="studio-slider-hint">Tupido oscuro</span>
-                </div>
+                <span class="studio-slider-title">Separación en Sombras</span>
                 <span class="studio-val-badge" id="vMin">1.5</span>
               </div>
               <div class="studio-slider-track-wrap">
                 <input type="range" id="minR" min="0.8" max="3.5" step="0.1" value="1.5">
               </div>
-              <div class="studio-quick-pills">
-                <button type="button" class="studio-pill" data-set-target="minR" data-set-value="1.0">1.0 Tupido</button>
-                <button type="button" class="studio-pill active" data-set-target="minR" data-set-value="1.5">1.5 Óptimo</button>
-                <button type="button" class="studio-pill" data-set-target="minR" data-set-value="2.5">2.5 Abierto</button>
-              </div>
             </div>
 
             <div class="studio-slider-card">
               <div class="studio-slider-header">
-                <div class="studio-slider-title">
-                  <span>Sep. Luces</span>
-                  <span class="studio-slider-hint">Espaciado claro</span>
-                </div>
+                <span class="studio-slider-title">Separación en Luces</span>
                 <span class="studio-val-badge" id="vMax">4.8</span>
               </div>
               <div class="studio-slider-track-wrap">
                 <input type="range" id="maxR" min="3.0" max="15.0" step="0.2" value="4.8">
               </div>
-              <div class="studio-quick-pills">
-                <button type="button" class="studio-pill" data-set-target="maxR" data-set-value="3.6">3.6 Denso</button>
-                <button type="button" class="studio-pill active" data-set-target="maxR" data-set-value="4.8">4.8 Óptimo</button>
-                <button type="button" class="studio-pill" data-set-target="maxR" data-set-value="7.0">7.0 Aire</button>
-              </div>
             </div>
           </div>
-        <!-- Botón para restablecer parámetros del estilo actual -->
+        </div>
+
+        <!-- Restablecer valores del estilo actual -->
         <div class="style-reset-box">
           <button type="button" id="btnResetStyleParams" class="btn-reset-style" title="Restaura los deslizadores a los valores óptimos por defecto del estilo actual">
-            <span class="btn-reset-icon">↺</span> Restablecer valores de este estilo
+            <span class="btn-reset-icon">↺</span> Restablecer parámetros de este estilo
           </button>
         </div>
 
         <!-- Hidden Native Select & compatibility badge for viewMode -->
         <select id="viewMode" style="display:none;">
-          <option value="line" selected>✒️ Solo Línea Continua (Final)</option>
-          <option value="both">📑 Línea Continua + Calco Debajo</option>
-          <option value="stencil">✏️ Solo Calco a Lápiz / Silueta</option>
+          <option value="line" selected>✒️ Obra / Línea Continua</option>
+          <option value="stencil">✏️ Calco a Lápiz / Silueta</option>
           <option value="photo">🖼️ Foto Original</option>
         </select>
-        <span id="currentViewModeBadge" style="display:none;">Línea Pura</span>
-
+        <span id="currentViewModeBadge" style="display:none;">Línea Continua</span>
       </div>
 
-      <!-- TAB 3: COLOR & ARMONÍAS CROMÁTICAS (STUDIO SUITE) -->
+      <!-- =========================================================
+           TAB 3: COLOR, LIENZO & DINÁMICA (3 SUB-PESTAÑAS COHERENTES)
+           ========================================================= -->
       <div class="tab-pane" id="paneColor">
-        <!-- Modo Color (Studio Carousel) -->
-        <div style="margin-bottom:10px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-            <label style="margin:0; font-size:11px; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:0.5px;">Modo Color</label>
-            <span id="currentColorModeLabel" style="font-size:10.5px; color:var(--accent); font-weight:700;">Monocromo</span>
-          </div>
-
-          <!-- Hidden Native Select for 100% Backward Compatibility -->
-          <select id="colorMode" style="display:none;">
-            <option value="mono" selected>⚫ Monocromo</option>
-            <option value="organic_flow">🌊 Flujo Orgánico</option>
-            <option value="photo_exact">📸 Color Foto</option>
-            <option value="photo_fusion">🖼️ Foto + Mezcla</option>
-            <option value="line_strand">🧵 Tramos de Línea</option>
-            <option value="organic_spatial">🌀 Ondas 2D</option>
-            <option value="tonal_blend">🌡️ Fusión Tonal</option>
-            <option value="rainbow">🌈 Rainbow (Hilo)</option>
-            <option value="rainbow_bands">🏳️‍🌈 Rainbow (Franjas)</option>
-          </select>
-
-          <!-- Studio Visual Cards Carousel -->
-          <div class="color-carousel" id="colorModeCarousel">
-            <div class="color-mode-card active" data-mode="mono">
-              <div class="color-mode-preview" style="background: linear-gradient(135deg, #0f172a 0%, #334155 50%, #000000 100%);"></div>
-              <div class="color-mode-title">Monocromo</div>
-              <div class="color-mode-badge">Tinta Pura</div>
-            </div>
-            <div class="color-mode-card" data-mode="organic_flow">
-              <div class="color-mode-preview" style="background: linear-gradient(135deg, #ff007f 0%, #7928ca 50%, #00dfd8 100%);"></div>
-              <div class="color-mode-title">Flujo Orgánico</div>
-              <div class="color-mode-badge">Dinámico</div>
-            </div>
-            <div class="color-mode-card" data-mode="photo_exact">
-              <div class="color-mode-preview" style="background: radial-gradient(circle, #f59e0b 0%, #ef4444 45%, #6366f1 90%);"></div>
-              <div class="color-mode-title">Color Foto</div>
-              <div class="color-mode-badge">Original</div>
-            </div>
-            <div class="color-mode-card" data-mode="photo_fusion">
-              <div class="color-mode-preview" style="background: linear-gradient(135deg, #10b981 0%, #3b82f6 50%, #f43f5e 100%);"></div>
-              <div class="color-mode-title">Foto + Mezcla</div>
-              <div class="color-mode-badge">Híbrido</div>
-            </div>
-            <div class="color-mode-card" data-mode="line_strand">
-              <div class="color-mode-preview" style="background: linear-gradient(135deg, #ec4899 0%, #3b82f6 50%, #10b981 100%);"></div>
-              <div class="color-mode-title">Tramos Línea</div>
-              <div class="color-mode-badge">Segmentos</div>
-            </div>
-            <div class="color-mode-card" data-mode="organic_spatial">
-              <div class="color-mode-preview" style="background: conic-gradient(from 180deg at 50% 50%, #06b6d4 0deg, #3b82f6 120deg, #ec4899 240deg, #06b6d4 360deg);"></div>
-              <div class="color-mode-title">Ondas 2D</div>
-              <div class="color-mode-badge">Espacial</div>
-            </div>
-            <div class="color-mode-card" data-mode="tonal_blend">
-              <div class="color-mode-preview" style="background: linear-gradient(135deg, #f97316 0%, #a855f7 50%, #06b6d4 100%);"></div>
-              <div class="color-mode-title">Fusión Tonal</div>
-              <div class="color-mode-badge">Suave</div>
-            </div>
-            <div class="color-mode-card" data-mode="rainbow">
-              <div class="color-mode-preview" style="background: linear-gradient(135deg, #ff0055 0%, #ffcc00 33%, #00ccff 66%, #cc00ff 100%);"></div>
-              <div class="color-mode-title">Hilo Arcoíris</div>
-              <div class="color-mode-badge">Continuo</div>
-            </div>
-            <div class="color-mode-card" data-mode="rainbow_bands">
-              <div class="color-mode-preview" style="background: linear-gradient(90deg, #ff0000 0%, #ff7f00 20%, #ffff00 40%, #00ff00 60%, #0000ff 80%, #8b00ff 100%);"></div>
-              <div class="color-mode-title">Franjas Arcoíris</div>
-              <div class="color-mode-badge">Bands</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Armonía Cromática (Studio Palette Swatches) -->
-        <div id="boxPalette" style="margin-bottom:10px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-            <label style="margin:0; font-size:11px; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:0.5px;">Armonía Cromática</label>
-            <span id="currentPaletteLabel" style="font-size:10.5px; color:var(--accent); font-weight:700;">Iris Orgánico</span>
-          </div>
-
-          <!-- Hidden Native Select -->
-          <select id="colorPalette" style="display:none;">
-            <optgroup label="📐 Teoría del Color">
-              <option value="triad">📐 Triádica (120°)</option>
-              <option value="analogous">🌿 Análoga (35°)</option>
-              <option value="split">🔀 Split-Comp.</option>
-              <option value="complementary">⚡ Complementaria</option>
-              <option value="warm_cool">🌡️ Frío-Cálido</option>
-              <option value="monochrome">🌓 Monocromía</option>
-            </optgroup>
-            <optgroup label="🌈 Paletas de Autor">
-              <option value="iris" selected>🌈 Iris Orgánico</option>
-              <option value="cyan_amber">✨ Cian / Ámbar</option>
-              <option value="sunset">🌅 Atardecer</option>
-              <option value="ocean">🌊 Bioluminiscencia</option>
-              <option value="forest">🍃 Bosque Boreal</option>
-            </optgroup>
-            <option value="custom">🎛️ Personalizada</option>
-          </select>
-
-          <!-- Studio Palette Carousel -->
-          <div class="color-carousel" id="paletteCarousel">
-            <div class="palette-card active" data-palette="iris">
-              <div class="palette-swatch" style="background: linear-gradient(90deg, #ff4d6d 0%, #00d2ff 50%, #9b5de5 100%);"></div>
-              <div class="palette-title">Iris Orgánico</div>
-              <div class="palette-badge">Autor</div>
-            </div>
-            <div class="palette-card" data-palette="cyan_amber">
-              <div class="palette-swatch" style="background: linear-gradient(90deg, #56cfe1 0%, #e0fbfc 50%, #f4a261 100%);"></div>
-              <div class="palette-title">Cian / Ámbar</div>
-              <div class="palette-badge">Autor</div>
-            </div>
-            <div class="palette-card" data-palette="sunset">
-              <div class="palette-swatch" style="background: linear-gradient(90deg, #e63946 0%, #ffb703 50%, #8338ec 100%);"></div>
-              <div class="palette-title">Atardecer</div>
-              <div class="palette-badge">Autor</div>
-            </div>
-            <div class="palette-card" data-palette="ocean">
-              <div class="palette-swatch" style="background: linear-gradient(90deg, #00f5d4 0%, #00bbf9 50%, #5e60ce 100%);"></div>
-              <div class="palette-title">Bioluminiscente</div>
-              <div class="palette-badge">Autor</div>
-            </div>
-            <div class="palette-card" data-palette="forest">
-              <div class="palette-swatch" style="background: linear-gradient(90deg, #2a9d8f 0%, #e76f51 50%, #264653 100%);"></div>
-              <div class="palette-title">Bosque Boreal</div>
-              <div class="palette-badge">Autor</div>
-            </div>
-            <div class="palette-card" data-palette="triad">
-              <div class="palette-swatch" style="background: linear-gradient(90deg, #ff0055 0%, #00e5ff 50%, #ffe600 100%);"></div>
-              <div class="palette-title">Triádica (120°)</div>
-              <div class="palette-badge">Teoría</div>
-            </div>
-            <div class="palette-card" data-palette="analogous">
-              <div class="palette-swatch" style="background: linear-gradient(90deg, #38ef7d 0%, #11998e 50%, #00d2ff 100%);"></div>
-              <div class="palette-title">Análoga (35°)</div>
-              <div class="palette-badge">Teoría</div>
-            </div>
-            <div class="palette-card" data-palette="split">
-              <div class="palette-swatch" style="background: linear-gradient(90deg, #ff3366 0%, #33ccff 50%, #33ff99 100%);"></div>
-              <div class="palette-title">Split-Comp.</div>
-              <div class="palette-badge">Teoría</div>
-            </div>
-            <div class="palette-card" data-palette="complementary">
-              <div class="palette-swatch" style="background: linear-gradient(90deg, #00d2ff 0%, #ff8c00 100%);"></div>
-              <div class="palette-title">Complementaria</div>
-              <div class="palette-badge">Teoría</div>
-            </div>
-            <div class="palette-card" data-palette="warm_cool">
-              <div class="palette-swatch" style="background: linear-gradient(90deg, #204080 0%, #30a0a0 50%, #ffaa20 100%);"></div>
-              <div class="palette-title">Frío-Cálido</div>
-              <div class="palette-badge">Teoría</div>
-            </div>
-            <div class="palette-card" data-palette="monochrome">
-              <div class="palette-swatch" style="background: linear-gradient(90deg, #1e293b 0%, #64748b 50%, #cbd5e1 100%);"></div>
-              <div class="palette-title">Monocromía</div>
-              <div class="palette-badge">Teoría</div>
-            </div>
-            <div class="palette-card" data-palette="custom">
-              <div class="palette-swatch" style="background: linear-gradient(90deg, #ff4d6d 0%, #00d2ff 50%, #9b5de5 100%);"></div>
-              <div class="palette-title">Personalizada</div>
-              <div class="palette-badge">Custom</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Matiz / Rueda Cromática (Hero Card con Margen Simétrico) -->
-        <div id="boxHue" style="margin-bottom:8px;">
-          <div class="studio-slider-card hero">
-            <div class="studio-slider-header">
-              <div class="studio-slider-title">
-                <span>Rueda Cromática</span>
-                <span class="studio-slider-hint">Matiz 360°</span>
-              </div>
-              <span class="studio-val-badge hero" id="vColHue">205°</span>
-            </div>
-            <div class="studio-slider-track-wrap">
-              <input type="range" id="colorHue" min="0" max="360" step="1" value="205" style="background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%); height: 6px; border-radius:4px;">
-            </div>
-            <div class="studio-quick-pills">
-              <button type="button" class="studio-pill" data-set-target="colorHue" data-set-value="0">0° Rojo</button>
-              <button type="button" class="studio-pill" data-set-target="colorHue" data-set-value="60">60° Oro</button>
-              <button type="button" class="studio-pill active" data-set-target="colorHue" data-set-value="205">205° Azul</button>
-              <button type="button" class="studio-pill" data-set-target="colorHue" data-set-value="280">280° Violeta</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- FUSIÓN CON RETRATO / TRANSPARENCIA DE REFERENCIA -->
-        <div id="boxFusion" style="margin-bottom:8px;">
-          <div class="studio-slider-card">
-            <div class="studio-slider-header">
-              <div class="studio-slider-title">
-                <span>Fusión con Retrato</span>
-                <span class="studio-slider-hint">Transparencia fondo</span>
-              </div>
-              <div style="display:flex; align-items:center; gap:6px;">
-                <div class="fusion-source-toggle" id="fusionSourceToggle">
-                  <button type="button" class="fusion-src-btn active" id="btnFusionStencil" data-source="stencil" title="Fundir con Calco a Lápiz">✏️ Calco</button>
-                  <button type="button" class="fusion-src-btn" id="btnFusionPhoto" data-source="photo" title="Fundir con Foto Original">📷 Foto</button>
-                </div>
-                <span class="studio-val-badge" id="vFusionOpacity">0% (Off)</span>
-              </div>
-            </div>
-            <div class="studio-slider-track-wrap">
-              <button type="button" class="stepper-btn" data-step-for="fusionOpacity" data-step-dir="-1" aria-label="Menos opacidad">−</button>
-              <input type="range" id="fusionOpacity" min="0" max="100" step="1" value="0" style="background: linear-gradient(to right, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0.9) 100%);">
-              <button type="button" class="stepper-btn" data-step-for="fusionOpacity" data-step-dir="1" aria-label="Más opacidad">+</button>
-            </div>
-            <div class="studio-quick-pills">
-              <button type="button" class="studio-pill active" data-set-target="fusionOpacity" data-set-value="0">0% Off</button>
-              <button type="button" class="studio-pill" data-set-target="fusionOpacity" data-set-value="20">20% Sutil</button>
-              <button type="button" class="studio-pill" data-set-target="fusionOpacity" data-set-value="45">45% Medio</button>
-              <button type="button" class="studio-pill" data-set-target="fusionOpacity" data-set-value="70">70% Nítido</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Muestras Triádicas (Simple, debajo de la rueda cromática) -->
-        <div id="boxPickers" class="color-pickers-row" style="margin-bottom:8px;">
-          <div class="color-picker-item" id="itemColPick1" title="Tono 1 (Sombras)">
-            <input type="color" id="colPick1" class="color-picker-circle" value="#ff4d6d">
-            <span>Sombra</span>
-          </div>
-          <div class="color-picker-item" id="itemColPick2" title="Tono 2 (Medios)">
-            <input type="color" id="colPick2" class="color-picker-circle" value="#00d2ff">
-            <span>Medio</span>
-          </div>
-          <div class="color-picker-item" id="itemColPick3" title="Tono 3 (Luces)">
-            <input type="color" id="colPick3" class="color-picker-circle" value="#9b5de5">
-            <span>Luz</span>
-          </div>
-        </div>
-
-        <!-- Fondo del Lienzo con Color Personalizado Libre -->
-        <div style="margin-bottom:8px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-            <label style="margin:0; font-size:11px; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:0.5px;">Lienzo</label>
-            <span id="currentBgLabel" style="font-size:10.5px; color:var(--accent); font-weight:700;">Blanco Puro</span>
-          </div>
-          <select id="bgTheme" style="display:none;">
-            <option value="white" selected>📄 Fondo Blanco</option>
-            <option value="dark">🌑 Fondo Noche</option>
-            <option value="cream">📜 Pergamino</option>
-            <option value="slate">🪨 Pizarra Grafito</option>
-            <option value="kraft">🏺 Papel Arena</option>
-            <option value="custom">🎨 Color Libre</option>
-          </select>
-          <div class="bg-theme-group" id="bgThemeGroup">
-            <button type="button" class="bg-theme-chip active" data-theme="white" title="Lienzo Blanco">
-              <span class="bg-dot white"></span> Blanco
-            </button>
-            <button type="button" class="bg-theme-chip" data-theme="dark" title="Lienzo Noche">
-              <span class="bg-dot dark"></span> Noche
-            </button>
-            <button type="button" class="bg-theme-chip" data-theme="cream" title="Pergamino Clásico">
-              <span class="bg-dot cream"></span> Pergamino
-            </button>
-            <button type="button" class="bg-theme-chip" data-theme="custom" id="chipCustomBg" title="Fondo Personalizado Libre" style="position:relative; overflow:hidden;">
-              <span class="bg-dot custom" id="bgCustomDot" style="background:#2a2e3d;"></span>
-              <span>🎨 Libre</span>
-              <input type="color" id="bgCustomPicker" value="#2a2e3d" style="display:none;">
-            </button>
-          </div>
-        </div>
-
-        <!-- Sliders Mezcla e Intensidad (Studio 2-Col Grid Simétrico) -->
-        <div class="studio-2col-grid" id="rowColorSliders" style="margin-bottom:8px;">
-          <div class="studio-slider-card" id="boxScale">
-            <div class="studio-slider-header">
-              <div class="studio-slider-title">
-                <span>Frecuencia</span>
-                <span class="studio-slider-hint">Ritmo</span>
-              </div>
-              <span class="studio-val-badge" id="vColScale">3.5</span>
-            </div>
-            <div class="studio-slider-track-wrap">
-              <input type="range" id="colorScale" min="0.5" max="10.0" step="0.2" value="3.5">
-            </div>
-            <div class="studio-quick-pills">
-              <button type="button" class="studio-pill" data-set-target="colorScale" data-set-value="1.5">1.5</button>
-              <button type="button" class="studio-pill active" data-set-target="colorScale" data-set-value="3.5">3.5</button>
-              <button type="button" class="studio-pill" data-set-target="colorScale" data-set-value="6.0">6.0</button>
-              <button type="button" class="studio-pill" data-set-target="colorScale" data-set-value="9.0">9.0</button>
-            </div>
-          </div>
-          <div class="studio-slider-card" id="boxIntensity">
-            <div class="studio-slider-header">
-              <div class="studio-slider-title">
-                <span>Saturación</span>
-                <span class="studio-slider-hint">Brillo</span>
-              </div>
-              <span class="studio-val-badge" id="vColIntensity">100%</span>
-            </div>
-            <div class="studio-slider-track-wrap">
-              <input type="range" id="colorIntensity" min="15" max="200" step="5" value="100">
-            </div>
-            <div class="studio-quick-pills">
-              <button type="button" class="studio-pill" data-set-target="colorIntensity" data-set-value="50">50%</button>
-              <button type="button" class="studio-pill active" data-set-target="colorIntensity" data-set-value="100">100%</button>
-              <button type="button" class="studio-pill" data-set-target="colorIntensity" data-set-value="150">150%</button>
-              <button type="button" class="studio-pill" data-set-target="colorIntensity" data-set-value="200">200%</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Botón Flujo Animado -->
-        <div id="boxFlow">
-          <button id="btnColorFlow" class="flow-btn" type="button">
-            <span>🌈</span> Flujo Cromático Animado
+        <div class="studio-subnav" role="tablist" aria-label="Secciones de Color y Lienzo">
+          <button type="button" class="studio-subnav-btn active" data-subtab="subColorTinta" role="tab" aria-selected="true">
+            🎨 Tinta & Paleta
+          </button>
+          <button type="button" class="studio-subnav-btn" data-subtab="subColorLienzo" role="tab" aria-selected="false">
+            🖼️ Lienzo & Fusión
+          </button>
+          <button type="button" class="studio-subnav-btn" data-subtab="subColorDinamica" role="tab" aria-selected="false">
+            ✨ Dinámica
           </button>
         </div>
+
+        <!-- SUBPANE COLOR 1: TINTA & PALETA -->
+        <div class="subcolor-pane active" id="subColorTinta">
+          <div class="studio-group-block">
+            <div class="studio-block-header">
+              <span class="studio-block-label">Modo de Tinta</span>
+              <span class="studio-block-value" id="currentColorModeLabel">Monocromo</span>
+            </div>
+
+            <select id="colorMode" style="display:none;">
+              <option value="mono" selected>⚫ Monocromo</option>
+              <option value="organic_flow">🌊 Flujo Orgánico</option>
+              <option value="photo_exact">📸 Color Foto</option>
+              <option value="photo_fusion">🖼️ Foto + Mezcla</option>
+              <option value="line_strand">🧵 Tramos de Línea</option>
+              <option value="organic_spatial">🌀 Ondas 2D</option>
+              <option value="tonal_blend">🌡️ Fusión Tonal</option>
+              <option value="rainbow">🌈 Rainbow (Hilo)</option>
+              <option value="rainbow_bands">🏳️‍🌈 Rainbow (Franjas)</option>
+            </select>
+
+            <div class="color-carousel" id="colorModeCarousel">
+              <div class="color-mode-card active" data-mode="mono">
+                <div class="color-mode-preview" style="background: linear-gradient(135deg, #0f172a 0%, #334155 50%, #000000 100%);"></div>
+                <div class="color-mode-title">Monocromo</div>
+                <div class="color-mode-badge">Tinta Pura</div>
+              </div>
+              <div class="color-mode-card" data-mode="organic_flow">
+                <div class="color-mode-preview" style="background: linear-gradient(135deg, #ff007f 0%, #7928ca 50%, #00dfd8 100%);"></div>
+                <div class="color-mode-title">Flujo Orgánico</div>
+                <div class="color-mode-badge">Dinámico</div>
+              </div>
+              <div class="color-mode-card" data-mode="photo_exact">
+                <div class="color-mode-preview" style="background: radial-gradient(circle, #f59e0b 0%, #ef4444 45%, #6366f1 90%);"></div>
+                <div class="color-mode-title">Color Foto</div>
+                <div class="color-mode-badge">Original</div>
+              </div>
+              <div class="color-mode-card" data-mode="photo_fusion">
+                <div class="color-mode-preview" style="background: linear-gradient(135deg, #10b981 0%, #3b82f6 50%, #f43f5e 100%);"></div>
+                <div class="color-mode-title">Foto + Mezcla</div>
+                <div class="color-mode-badge">Híbrido</div>
+              </div>
+              <div class="color-mode-card" data-mode="line_strand">
+                <div class="color-mode-preview" style="background: linear-gradient(135deg, #ec4899 0%, #3b82f6 50%, #10b981 100%);"></div>
+                <div class="color-mode-title">Tramos Línea</div>
+                <div class="color-mode-badge">Segmentos</div>
+              </div>
+              <div class="color-mode-card" data-mode="organic_spatial">
+                <div class="color-mode-preview" style="background: conic-gradient(from 180deg at 50% 50%, #06b6d4 0deg, #3b82f6 120deg, #ec4899 240deg, #06b6d4 360deg);"></div>
+                <div class="color-mode-title">Ondas 2D</div>
+                <div class="color-mode-badge">Espacial</div>
+              </div>
+              <div class="color-mode-card" data-mode="tonal_blend">
+                <div class="color-mode-preview" style="background: linear-gradient(135deg, #f97316 0%, #a855f7 50%, #06b6d4 100%);"></div>
+                <div class="color-mode-title">Fusión Tonal</div>
+                <div class="color-mode-badge">Suave</div>
+              </div>
+              <div class="color-mode-card" data-mode="rainbow">
+                <div class="color-mode-preview" style="background: linear-gradient(135deg, #ff0055 0%, #ffcc00 33%, #00ccff 66%, #cc00ff 100%);"></div>
+                <div class="color-mode-title">Hilo Arcoíris</div>
+                <div class="color-mode-badge">Continuo</div>
+              </div>
+              <div class="color-mode-card" data-mode="rainbow_bands">
+                <div class="color-mode-preview" style="background: linear-gradient(90deg, #ff0000 0%, #ff7f00 20%, #ffff00 40%, #00ff00 60%, #0000ff 80%, #8b00ff 100%);"></div>
+                <div class="color-mode-title">Franjas Arcoíris</div>
+                <div class="color-mode-badge">Bandas</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Armonía Cromática -->
+          <div id="boxPalette" class="studio-group-block is-hidden">
+            <div class="studio-block-header">
+              <span class="studio-block-label">Armonía Cromática</span>
+              <span class="studio-block-value" id="currentPaletteLabel">Iris Orgánico</span>
+            </div>
+
+            <select id="colorPalette" style="display:none;">
+              <optgroup label="📐 Teoría del Color">
+                <option value="triad">📐 Triádica (120°)</option>
+                <option value="analogous">🌿 Análoga (35°)</option>
+                <option value="split">🔀 Split-Comp.</option>
+                <option value="complementary">⚡ Complementaria</option>
+                <option value="warm_cool">🌡️ Frío-Cálido</option>
+                <option value="monochrome">🌓 Monocromía</option>
+              </optgroup>
+              <optgroup label="🌈 Paletas de Autor">
+                <option value="iris" selected>🌈 Iris Orgánico</option>
+                <option value="cyan_amber">✨ Cian / Ámbar</option>
+                <option value="sunset">🌅 Atardecer</option>
+                <option value="ocean">🌊 Bioluminiscencia</option>
+                <option value="forest">🍃 Bosque Boreal</option>
+              </optgroup>
+              <option value="custom">🎛️ Personalizada</option>
+            </select>
+
+            <div class="color-carousel" id="paletteCarousel">
+              <div class="palette-card active" data-palette="iris">
+                <div class="palette-swatch" style="background: linear-gradient(90deg, #ff4d6d 0%, #00d2ff 50%, #9b5de5 100%);"></div>
+                <div class="palette-title">Iris Orgánico</div>
+                <div class="palette-badge">Autor</div>
+              </div>
+              <div class="palette-card" data-palette="cyan_amber">
+                <div class="palette-swatch" style="background: linear-gradient(90deg, #56cfe1 0%, #e0fbfc 50%, #f4a261 100%);"></div>
+                <div class="palette-title">Cian / Ámbar</div>
+                <div class="palette-badge">Autor</div>
+              </div>
+              <div class="palette-card" data-palette="sunset">
+                <div class="palette-swatch" style="background: linear-gradient(90deg, #e63946 0%, #ffb703 50%, #8338ec 100%);"></div>
+                <div class="palette-title">Atardecer</div>
+                <div class="palette-badge">Autor</div>
+              </div>
+              <div class="palette-card" data-palette="ocean">
+                <div class="palette-swatch" style="background: linear-gradient(90deg, #00f5d4 0%, #00bbf9 50%, #5e60ce 100%);"></div>
+                <div class="palette-title">Bioluminiscente</div>
+                <div class="palette-badge">Autor</div>
+              </div>
+              <div class="palette-card" data-palette="forest">
+                <div class="palette-swatch" style="background: linear-gradient(90deg, #2a9d8f 0%, #e76f51 50%, #264653 100%);"></div>
+                <div class="palette-title">Bosque Boreal</div>
+                <div class="palette-badge">Autor</div>
+              </div>
+              <div class="palette-card" data-palette="triad">
+                <div class="palette-swatch" style="background: linear-gradient(90deg, #ff0055 0%, #00e5ff 50%, #ffe600 100%);"></div>
+                <div class="palette-title">Triádica (120°)</div>
+                <div class="palette-badge">Teoría</div>
+              </div>
+              <div class="palette-card" data-palette="analogous">
+                <div class="palette-swatch" style="background: linear-gradient(90deg, #38ef7d 0%, #11998e 50%, #00d2ff 100%);"></div>
+                <div class="palette-title">Análoga (35°)</div>
+                <div class="palette-badge">Teoría</div>
+              </div>
+              <div class="palette-card" data-palette="split">
+                <div class="palette-swatch" style="background: linear-gradient(90deg, #ff3366 0%, #33ccff 50%, #33ff99 100%);"></div>
+                <div class="palette-title">Split-Comp.</div>
+                <div class="palette-badge">Teoría</div>
+              </div>
+              <div class="palette-card" data-palette="complementary">
+                <div class="palette-swatch" style="background: linear-gradient(90deg, #00d2ff 0%, #ff8c00 100%);"></div>
+                <div class="palette-title">Complementaria</div>
+                <div class="palette-badge">Teoría</div>
+              </div>
+              <div class="palette-card" data-palette="warm_cool">
+                <div class="palette-swatch" style="background: linear-gradient(90deg, #204080 0%, #30a0a0 50%, #ffaa20 100%);"></div>
+                <div class="palette-title">Frío-Cálido</div>
+                <div class="palette-badge">Teoría</div>
+              </div>
+              <div class="palette-card" data-palette="monochrome">
+                <div class="palette-swatch" style="background: linear-gradient(90deg, #1e293b 0%, #64748b 50%, #cbd5e1 100%);"></div>
+                <div class="palette-title">Monocromía</div>
+                <div class="palette-badge">Teoría</div>
+              </div>
+              <div class="palette-card" data-palette="custom">
+                <div class="palette-swatch" style="background: linear-gradient(90deg, #ff4d6d 0%, #00d2ff 50%, #9b5de5 100%);"></div>
+                <div class="palette-title">Personalizada</div>
+                <div class="palette-badge">Custom</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rueda Cromática / Matiz 360° -->
+          <div id="boxHue" class="studio-slider-card hero is-hidden">
+            <div class="studio-slider-header">
+              <span class="studio-slider-title">Rueda de Matiz (360°)</span>
+              <span class="studio-val-badge" id="vColHue">205°</span>
+            </div>
+            <div class="studio-slider-track-wrap">
+              <input type="range" id="colorHue" class="hue-rainbow-range" min="0" max="360" step="1" value="205">
+            </div>
+          </div>
+
+          <!-- Tríada Personalizada (Círculos Unificados de 18x18px idénticos a Lienzo) -->
+          <div id="boxPickers" class="studio-group-block is-hidden">
+            <div class="studio-block-header">
+              <span class="studio-block-label">Tonos de la Tríada</span>
+              <span class="studio-block-value">Toca para editar</span>
+            </div>
+            <div class="swatch-grid-3">
+              <button type="button" class="swatch-chip" id="itemColPick1" title="Editar Tono de Sombra">
+                <span class="swatch-dot" id="dotColPick1" style="background:#ff4d6d;"></span>
+                <span class="swatch-label">Sombra</span>
+                <input type="color" id="colPick1" value="#ff4d6d" style="display:none;">
+              </button>
+              <button type="button" class="swatch-chip" id="itemColPick2" title="Editar Tono Medio">
+                <span class="swatch-dot" id="dotColPick2" style="background:#00d2ff;"></span>
+                <span class="swatch-label">Medio</span>
+                <input type="color" id="colPick2" value="#00d2ff" style="display:none;">
+              </button>
+              <button type="button" class="swatch-chip" id="itemColPick3" title="Editar Tono de Luz">
+                <span class="swatch-dot" id="dotColPick3" style="background:#9b5de5;"></span>
+                <span class="swatch-label">Luz</span>
+                <input type="color" id="colPick3" value="#9b5de5" style="display:none;">
+              </button>
+            </div>
+          </div>
+
+          <!-- Nota limpia cuando está en Monocromo o Color Foto -->
+          <div id="colorSimpleNotice" class="studio-info-note">
+            <span>✒️ Elige un modo cromático arriba o cambia el papel en <strong>Lienzo & Fusión</strong>.</span>
+          </div>
+        </div>
+
+        <!-- SUBPANE COLOR 2: LIENZO & FUSIÓN CON RETRATO -->
+        <div class="subcolor-pane" id="subColorLienzo">
+          <div class="studio-group-block">
+            <div class="studio-block-header">
+              <span class="studio-block-label">Color del Lienzo</span>
+              <span class="studio-block-value" id="currentBgLabel">Blanco Puro</span>
+            </div>
+
+            <select id="bgTheme" style="display:none;">
+              <option value="white" selected>📄 Fondo Blanco</option>
+              <option value="dark">🌑 Fondo Noche</option>
+              <option value="cream">📜 Pergamino</option>
+              <option value="slate">🪨 Pizarra Grafito</option>
+              <option value="kraft">🏺 Papel Arena</option>
+              <option value="custom">🎨 Color Libre</option>
+            </select>
+
+            <div class="swatch-grid-2" id="bgThemeGroup">
+              <button type="button" class="swatch-chip bg-theme-chip active" data-theme="white" title="Lienzo Blanco">
+                <span class="swatch-dot white"></span>
+                <span class="swatch-label">Blanco</span>
+              </button>
+              <button type="button" class="swatch-chip bg-theme-chip" data-theme="dark" title="Lienzo Noche">
+                <span class="swatch-dot dark"></span>
+                <span class="swatch-label">Noche</span>
+              </button>
+              <button type="button" class="swatch-chip bg-theme-chip" data-theme="cream" title="Pergamino Clásico">
+                <span class="swatch-dot cream"></span>
+                <span class="swatch-label">Pergamino</span>
+              </button>
+              <button type="button" class="swatch-chip bg-theme-chip" data-theme="custom" id="chipCustomBg" title="Fondo Personalizado Libre">
+                <span class="swatch-dot custom" id="bgCustomDot" style="background:#2a2e3d;"></span>
+                <span class="swatch-label">Color Libre</span>
+                <input type="color" id="bgCustomPicker" value="#2a2e3d" style="display:none;">
+              </button>
+            </div>
+          </div>
+
+          <!-- Fusión con Retrato (Calco o Foto Original) -->
+          <div id="boxFusion" class="studio-slider-card">
+            <div class="studio-slider-header">
+              <span class="studio-slider-title">Fusión con Retrato</span>
+              <span class="studio-val-badge" id="vFusionOpacity">0% Off</span>
+            </div>
+
+            <div class="fusion-source-bar" id="fusionSourceToggle">
+              <button type="button" class="fusion-src-btn active" id="btnFusionStencil" data-source="stencil">✏️ Calco a Lápiz</button>
+              <button type="button" class="fusion-src-btn" id="btnFusionPhoto" data-source="photo">📷 Foto Original</button>
+            </div>
+
+            <div class="studio-slider-track-wrap">
+              <input type="range" id="fusionOpacity" min="0" max="100" step="1" value="0">
+            </div>
+
+            <div class="studio-quick-pills">
+              <button type="button" class="studio-pill active" data-set-target="fusionOpacity" data-set-value="0">0% Off</button>
+              <button type="button" class="studio-pill" data-set-target="fusionOpacity" data-set-value="25">25%</button>
+              <button type="button" class="studio-pill" data-set-target="fusionOpacity" data-set-value="50">50%</button>
+              <button type="button" class="studio-pill" data-set-target="fusionOpacity" data-set-value="75">75%</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBPANE COLOR 3: DINÁMICA CROMÁTICA -->
+        <div class="subcolor-pane" id="subColorDinamica">
+          <div id="colorMonoNotice" class="studio-info-note">
+            <span>💡 Activa un modo de color en <strong>Tinta & Paleta</strong> o pulsa <strong>Flujo Animado</strong> abajo.</span>
+          </div>
+
+          <div class="studio-2col-grid">
+            <div class="studio-slider-card is-hidden" id="boxScale">
+              <div class="studio-slider-header">
+                <span class="studio-slider-title">Frecuencia Cromática</span>
+                <span class="studio-val-badge" id="vColScale">3.5</span>
+              </div>
+              <div class="studio-slider-track-wrap">
+                <input type="range" id="colorScale" min="0.5" max="10.0" step="0.2" value="3.5">
+              </div>
+            </div>
+
+            <div class="studio-slider-card is-hidden" id="boxIntensity">
+              <div class="studio-slider-header">
+                <span class="studio-slider-title">Saturación e Intensidad</span>
+                <span class="studio-val-badge" id="vColIntensity">100%</span>
+              </div>
+              <div class="studio-slider-track-wrap">
+                <input type="range" id="colorIntensity" min="15" max="200" step="5" value="100">
+              </div>
+            </div>
+          </div>
+
+          <div id="boxFlow">
+            <button id="btnColorFlow" class="flow-btn" type="button">
+              <span>🌈</span> Flujo Cromático Animado
+            </button>
+          </div>
+        </div>
       </div>
 
-      <!-- TAB 4: EXPORTAR & SISTEMA -->
+      <!-- =========================================================
+           TAB 4: EXPORTAR OBRA
+           ========================================================= -->
       <div class="tab-pane" id="paneExportar">
         <div class="export-cards-grid">
-          <!-- CARD SVG -->
           <div class="export-card primary" id="cardExportSvg">
             <div class="export-card-left">
               <div class="export-card-icon">✒️</div>
@@ -2928,13 +2187,12 @@
                   <span class="export-card-title">Vectorial SVG</span>
                   <span class="export-card-badge pro">Master 100%</span>
                 </div>
-                <div class="export-card-desc">Trazado continuo vectorial infinito para plóter, corte láser o tatuaje.</div>
+                <div class="export-card-desc">Trazado continuo infinito para plóter, corte láser o tatuaje.</div>
               </div>
             </div>
             <button id="btnSvg" class="export-action-btn primary">Descargar SVG</button>
           </div>
 
-          <!-- CARD PNG -->
           <div class="export-card" id="cardExportPng">
             <div class="export-card-left">
               <div class="export-card-icon">🖼️</div>
@@ -2943,31 +2201,29 @@
                   <span class="export-card-title">Imagen PNG HD</span>
                   <span class="export-card-badge">Alta Resolución</span>
                 </div>
-                <div class="export-card-desc">Renderizado de alta calidad listo para compartir en redes o imprimir.</div>
+                <div class="export-card-desc">Imagen de alta nitidez lista para guardar o imprimir.</div>
               </div>
             </div>
             <button id="btnPng" class="export-action-btn secondary">Guardar PNG</button>
           </div>
 
-          <!-- CARD MOTION / VIDEO -->
           <div class="export-card motion" id="cardExportMotion">
             <div class="export-card-left">
               <div class="export-card-icon">🎬</div>
               <div class="export-card-info">
                 <div class="export-card-header">
                   <span class="export-card-title">Vídeo y Animación</span>
-                  <span class="export-card-badge video">Motion Video</span>
+                  <span class="export-card-badge video">Motion</span>
                 </div>
-                <div class="export-card-desc">Dibuja el trazo en vivo y graba clips en formato vídeo WebM.</div>
+                <div class="export-card-desc">Recrea el dibujo en vivo y graba clips en vídeo WebM.</div>
               </div>
             </div>
             <div class="export-btn-group">
               <button id="btnAnimate" class="export-action-btn gold">🎬 Animar</button>
-              <button id="btnRecord" class="export-action-btn rec">⏺ Grabar Vídeo</button>
+              <button id="btnRecord" class="export-action-btn rec">⏺ Grabar</button>
             </div>
           </div>
 
-          <!-- CARD COMPARTIR OBRA -->
           <div class="export-card share" id="cardExportShare">
             <div class="export-card-left">
               <div class="export-card-icon">📲</div>
@@ -2976,7 +2232,7 @@
                   <span class="export-card-title">Compartir Obra</span>
                   <span class="export-card-badge share">Directo</span>
                 </div>
-                <div class="export-card-desc">Enviar por WhatsApp, Instagram, Guardar en Fotos o AirDrop.</div>
+                <div class="export-card-desc">Enviar por WhatsApp, Instagram, Fotos o AirDrop.</div>
               </div>
             </div>
             <button id="btnShare" class="export-action-btn share">📲 Compartir</button>
@@ -3297,6 +2553,22 @@ const MODE_PRESETS = {
   halftone_dots:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.52, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.0 }
 };
 
+function syncSliderProgress(el) {
+  if (!el || el.classList.contains('scp-hue-slider')) return;
+  const min = parseFloat(el.min);
+  const max = parseFloat(el.max);
+  const val = parseFloat(el.value);
+  const lo = isNaN(min) ? 0 : min;
+  const hi = isNaN(max) ? 100 : max;
+  const v = isNaN(val) ? lo : val;
+  const pct = hi > lo ? Math.max(0, Math.min(100, ((v - lo) / (hi - lo)) * 100)) : 0;
+  el.style.setProperty('--slider-progress', pct.toFixed(2) + '%');
+}
+
+function syncAllSlidersProgress() {
+  document.querySelectorAll('input[type="range"]:not(.scp-hue-slider)').forEach(syncSliderProgress);
+}
+
 function syncPresetPills(targetId, val, tolerance = 1.0) {
   document.querySelectorAll(`.preset-pill[data-set-target="${targetId}"], .studio-pill[data-set-target="${targetId}"]`).forEach(pill => {
     const pVal = parseFloat(pill.getAttribute('data-set-value'));
@@ -3312,24 +2584,40 @@ function syncMaxNPresets(val) {
   syncPresetPills('maxN', val, 500);
 }
 
+function setFusionOpacity(rawVal) {
+  const num = parseFloat(rawVal);
+  const clean = (isNaN(num) || num <= 0.4) ? 0 : Math.min(100, Math.round(num));
+  FUSION_OPACITY = clean;
+  const fEl = document.getElementById('fusionOpacity');
+  if (fEl) {
+    fEl.value = String(clean);
+    syncSliderProgress(fEl);
+  }
+  const fLbl = document.getElementById('vFusionOpacity');
+  if (fLbl) {
+    fLbl.textContent = clean === 0 ? '0% Off' : `${clean}%`;
+  }
+  syncPresetPills('fusionOpacity', clean, 4);
+}
+
 function syncViewLayerCards(val = VIEW_MODE) {
+  const activeVal = (val === 'both') ? 'line' : val;
   const badgeMap = {
-    'line': 'Línea Pura',
-    'both': 'Superposición',
+    'line': 'Línea Continua',
     'stencil': 'Calco a Lápiz',
     'photo': 'Foto Original'
   };
   const badge = document.getElementById('currentViewModeBadge');
-  if (badge && badgeMap[val]) {
-    badge.textContent = badgeMap[val];
+  if (badge && badgeMap[activeVal]) {
+    badge.textContent = badgeMap[activeVal];
   }
-  document.querySelectorAll('.view-layer-card[data-view-value]').forEach(card => {
-    const isTarget = card.getAttribute('data-view-value') === val;
-    card.classList.toggle('active', isTarget);
-    card.setAttribute('aria-checked', isTarget ? 'true' : 'false');
-  });
   document.querySelectorAll('.floating-layer-btn[data-view-value]').forEach(btn => {
-    const isTarget = btn.getAttribute('data-view-value') === val;
+    const btnVal = btn.getAttribute('data-view-value');
+    // Los botones superiores representan las vistas 100% PURAS (FUSION_OPACITY === 0):
+    // Si hay fusión activa (>0%), ninguno queda encendido para que un toque en Línea o Calco restaure al instante el 0% puro.
+    const isTarget = (btnVal === 'line')
+      ? (activeVal === 'line' && FUSION_OPACITY === 0)
+      : (btnVal === activeVal && FUSION_OPACITY === 0);
     btn.classList.toggle('active', isTarget);
     btn.setAttribute('aria-pressed', isTarget ? 'true' : 'false');
   });
@@ -3338,7 +2626,10 @@ function syncViewLayerCards(val = VIEW_MODE) {
 function syncSlidersFromState() {
   const setSlider = (id, labelId, val, decimals = null, suffix = '') => {
     const el = document.getElementById(id);
-    if (el) el.value = val;
+    if (el) {
+      el.value = val;
+      syncSliderProgress(el);
+    }
     const lbl = document.getElementById(labelId);
     if (lbl) lbl.textContent = (decimals !== null ? val.toFixed(decimals) : val) + suffix;
   };
@@ -3351,6 +2642,7 @@ function syncSlidersFromState() {
   setSlider('maxR', 'vMax', MAX_R, 1);
   setSlider('chaikinPasses', 'vChaikin', CHAIKIN_PASSES);
   setSlider('lineW', 'vWidth', LINE_W, 1);
+  setSlider('colorHue', 'vColHue', COLOR_HUE, null, '°');
   setSlider('colorScale', 'vColScale', COLOR_SCALE, 1);
   setSlider('colorIntensity', 'vColIntensity', Math.round(COLOR_INTENSITY * 100), null, '%');
   setSlider('haringIconCount', 'vHaringIcons', HARING_ICON_COUNT);
@@ -3358,26 +2650,10 @@ function syncSlidersFromState() {
   setSlider('halftoneSpacing', 'vHalftoneSpacing', HALFTONE_SPACING, 1, 'px');
   setSlider('halftoneScale', 'vHalftoneScale', HALFTONE_SCALE, null, '%');
   setSlider('halftoneAngle', 'vHalftoneAngle', HALFTONE_ANGLE, null, '°');
-  const fEl = document.getElementById('fusionOpacity');
-  if (fEl) fEl.value = FUSION_OPACITY;
-  const fLbl = document.getElementById('vFusionOpacity');
-  if (fLbl) fLbl.textContent = FUSION_OPACITY <= 0 ? '0% (Off)' : `${Math.round(FUSION_OPACITY)}%`;
-  syncPresetPills('fusionOpacity', FUSION_OPACITY, 6);
+  setFusionOpacity(FUSION_OPACITY);
   syncPresetPills('maxN', TARGET_NODES, 500);
-  syncPresetPills('lineW', LINE_W, 0.15);
-  syncPresetPills('chaikinPasses', CHAIKIN_PASSES, 0.1);
-  syncPresetPills('pencilStr', PENCIL_STR, 0.5);
-  syncPresetPills('shadeWeight', SHADE_WEIGHT, 0.05);
-  syncPresetPills('pencilBlur', PENCIL_BLUR, 0.3);
-  syncPresetPills('bgClean', BG_CLEAN, 0.01);
-  syncPresetPills('minR', MIN_R, 0.2);
-  syncPresetPills('maxR', MAX_R, 0.3);
-  syncPresetPills('haringIconCount', HARING_ICON_COUNT, 8);
-  syncPresetPills('haringIconSize', HARING_ICON_SIZE, 8);
-  syncPresetPills('halftoneSpacing', HALFTONE_SPACING, 0.3);
-  syncPresetPills('halftoneScale', HALFTONE_SCALE, 6);
-  syncPresetPills('halftoneAngle', HALFTONE_ANGLE, 3);
   syncViewLayerCards(VIEW_MODE);
+  syncAllSlidersProgress();
 }
 syncSlidersFromState();
 
@@ -8547,9 +7823,18 @@ function hexToRgbTuple(hex) {
 }
 
 function syncCustomColorsFromPickers() {
-  customColorsRGB[0] = hexToRgbTuple(document.getElementById('colPick1').value);
-  customColorsRGB[1] = hexToRgbTuple(document.getElementById('colPick2').value);
-  customColorsRGB[2] = hexToRgbTuple(document.getElementById('colPick3').value);
+  const p1 = document.getElementById('colPick1');
+  const p2 = document.getElementById('colPick2');
+  const p3 = document.getElementById('colPick3');
+  if (p1) customColorsRGB[0] = hexToRgbTuple(p1.value);
+  if (p2) customColorsRGB[1] = hexToRgbTuple(p2.value);
+  if (p3) customColorsRGB[2] = hexToRgbTuple(p3.value);
+  const d1 = document.getElementById('dotColPick1');
+  const d2 = document.getElementById('dotColPick2');
+  const d3 = document.getElementById('dotColPick3');
+  if (d1 && p1) d1.style.background = p1.value;
+  if (d2 && p2) d2.style.background = p2.value;
+  if (d3 && p3) d3.style.background = p3.value;
 }
 
 /**
@@ -8909,6 +8194,9 @@ function rebuildLineCache() {
 }
 
 function render() {
+  ctx.globalAlpha = 1.0;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = getBgHex(BG_THEME);
   ctx.fillRect(0, 0, W, H);
 
@@ -8922,17 +8210,14 @@ function render() {
     return;
   }
 
-  // FUSIÓN CON RETRATO (FONDO SEMITRANSPARENTE AJUSTABLE):
-  // Se dibuja si FUSION_OPACITY > 0 o si VIEW_MODE === 'both'
-  const effOpacity = (FUSION_OPACITY > 0)
-    ? (FUSION_OPACITY / 100.0)
-    : (VIEW_MODE === 'both' ? (isBgDark() ? 0.14 : 0.28) : 0);
-
-  if (effOpacity > 0.005) {
+  // FUSIÓN CON RETRATO: Solo se dibuja si VIEW_MODE === 'line' y FUSION_OPACITY >= 1%
+  if (VIEW_MODE === 'line' && FUSION_OPACITY >= 1) {
+    const effOpacity = Math.min(1.0, Math.max(0.0, FUSION_OPACITY / 100.0));
     const underlayCanvas = (FUSION_SOURCE === 'photo') ? photoCanvas : stencilCanvas;
-    ctx.globalAlpha = Math.min(1.0, Math.max(0.0, effOpacity));
+    ctx.save();
+    ctx.globalAlpha = effOpacity;
     ctx.drawImage(underlayCanvas, 0, 0);
-    ctx.globalAlpha = 1.0;
+    ctx.restore();
   }
 
   if (ptsX.length < 3 && (!halftoneCirclesData || halftoneCirclesData.length === 0)) return;
@@ -9531,7 +8816,7 @@ document.getElementById('viewMode').addEventListener('change', (e) => {
   render();
 });
 
-// Controles del Motor de Color Orgánico
+// Controles del Motor de Color Orgánico (Visibilidad limpia sin destruir flex/grid)
 function updateColorPanelVisibility() {
   const mode = COLOR_MODE;
   const isMono = (mode === 'mono');
@@ -9542,16 +8827,28 @@ function updateColorPanelVisibility() {
   const boxPalette = document.getElementById('boxPalette');
   const boxHue = document.getElementById('boxHue');
   const boxPickers = document.getElementById('boxPickers');
+  const colorSimpleNotice = document.getElementById('colorSimpleNotice');
+  const colorMonoNotice = document.getElementById('colorMonoNotice');
   const boxScale = document.getElementById('boxScale');
   const boxIntensity = document.getElementById('boxIntensity');
   const boxFlow = document.getElementById('boxFlow');
 
-  if (boxPalette) boxPalette.style.display = usesCustomPalette ? 'block' : 'none';
-  if (boxPickers) boxPickers.style.display = usesCustomPalette ? 'flex' : 'none';
-  if (boxHue) boxHue.style.display = (usesCustomPalette || isRainbow) ? 'block' : 'none';
-  if (boxScale) boxScale.style.display = (!isMono && !isPhotoExact) ? 'block' : 'none';
-  if (boxIntensity) boxIntensity.style.display = 'block';
-  if (boxFlow) boxFlow.style.display = 'block';
+  if (boxPalette) boxPalette.classList.toggle('is-hidden', !usesCustomPalette);
+  if (boxPickers) boxPickers.classList.toggle('is-hidden', !usesCustomPalette);
+  if (boxHue) boxHue.classList.toggle('is-hidden', !(usesCustomPalette || isRainbow));
+  if (colorSimpleNotice) {
+    colorSimpleNotice.classList.toggle('is-hidden', !(isMono || isPhotoExact));
+    const span = colorSimpleNotice.querySelector('span');
+    if (span) {
+      span.innerHTML = isPhotoExact
+        ? '📸 <strong>Color Foto Original:</strong> Toma el pigmento real de cada punto del retrato. Ajusta saturación en <strong>Dinámica</strong>.'
+        : '✒️ <strong>Tinta Monocroma Pura:</strong> Elige un modo cromático arriba o cambia el papel en <strong>Lienzo & Fusión</strong>.';
+    }
+  }
+  if (colorMonoNotice) colorMonoNotice.classList.toggle('is-hidden', !isMono);
+  if (boxScale) boxScale.classList.toggle('is-hidden', isMono || isPhotoExact);
+  if (boxIntensity) boxIntensity.classList.toggle('is-hidden', isMono);
+  if (boxFlow) boxFlow.classList.remove('is-hidden');
 }
 
 function syncColorModeCards(mode) {
@@ -10082,6 +9379,7 @@ const bindParam = (id, labelId, setter, isStencilParam = false, decimals = null,
   const el = document.getElementById(id);
   if (!el) return;
   el.addEventListener('input', (e) => {
+    syncSliderProgress(el);
     const v = parseFloat(e.target.value);
     const lbl = document.getElementById(labelId);
     if (lbl) lbl.textContent = (decimals !== null ? v.toFixed(decimals) : v) + suffix;
@@ -10095,7 +9393,7 @@ const bindParam = (id, labelId, setter, isStencilParam = false, decimals = null,
       requestAnimationFrame(() => {
         stencilRafPending = false;
         buildAllStencilsAndSilhouettes();
-        if (VIEW_MODE !== 'line') render();
+        if (VIEW_MODE !== 'line' || FUSION_OPACITY > 0) render();
       });
     }
     clearTimeout(paramDebounceTimer);
@@ -10104,6 +9402,7 @@ const bindParam = (id, labelId, setter, isStencilParam = false, decimals = null,
     }, 280);
   });
   el.addEventListener('change', () => {
+    syncSliderProgress(el);
     clearTimeout(paramDebounceTimer);
     rebuildPortrait(isStencilParam);
   });
@@ -10117,11 +9416,11 @@ bindParam('maxN', 'vNodes', v => { TARGET_NODES = v; syncMaxNPresets(v); }, fals
 bindParam('minR', 'vMin', v => MIN_R = v, false, 1);
 bindParam('maxR', 'vMax', v => MAX_R = v, false, 1);
 bindParam('chaikinPasses', 'vChaikin', v => CHAIKIN_PASSES = v, false, null);
-bindParam('haringIconCount', 'vHaringIcons', v => { HARING_ICON_COUNT = v; syncPresetPills('haringIconCount', v, 8); }, false, null);
-bindParam('haringIconSize', 'vHaringSize', v => { HARING_ICON_SIZE = v; syncPresetPills('haringIconSize', v, 8); }, false, null, '%');
-bindParam('halftoneSpacing', 'vHalftoneSpacing', v => { HALFTONE_SPACING = v; syncPresetPills('halftoneSpacing', v, 0.4); }, false, 1, 'px');
-bindParam('halftoneScale', 'vHalftoneScale', v => { HALFTONE_SCALE = v; syncPresetPills('halftoneScale', v, 6); }, false, null, '%');
-bindParam('halftoneAngle', 'vHalftoneAngle', v => { HALFTONE_ANGLE = v; syncPresetPills('halftoneAngle', v, 4); }, false, null, '°');
+bindParam('haringIconCount', 'vHaringIcons', v => { HARING_ICON_COUNT = v; }, false, null);
+bindParam('haringIconSize', 'vHaringSize', v => { HARING_ICON_SIZE = v; }, false, null, '%');
+bindParam('halftoneSpacing', 'vHalftoneSpacing', v => { HALFTONE_SPACING = v; }, false, 1, 'px');
+bindParam('halftoneScale', 'vHalftoneScale', v => { HALFTONE_SCALE = v; }, false, null, '%');
+bindParam('halftoneAngle', 'vHalftoneAngle', v => { HALFTONE_ANGLE = v; }, false, null, '°');
 
 const btnHtDots = document.getElementById('btnHalftoneTypeDots');
 const btnHtLine = document.getElementById('btnHalftoneTypeLine');
@@ -10151,11 +9450,9 @@ if (btnHtDots && btnHtLine) {
 }
 
 document.getElementById('lineW').addEventListener('input', (e) => {
+  syncSliderProgress(e.target);
   LINE_W = parseFloat(e.target.value);
   document.getElementById('vWidth').textContent = LINE_W.toFixed(1);
-  if (typeof syncPresetPills === 'function') {
-    syncPresetPills('lineW', LINE_W, 0.15);
-  }
   lineCacheDirty = true;
   if (!isAnimatingDraw) {
     render();
@@ -10164,18 +9461,8 @@ document.getElementById('lineW').addEventListener('input', (e) => {
 
 // Controles de Fusión con Retrato (Fondo Semitransparente Calco / Foto)
 const elFusion = document.getElementById('fusionOpacity');
-const lblFusion = document.getElementById('vFusionOpacity');
 const btnFusionStencil = document.getElementById('btnFusionStencil');
 const btnFusionPhoto = document.getElementById('btnFusionPhoto');
-
-function updateFusionPillBadge(v) {
-  if (!lblFusion) return;
-  if (v <= 0) {
-    lblFusion.textContent = '0% (Off)';
-  } else {
-    lblFusion.textContent = `${Math.round(v)}%`;
-  }
-}
 
 function setFusionSource(source) {
   FUSION_SOURCE = source;
@@ -10194,81 +9481,29 @@ if (btnFusionPhoto) {
 
 if (elFusion) {
   elFusion.addEventListener('input', (e) => {
-    const val = parseFloat(e.target.value) || 0;
-    FUSION_OPACITY = val;
-    updateFusionPillBadge(val);
-    if (typeof syncPresetPills === 'function') {
-      syncPresetPills('fusionOpacity', val, 6);
+    setFusionOpacity(e.target.value);
+    if (VIEW_MODE !== 'line') {
+      VIEW_MODE = 'line';
+      const sel = document.getElementById('viewMode');
+      if (sel) sel.value = 'line';
     }
-    if (VIEW_MODE === 'stencil' || VIEW_MODE === 'photo') {
-      VIEW_MODE = 'both';
-      syncViewLayerCards('both');
-    } else if (VIEW_MODE === 'line' && FUSION_OPACITY > 0) {
-      syncViewLayerCards('both');
-    } else if (FUSION_OPACITY === 0 && VIEW_MODE === 'both') {
-      syncViewLayerCards('line');
-    }
+    syncViewLayerCards('line');
+    render();
+  });
+  elFusion.addEventListener('change', (e) => {
+    setFusionOpacity(e.target.value);
+    syncViewLayerCards(VIEW_MODE);
     render();
   });
 }
 
-// =========================================================
-// STUDIO ERGONOMICS: STEPPER BUTTONS & ACCIDENTAL SCROLL GUARD
-// =========================================================
-
-// Botones Paso a Paso (+ / -) para Ajuste Fino sin necesidad de arrastrar deslizador
-document.querySelectorAll('.stepper-btn[data-step-for]').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const targetId = btn.getAttribute('data-step-for');
-    const dir = parseFloat(btn.getAttribute('data-step-dir')) || 1;
-    const input = document.getElementById(targetId);
-    if (!input) return;
-
-    const min = parseFloat(input.min) !== undefined && !isNaN(parseFloat(input.min)) ? parseFloat(input.min) : 0;
-    const max = parseFloat(input.max) !== undefined && !isNaN(parseFloat(input.max)) ? parseFloat(input.max) : 100;
-    const step = parseFloat(input.step) || 1;
-    let val = parseFloat(input.value) || 0;
-
-    val = Math.min(max, Math.max(min, val + dir * step));
-
-    // Formatear decimales según el paso
-    const stepStr = input.step || '1';
-    const decimals = stepStr.includes('.') ? stepStr.split('.')[1].length : 0;
-    input.value = decimals > 0 ? val.toFixed(decimals) : Math.round(val);
-
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-
-    syncPresetPills(targetId, val, targetId === 'maxN' ? 500 : (targetId === 'colorScale' ? 0.3 : 8));
-
-    if (navigator.vibrate) {
-      try { navigator.vibrate(10); } catch (_) {}
-    }
-  });
-});
-
-// Píldoras Rápidas de Presets de Definición para Sliders de Estudio
+// Píldoras Rápidas de Presets (Nodos y Fusión)
 const pillToleranceMap = {
-  'fusionOpacity': 6,
-  'maxN': 500,
-  'lineW': 0.15,
-  'chaikinPasses': 0.1,
-  'pencilStr': 0.5,
-  'shadeWeight': 0.05,
-  'pencilBlur': 0.3,
-  'bgClean': 0.01,
-  'minR': 0.2,
-  'maxR': 0.3,
-  'haringIconCount': 8,
-  'haringIconSize': 8,
-  'halftoneSpacing': 0.4,
-  'halftoneScale': 6,
-  'halftoneAngle': 4
+  'fusionOpacity': 4,
+  'maxN': 500
 };
 
-document.querySelectorAll('.preset-pill[data-set-target], .studio-pill[data-set-target]').forEach(pill => {
+document.querySelectorAll('.studio-pill[data-set-target]').forEach(pill => {
   pill.addEventListener('click', (e) => {
     e.preventDefault();
     const targetId = pill.getAttribute('data-set-target');
@@ -10276,145 +9511,93 @@ document.querySelectorAll('.preset-pill[data-set-target], .studio-pill[data-set-
     const input = document.getElementById(targetId);
     if (!input || isNaN(val)) return;
 
-    input.value = val;
+    input.value = String(val);
+    syncSliderProgress(input);
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.dispatchEvent(new Event('change', { bubbles: true }));
 
     syncPresetPills(targetId, val, pillToleranceMap[targetId] || 1.0);
-
-    if (navigator.vibrate) {
-      try { navigator.vibrate(14); } catch (_) {}
-    }
+    haptic(10);
   });
 });
 
-// Subnavegación de Trazo (Cero Scroll)
+// Subnavegación Independiente por Panel (Trazo y Color)
 document.querySelectorAll('.studio-subnav-btn[data-subtab]').forEach(btn => {
   btn.addEventListener('click', (e) => {
     e.preventDefault();
     const targetSubtab = btn.getAttribute('data-subtab');
-    document.querySelectorAll('.studio-subnav-btn').forEach(b => {
+    const parentTab = btn.closest('.tab-pane') || document;
+    parentTab.querySelectorAll('.studio-subnav-btn').forEach(b => {
       const active = (b === btn);
       b.classList.toggle('active', active);
       b.setAttribute('aria-selected', active ? 'true' : 'false');
     });
-    document.querySelectorAll('.subtrazo-pane').forEach(pane => {
+    parentTab.querySelectorAll('.subtrazo-pane, .subcolor-pane').forEach(pane => {
       pane.classList.toggle('active', pane.id === targetSubtab);
     });
     if (typeof updateActiveFunctionPill === 'function') {
       updateActiveFunctionPill();
     }
-    if (typeof haptic === 'function') {
-      haptic(8);
-    } else if (navigator.vibrate) {
-      try { navigator.vibrate(8); } catch (_) {}
-    }
+    haptic(8);
   });
 });
 
-// Botones Flotantes de Selección de Capa sobre el Lienzo
+// Botones Superiores de Vista Pura (Línea Pura vs Calco Puro — SIEMPRE Fusión 0%)
 document.querySelectorAll('.floating-layer-btn[data-view-value]').forEach(btn => {
   btn.addEventListener('click', (e) => {
     e.preventDefault();
     const val = btn.getAttribute('data-view-value');
     const sel = document.getElementById('viewMode');
     if (!sel || !val) return;
-    if (sel.value !== val) {
-      sel.value = val;
-      sel.dispatchEvent(new Event('change', { bubbles: true }));
-    } else {
-      syncViewLayerCards(val);
-    }
-    if (val === 'both') {
-      if (FUSION_OPACITY <= 0) {
-        FUSION_OPACITY = isBgDark() ? 15 : 28;
-      }
-      FUSION_SOURCE = 'stencil';
-      const fEl = document.getElementById('fusionOpacity');
-      if (fEl) fEl.value = FUSION_OPACITY;
-      updateFusionPillBadge(FUSION_OPACITY);
-      setFusionSource('stencil');
-      syncPresetPills('fusionOpacity', FUSION_OPACITY, 6);
-    } else if (val === 'line') {
-      FUSION_OPACITY = 0;
-      const fEl = document.getElementById('fusionOpacity');
-      if (fEl) fEl.value = 0;
-      updateFusionPillBadge(0);
-      syncPresetPills('fusionOpacity', 0, 6);
-    }
+    setFusionOpacity(0);
+    VIEW_MODE = val;
+    sel.value = val;
+    syncViewLayerCards(val);
     render();
-    if (typeof haptic === 'function') {
-      haptic(10);
-    } else if (navigator.vibrate) {
-      try { navigator.vibrate(10); } catch (_) {}
-    }
+    haptic(10);
   });
 });
 
-// Guardia de Scroll Táctil en Sliders (Evita Cambios Accidentales al Hacer Scroll Vertical)
-document.querySelectorAll('input[type="range"]').forEach(slider => {
+// Guardia de Scroll Táctil con Bloqueo de Eje (Impide revertir el slider al levantar el dedo en diagonal)
+document.querySelectorAll('input[type="range"]:not(.scp-hue-slider)').forEach(slider => {
   let startX = 0;
   let startY = 0;
-  let isVerticalScroll = false;
+  let gestureAxis = null; // null | 'x' | 'y'
   let initialVal = null;
 
   slider.addEventListener('touchstart', (e) => {
     if (e.touches.length !== 1) return;
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
-    isVerticalScroll = false;
+    gestureAxis = null;
     initialVal = slider.value;
   }, { passive: true });
 
   slider.addEventListener('touchmove', (e) => {
-    if (e.touches.length !== 1) return;
+    if (e.touches.length !== 1 || gestureAxis === 'x') return;
     const dx = Math.abs(e.touches[0].clientX - startX);
     const dy = Math.abs(e.touches[0].clientY - startY);
 
-    // Si el usuario se desplaza verticalmente (|dy| > |dx| y supera umbral):
-    if (dy > 6 && dy > dx) {
-      isVerticalScroll = true;
+    if (gestureAxis === null && (dx > 6 || dy > 6)) {
+      gestureAxis = (dx >= dy) ? 'x' : 'y';
+    }
+
+    if (gestureAxis === 'y') {
       if (initialVal !== null && slider.value !== initialVal) {
         slider.value = initialVal;
+        syncSliderProgress(slider);
         slider.dispatchEvent(new Event('input', { bubbles: true }));
       }
       slider.blur();
     }
   }, { passive: true });
 
-  slider.addEventListener('touchend', () => {
-    isVerticalScroll = false;
+  const resetGesture = () => {
+    gestureAxis = null;
     initialVal = null;
-  }, { passive: true });
-});
-
-// =========================================================
-// STUDIO VIEW LAYER CARDS HANDLERS
-// =========================================================
-document.querySelectorAll('.view-layer-card[data-view-value]').forEach(card => {
-  const activateCard = (e) => {
-    e.preventDefault();
-    const val = card.getAttribute('data-view-value');
-    const sel = document.getElementById('viewMode');
-    if (!sel || !val) return;
-    if (sel.value !== val) {
-      sel.value = val;
-      sel.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-    syncViewLayerCards(val);
-    if (typeof haptic === 'function') {
-      haptic(10);
-    } else if (navigator.vibrate) {
-      try { navigator.vibrate(10); } catch (_) {}
-    }
   };
-
-  card.addEventListener('click', activateCard);
-  card.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      activateCard(e);
-    }
-  });
+  slider.addEventListener('touchend', resetGesture, { passive: true });
+  slider.addEventListener('touchcancel', resetGesture, { passive: true });
 });
 
 // Restablecer parámetros del estilo actual (dentro de paneTrazo)
@@ -10427,16 +9610,13 @@ if (btnResetStyleParams) {
     TARGET_NODES = isMobileDevice ? 38000 : 44000;
     HARING_ICON_COUNT = 95;
     HARING_ICON_SIZE = 100;
-    HALFTONE_SPACING = 5.5;
-    HALFTONE_SCALE = 100;
+    HALFTONE_SPACING = 6.5;
+    HALFTONE_SCALE = 115;
     HALFTONE_ANGLE = 45;
     applyModePreset(ENGINE_MODE);
     syncMaxNPresets(TARGET_NODES);
-    syncPresetPills('minR', MIN_R, 0.3);
-    syncPresetPills('maxR', MAX_R, 0.5);
-    syncPresetPills('lineW', LINE_W, 0.2);
     rebuildPortrait(true);
-    statusPhase = 'Valores del estilo restablecidos a los óptimos';
+    statusPhase = 'Parámetros óptimos restaurados';
     updateStatsText();
   });
 }
@@ -10610,32 +9790,35 @@ function updateFocalMarker() {
   const box = document.getElementById('boxSpiralControls');
   const boxHaring = document.getElementById('boxHaringIconControls');
   const boxHalftone = document.getElementById('boxHalftoneControls');
+  const modeDesc = document.getElementById('modeDesc');
   const txt = document.getElementById('focalCoordsText');
   const statusPill = document.getElementById('statusPill');
-  if (boxHaring) {
-    boxHaring.style.display = (ENGINE_MODE === 'keith_haring' || ENGINE_MODE === 'haring_croc' || ENGINE_MODE === 'haring_puzzle') ? 'block' : 'none';
-  }
-  if (boxHalftone) {
-    boxHalftone.style.display = (ENGINE_MODE === 'halftone_dots') ? 'block' : 'none';
-  }
-  if (ENGINE_MODE === 'golden_spiral') {
-    if (box) box.style.display = 'block';
+
+  const isHaring = (ENGINE_MODE === 'keith_haring' || ENGINE_MODE === 'haring_croc' || ENGINE_MODE === 'haring_puzzle');
+  const isHalftone = (ENGINE_MODE === 'halftone_dots');
+  const isSpiral = (ENGINE_MODE === 'golden_spiral');
+
+  if (boxHaring) boxHaring.classList.toggle('is-hidden', !isHaring);
+  if (boxHalftone) boxHalftone.classList.toggle('is-hidden', !isHalftone);
+  if (box) box.classList.toggle('is-hidden', !isSpiral);
+  if (modeDesc) modeDesc.classList.toggle('is-hidden', isHaring || isHalftone);
+
+  if (isSpiral) {
     if (customFocalX !== null && customFocalY !== null) {
       if (marker) {
         marker.style.display = 'block';
         marker.style.left = ((customFocalX / W) * 100) + '%';
         marker.style.top = ((customFocalY / H) * 100) + '%';
       }
-      if (txt) txt.textContent = 'Centro fijado en (' + Math.round(customFocalX) + ', ' + Math.round(customFocalY) + '). Toca cualquier punto para moverlo.';
-      if (statusPill) statusPill.textContent = '🌻 Foco (' + Math.round(customFocalX) + ',' + Math.round(customFocalY) + ') · Toca para mover';
+      if (txt) txt.textContent = 'Foco en (' + Math.round(customFocalX) + ', ' + Math.round(customFocalY) + ')';
+      if (statusPill) statusPill.textContent = '🌻 Foco (' + Math.round(customFocalX) + ',' + Math.round(customFocalY) + ')';
     } else {
       if (marker) marker.style.display = 'none';
-      if (txt) txt.textContent = '👉 Centro automático en la mirada. Toca cualquier punto de la foto para situar el centro allí.';
+      if (txt) txt.textContent = 'Centro automático en la mirada';
       updateActiveFunctionPill();
     }
   } else {
     if (marker) marker.style.display = 'none';
-    if (box) box.style.display = 'none';
     updateActiveFunctionPill();
   }
 }
@@ -10661,20 +9844,28 @@ function updateActiveFunctionPill() {
     if (ENGINE_MODE === 'halftone_dots') {
       statusPill.textContent = '⚫ Trama de Puntos';
     } else {
-      const activeSubtab = document.querySelector('.studio-subnav-btn.active');
+      const activeSubtab = document.querySelector('#paneTrazo .studio-subnav-btn.active');
       const subId = activeSubtab ? activeSubtab.getAttribute('data-subtab') : '';
       if (subId === 'subTrazoSilueta') {
-        statusPill.textContent = '✏️ Calco Silueta';
+        statusPill.textContent = '✏️ Lectura Retrato';
       } else if (subId === 'subTrazoEspaciado') {
-        statusPill.textContent = '📐 Espaciado & Curvas';
+        statusPill.textContent = '📐 Densidad';
       } else {
-        statusPill.textContent = '✒️ Trazo & Nodos';
+        statusPill.textContent = '✒️ Pluma & Nodos';
       }
     }
   } else if (activeTabId === 'paneColor') {
-    statusPill.textContent = '🌈 Color & Paletas';
+    const activeSubtab = document.querySelector('#paneColor .studio-subnav-btn.active');
+    const subId = activeSubtab ? activeSubtab.getAttribute('data-subtab') : '';
+    if (subId === 'subColorLienzo') {
+      statusPill.textContent = '🖼️ Lienzo & Fusión';
+    } else if (subId === 'subColorDinamica') {
+      statusPill.textContent = '✨ Dinámica de Color';
+    } else {
+      statusPill.textContent = '🎨 Tinta & Paleta';
+    }
   } else if (activeTabId === 'paneExportar') {
-    statusPill.textContent = '📤 Exportar & Guardar';
+    statusPill.textContent = '📤 Exportar Obra';
   } else {
     statusPill.textContent = '🎨 Estudio de Línea';
   }
@@ -10693,7 +9884,7 @@ function syncStyleCards(selectedMode) {
 }
 
 // =========================================================
-// HAPTIC FEEDBACK (TACTILE ENGINE MÓVIL)
+// HAPTIC FEEDBACK & UNIVERSAL SLIDER FILL PROGRESS
 // =========================================================
 function haptic(ms = 6) {
   if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -10701,9 +9892,11 @@ function haptic(ms = 6) {
   }
 }
 
-// Add tactile feedback to all sliders
 document.querySelectorAll('input[type="range"]').forEach(sl => {
-  sl.addEventListener('input', () => haptic(4));
+  sl.addEventListener('input', () => {
+    syncSliderProgress(sl);
+    haptic(4);
+  });
 });
 
 // =========================================================
@@ -10983,11 +10176,13 @@ if (stage) {
 }
 
 initDemoPortrait();
+syncCustomColorsFromPickers();
 updateColorPanelVisibility();
 syncStyleCards(ENGINE_MODE);
 syncColorModeCards(COLOR_MODE);
 syncPaletteCards(COLOR_PALETTE);
 syncBgThemeChips(BG_THEME);
+syncAllSlidersProgress();
 updateActiveFunctionPill();
 
 // =========================================================
