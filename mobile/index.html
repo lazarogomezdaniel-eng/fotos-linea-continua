@@ -1943,40 +1943,60 @@
       flex-shrink: 0;
     }
 
-    /* SYSTEM ACTIONS ROW */
-    .system-actions-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-      margin-top: 10px;
+    /* EXPORT SHARE CARD */
+    .export-card.share .export-card-icon {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.35);
     }
-    .sys-btn {
-      height: 34px;
-      background: #172033;
-      color: #e2e8f0;
-      border: 1px solid var(--border-light);
-      border-radius: 8px;
-      font-size: 11px;
+    .export-card-badge.share {
+      background: rgba(16, 185, 129, 0.18);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .export-action-btn.share {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      border-color: rgba(110, 231, 183, 0.45);
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.25);
+    }
+
+    /* STYLE RESET IN TRAZO PANE */
+    .style-reset-box {
+      margin-top: 14px;
+      margin-bottom: 6px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: center;
+    }
+    .btn-reset-style {
+      width: 100%;
+      height: 38px;
+      background: rgba(30, 41, 59, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 9px;
+      color: var(--text-dim);
+      font-size: 11.5px;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 5px;
-      transition: all 0.15s ease;
+      gap: 7px;
+      transition: all 0.18s ease;
     }
-    .sys-btn:active {
-      transform: scale(0.95);
-    }
-    .sys-btn.primary {
-      background: linear-gradient(135deg, #047857 0%, #059669 100%);
-      border-color: rgba(110, 231, 183, 0.45);
+    .btn-reset-style:active {
+      transform: scale(0.97);
+      background: rgba(51, 65, 85, 0.8);
       color: #ffffff;
     }
-    .sys-btn.warn {
-      background: #7f1d1d;
-      border-color: rgba(248, 113, 113, 0.4);
-      color: #fecaca;
+    .btn-reset-style:hover {
+      border-color: rgba(56, 189, 248, 0.35);
+      color: var(--text-light);
+    }
+    .btn-reset-icon {
+      font-size: 13px;
+      color: var(--accent);
     }
 
     .action-btn {
@@ -2566,6 +2586,11 @@
               </div>
             </div>
           </div>
+        <!-- Botón para restablecer parámetros del estilo actual -->
+        <div class="style-reset-box">
+          <button type="button" id="btnResetStyleParams" class="btn-reset-style" title="Restaura los deslizadores a los valores óptimos por defecto del estilo actual">
+            <span class="btn-reset-icon">↺</span> Restablecer valores de este estilo
+          </button>
         </div>
 
         <!-- Hidden Native Select & compatibility badge for viewMode -->
@@ -2941,13 +2966,23 @@
               <button id="btnRecord" class="export-action-btn rec">⏺ Grabar Vídeo</button>
             </div>
           </div>
+
+          <!-- CARD COMPARTIR OBRA -->
+          <div class="export-card share" id="cardExportShare">
+            <div class="export-card-left">
+              <div class="export-card-icon">📲</div>
+              <div class="export-card-info">
+                <div class="export-card-header">
+                  <span class="export-card-title">Compartir Obra</span>
+                  <span class="export-card-badge share">Directo</span>
+                </div>
+                <div class="export-card-desc">Enviar por WhatsApp, Instagram, Guardar en Fotos o AirDrop.</div>
+              </div>
+            </div>
+            <button id="btnShare" class="export-action-btn share">📲 Compartir</button>
+          </div>
         </div>
 
-        <div class="system-actions-grid">
-          <button id="btnRebuild" class="sys-btn primary">🔄 Recalcular</button>
-          <button id="btnClear" class="sys-btn warn">🧹 Limpiar</button>
-          <button id="btnResetDefaults" class="sys-btn">↺ Resetear</button>
-        </div>
         <div class="stats-card" id="stats">Listo | Motor cargado</div>
       </div>
     </div>
@@ -10382,69 +10417,73 @@ document.querySelectorAll('.view-layer-card[data-view-value]').forEach(card => {
   });
 });
 
-document.getElementById('btnRebuild').onclick = () => {
-  REBUILD_SEED++;
-  ptsX = new Float32Array(0);
-  ptsY = new Float32Array(0);
-  render();
-  rebuildPortrait(true);
-};
+// Restablecer parámetros del estilo actual (dentro de paneTrazo)
+const btnResetStyleParams = document.getElementById('btnResetStyleParams');
+if (btnResetStyleParams) {
+  btnResetStyleParams.addEventListener('click', () => {
+    haptic(12);
+    stopColorFlow();
+    stopAnimation();
+    TARGET_NODES = isMobileDevice ? 38000 : 44000;
+    HARING_ICON_COUNT = 95;
+    HARING_ICON_SIZE = 100;
+    HALFTONE_SPACING = 5.5;
+    HALFTONE_SCALE = 100;
+    HALFTONE_ANGLE = 45;
+    applyModePreset(ENGINE_MODE);
+    syncMaxNPresets(TARGET_NODES);
+    syncPresetPills('minR', MIN_R, 0.3);
+    syncPresetPills('maxR', MAX_R, 0.5);
+    syncPresetPills('lineW', LINE_W, 0.2);
+    rebuildPortrait(true);
+    statusPhase = 'Valores del estilo restablecidos a los óptimos';
+    updateStatsText();
+  });
+}
 
-document.getElementById('btnClear').onclick = () => {
-  stopAnimation();
-  stopLiveGrowth();
-  stopColorFlow();
-  if (solverWorker && workerBusy) {
-    solverWorker.terminate();
-    solverWorker = null;
-    workerBusy = false;
-  }
-  currentJobId++;
-  ptsX = new Float32Array(0);
-  ptsY = new Float32Array(0);
-  lineCacheDirty = true;
-  ctx.fillStyle = getBgHex(BG_THEME);
-  ctx.fillRect(0, 0, W, H);
-  statusPhase = 'Lienzo limpio (pulsa Reiniciar / Recalcular)';
-  updateStatsText();
-};
-
-document.getElementById('btnResetDefaults').onclick = () => {
-  stopColorFlow();
-  TARGET_NODES = isMobileDevice ? 38000 : 44000;
-  HARING_ICON_COUNT = 95;
-  HARING_ICON_SIZE = 100;
-  LINE_W = 1.0;
-  COLOR_MODE = 'mono';
-  COLOR_PALETTE = 'iris';
-  COLOR_HUE = 205;
-  BG_THEME = 'white';
-  document.getElementById('colorMode').value = 'mono';
-  document.getElementById('colorPalette').value = 'iris';
-  document.getElementById('colorHue').value = 205;
-  document.getElementById('vColHue').textContent = '205°';
-  document.getElementById('bgTheme').value = 'white';
-  const pIris = PALETTE_PRESETS['iris'];
-  if (pIris) {
-    document.getElementById('colPick1').value = pIris[0];
-    document.getElementById('colPick2').value = pIris[1];
-    document.getElementById('colPick3').value = pIris[2];
-    syncCustomColorsFromPickers();
-  }
-  syncColorModeCards(COLOR_MODE);
-  syncPaletteCards(COLOR_PALETTE);
-  syncBgThemeChips(BG_THEME);
-  FUSION_OPACITY = 0;
-  FUSION_SOURCE = 'stencil';
-  const fEl = document.getElementById('fusionOpacity');
-  if (fEl) fEl.value = 0;
-  updateFusionPillBadge(0);
-  setFusionSource('stencil');
-  syncPresetPills('fusionOpacity', 0, 6);
-  updateColorPanelVisibility();
-  applyModePreset(ENGINE_MODE);
-  rebuildPortrait(true);
-};
+// Compartir Obra (Web Share API nativo con fallback a descarga PNG)
+const btnShare = document.getElementById('btnShare');
+if (btnShare) {
+  btnShare.addEventListener('click', async () => {
+    haptic(10);
+    render();
+    const fileName = `retrato_${ENGINE_MODE}_${COLOR_MODE}.png`;
+    if (navigator.share && canvas.toBlob) {
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          const btnPng = document.getElementById('btnPng');
+          if (btnPng) btnPng.click();
+          return;
+        }
+        try {
+          const file = new File([blob], fileName, { type: 'image/png' });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              title: 'Retrato de Línea Continua',
+              text: 'Obra creada con Estudio de Línea Continua',
+              files: [file]
+            });
+          } else {
+            await navigator.share({
+              title: 'Retrato de Línea Continua',
+              text: 'Obra creada con Estudio de Línea Continua',
+              url: window.location.href
+            });
+          }
+        } catch (err) {
+          if (err && err.name !== 'AbortError') {
+            console.warn('Share error fallback:', err);
+            const btnPng = document.getElementById('btnPng');
+            if (btnPng) btnPng.click();
+          }
+        }
+      }, 'image/png');
+    } else {
+      const btnPng = document.getElementById('btnPng');
+      if (btnPng) btnPng.click();
+    }
+  });
+}
 
 document.getElementById('btnAnimate').onclick = () => {
   if (isAnimatingDraw) {
@@ -10762,13 +10801,22 @@ if (statusPillEl) {
   });
 }
 
-// Header & Float Button Proxies
+// Header & Float Button Handlers
+function triggerRebuildPortrait() {
+  haptic(10);
+  stopAnimation();
+  stopLiveGrowth();
+  REBUILD_SEED++;
+  ptsX = new Float32Array(0);
+  ptsY = new Float32Array(0);
+  render();
+  rebuildPortrait(true);
+}
+
 const btnRebuildTop = document.getElementById('btnRebuildTop');
 if (btnRebuildTop) {
   btnRebuildTop.addEventListener('click', () => {
-    haptic(10);
-    const btn = document.getElementById('btnRebuild');
-    if (btn) btn.click();
+    triggerRebuildPortrait();
   });
 }
 const btnAnimateFloat = document.getElementById('btnAnimateFloat');
