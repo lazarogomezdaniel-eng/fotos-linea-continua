@@ -1088,8 +1088,9 @@
     /* HIGH-DENSITY STUDIO SLIDER CARDS */
     .studio-2col-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 7px;
+      width: 100%;
     }
     .studio-slider-card {
       background: rgba(15, 22, 36, 0.70);
@@ -1099,6 +1100,7 @@
       display: flex;
       flex-direction: column;
       gap: 5px;
+      min-width: 0;
       transition: all 0.18s ease;
     }
     .studio-slider-card:hover {
@@ -1109,6 +1111,7 @@
       background: linear-gradient(135deg, rgba(14, 28, 54, 0.85) 0%, rgba(10, 19, 36, 0.90) 100%);
       border-color: rgba(56, 189, 248, 0.35);
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+      width: 100%;
     }
     .studio-slider-header {
       display: flex;
@@ -1116,6 +1119,7 @@
       align-items: center;
       user-select: none;
       -webkit-user-select: none;
+      min-width: 0;
     }
     .studio-slider-title {
       font-size: 11px;
@@ -1125,6 +1129,10 @@
       align-items: baseline;
       gap: 5px;
       line-height: 1.2;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .studio-slider-hint {
       font-size: 8.5px;
@@ -1141,6 +1149,7 @@
       padding: 1px 6px;
       border-radius: 5px;
       letter-spacing: 0.3px;
+      flex-shrink: 0;
     }
     .studio-val-badge.hero {
       font-size: 12px;
@@ -1152,6 +1161,8 @@
       display: flex;
       align-items: center;
       padding: 1px 0;
+      width: 100%;
+      min-width: 0;
     }
     .studio-slider-track-wrap input[type="range"] {
       width: 100%;
@@ -1162,10 +1173,17 @@
       display: flex;
       gap: 4px;
       margin-top: 1px;
+      width: 100%;
+      min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
     }
+    .studio-quick-pills::-webkit-scrollbar { display: none; }
     .studio-pill {
-      flex: 1;
-      padding: 4px 6px;
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 4px 4px;
       font-size: 9.5px;
       font-weight: 700;
       border-radius: 6px;
@@ -1478,6 +1496,274 @@
     @keyframes flowPulse {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.88; transform: scale(0.98); }
+    }
+
+    /* ========================================================= */
+    /* STUDIO COLOR PICKER MODAL (PROFESIONAL & SIN CUADRADOS DEL OS) */
+    /* ========================================================= */
+    .studio-color-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: rgba(4, 8, 16, 0.78);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      animation: scpFadeIn 0.22s var(--ease-spring);
+    }
+    @media (min-width: 600px) {
+      .studio-color-modal-backdrop {
+        align-items: center;
+      }
+    }
+    .studio-color-sheet {
+      width: 100%;
+      max-width: 440px;
+      background: #0d1524;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px 20px 0 0;
+      padding: 14px 16px 20px 16px;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(56, 189, 248, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      animation: scpSlideUp 0.25s var(--ease-spring);
+      padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
+    }
+    @media (min-width: 600px) {
+      .studio-color-sheet {
+        border-radius: 20px;
+        box-shadow: 0 16px 50px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(56, 189, 248, 0.2);
+      }
+    }
+    @keyframes scpFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes scpSlideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .studio-color-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 2px;
+    }
+    .studio-color-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .studio-color-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #f8fafc;
+      letter-spacing: -0.2px;
+    }
+    .studio-color-sub {
+      font-size: 10px;
+      color: #94a3b8;
+    }
+    .studio-color-close {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+    .studio-color-close:hover {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    /* 2D Spectrum Box */
+    .scp-spectrum-wrap {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: crosshair;
+      touch-action: none;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 4px 14px rgba(0,0,0,0.4);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .scp-spectrum-base {
+      position: absolute;
+      inset: 0;
+      background-color: hsl(205, 100%, 50%);
+    }
+    .scp-spectrum-white {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, #ffffff 0%, rgba(255, 255, 255, 0) 100%);
+    }
+    .scp-spectrum-black {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, #000000 0%, rgba(0, 0, 0, 0) 100%);
+    }
+    .scp-handle {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2.5px solid #ffffff;
+      box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.55), 0 3px 8px rgba(0, 0, 0, 0.7);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      top: 50%;
+      left: 50%;
+    }
+
+    /* Hue Range Slider */
+    .scp-hue-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .scp-hue-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 14px;
+      border-radius: 999px;
+      background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);
+      outline: none;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+      cursor: pointer;
+      margin: 0;
+    }
+    .scp-hue-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2.5px solid #0f172a;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      cursor: pointer;
+    }
+    .scp-hue-slider::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2.5px solid #0f172a;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      cursor: pointer;
+    }
+
+    /* Preview & Quick Swatches */
+    .scp-preview-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 6px 10px;
+    }
+    .scp-swatch {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      flex-shrink: 0;
+      background: #2a2e3d;
+      transition: background 0.06s ease;
+    }
+    .scp-hex-badge {
+      font-size: 13px;
+      font-weight: 800;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.8px;
+      flex-shrink: 0;
+    }
+    .scp-tones-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .scp-tones-row::-webkit-scrollbar { display: none; }
+    .scp-tone-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.14s ease, border-color 0.14s ease;
+    }
+    .scp-tone-dot:hover {
+      transform: scale(1.18);
+      border-color: #38bdf8;
+    }
+    .scp-tone-dot:active { transform: scale(0.92); }
+
+    /* Action Buttons */
+    .studio-color-actions {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 8px;
+      margin-top: 2px;
+    }
+    .scp-btn-cancel {
+      height: 38px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .scp-btn-cancel:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #f1f5f9;
+    }
+    .scp-btn-apply {
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+      border: none;
+      color: #041226;
+      font-size: 12.5px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
+      transition: all 0.15s ease;
+    }
+    .scp-btn-apply:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #7dd3fc 100%);
+      box-shadow: 0 6px 18px rgba(56, 189, 248, 0.5);
+    }
+    .scp-btn-apply:active {
+      transform: scale(0.97);
     }
 
     /* EXPORT SUITE (STUDIO CARDS) */
@@ -1938,8 +2224,7 @@
                 <button type="button" class="studio-pill" data-set-target="haringIconCount" data-set-value="35">35</button>
                 <button type="button" class="studio-pill" data-set-target="haringIconCount" data-set-value="65">65</button>
                 <button type="button" class="studio-pill active" data-set-target="haringIconCount" data-set-value="95">95</button>
-                <button type="button" class="studio-pill" data-set-target="haringIconCount" data-set-value="140">140</button>
-                <button type="button" class="studio-pill" data-set-target="haringIconCount" data-set-value="180">180</button>
+                <button type="button" class="studio-pill" data-set-target="haringIconCount" data-set-value="160">160</button>
               </div>
             </div>
 
@@ -1957,10 +2242,9 @@
               </div>
               <div class="studio-quick-pills">
                 <button type="button" class="studio-pill" data-set-target="haringIconSize" data-set-value="60">60%</button>
-                <button type="button" class="studio-pill" data-set-target="haringIconSize" data-set-value="80">80%</button>
+                <button type="button" class="studio-pill" data-set-target="haringIconSize" data-set-value="90">90%</button>
                 <button type="button" class="studio-pill active" data-set-target="haringIconSize" data-set-value="100">100%</button>
-                <button type="button" class="studio-pill" data-set-target="haringIconSize" data-set-value="140">140%</button>
-                <button type="button" class="studio-pill" data-set-target="haringIconSize" data-set-value="180">180%</button>
+                <button type="button" class="studio-pill" data-set-target="haringIconSize" data-set-value="150">150%</button>
               </div>
             </div>
           </div>
@@ -1986,10 +2270,10 @@
                 <input type="range" id="halftoneSpacing" min="4.0" max="15.0" step="0.5" value="6.5">
               </div>
               <div class="studio-quick-pills">
-                <button type="button" class="studio-pill" data-set-target="halftoneSpacing" data-set-value="4.5">4.5 HD</button>
-                <button type="button" class="studio-pill active" data-set-target="halftoneSpacing" data-set-value="6.5">6.5 Base</button>
-                <button type="button" class="studio-pill" data-set-target="halftoneSpacing" data-set-value="9.0">9.0 Medio</button>
-                <button type="button" class="studio-pill" data-set-target="halftoneSpacing" data-set-value="13.0">13 Macro</button>
+                <button type="button" class="studio-pill" data-set-target="halftoneSpacing" data-set-value="4.5">4.5</button>
+                <button type="button" class="studio-pill active" data-set-target="halftoneSpacing" data-set-value="6.5">6.5</button>
+                <button type="button" class="studio-pill" data-set-target="halftoneSpacing" data-set-value="9.0">9.0</button>
+                <button type="button" class="studio-pill" data-set-target="halftoneSpacing" data-set-value="13.0">13</button>
               </div>
             </div>
 
@@ -2028,10 +2312,10 @@
                 <input type="range" id="halftoneAngle" min="0" max="90" step="5" value="45">
               </div>
               <div class="studio-quick-pills">
-                <button type="button" class="studio-pill" data-set-target="halftoneAngle" data-set-value="0">0° Recta</button>
-                <button type="button" class="studio-pill" data-set-target="halftoneAngle" data-set-value="30">30° Print</button>
-                <button type="button" class="studio-pill active" data-set-target="halftoneAngle" data-set-value="45">45° Clásica</button>
-                <button type="button" class="studio-pill" data-set-target="halftoneAngle" data-set-value="60">60° Hex</button>
+                <button type="button" class="studio-pill" data-set-target="halftoneAngle" data-set-value="0">0°</button>
+                <button type="button" class="studio-pill" data-set-target="halftoneAngle" data-set-value="30">30°</button>
+                <button type="button" class="studio-pill active" data-set-target="halftoneAngle" data-set-value="45">45°</button>
+                <button type="button" class="studio-pill" data-set-target="halftoneAngle" data-set-value="60">60°</button>
               </div>
             </div>
 
@@ -2430,26 +2714,39 @@
           </div>
         </div>
 
-        <!-- Matiz / Rueda Cromática (Como estaba antes) -->
+        <!-- Matiz / Rueda Cromática (Hero Card con Margen Simétrico) -->
         <div id="boxHue" style="margin-bottom:8px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-            <label style="margin:0; font-size:11px;">Rueda Cromática / Matiz</label>
-            <span id="vColHue" style="font-size:11px; font-weight:700; color:var(--accent);">205°</span>
+          <div class="studio-slider-card hero">
+            <div class="studio-slider-header">
+              <div class="studio-slider-title">
+                <span>Rueda Cromática</span>
+                <span class="studio-slider-hint">Matiz 360°</span>
+              </div>
+              <span class="studio-val-badge hero" id="vColHue">205°</span>
+            </div>
+            <div class="studio-slider-track-wrap">
+              <input type="range" id="colorHue" min="0" max="360" step="1" value="205" style="background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%); height: 6px; border-radius:4px;">
+            </div>
+            <div class="studio-quick-pills">
+              <button type="button" class="studio-pill" data-set-target="colorHue" data-set-value="0">0° Rojo</button>
+              <button type="button" class="studio-pill" data-set-target="colorHue" data-set-value="60">60° Oro</button>
+              <button type="button" class="studio-pill active" data-set-target="colorHue" data-set-value="205">205° Azul</button>
+              <button type="button" class="studio-pill" data-set-target="colorHue" data-set-value="280">280° Violeta</button>
+            </div>
           </div>
-          <input type="range" id="colorHue" min="0" max="360" step="1" value="205" style="background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%); height: 8px; border-radius:4px;">
         </div>
 
         <!-- Muestras Triádicas (Simple, debajo de la rueda cromática) -->
         <div id="boxPickers" class="color-pickers-row" style="margin-bottom:8px;">
-          <div class="color-picker-item" title="Tono 1 (Sombras)">
+          <div class="color-picker-item" id="itemColPick1" title="Tono 1 (Sombras)">
             <input type="color" id="colPick1" class="color-picker-circle" value="#ff4d6d">
             <span>Sombra</span>
           </div>
-          <div class="color-picker-item" title="Tono 2 (Medios)">
+          <div class="color-picker-item" id="itemColPick2" title="Tono 2 (Medios)">
             <input type="color" id="colPick2" class="color-picker-circle" value="#00d2ff">
             <span>Medio</span>
           </div>
-          <div class="color-picker-item" title="Tono 3 (Luces)">
+          <div class="color-picker-item" id="itemColPick3" title="Tono 3 (Luces)">
             <input type="color" id="colPick3" class="color-picker-circle" value="#9b5de5">
             <span>Luz</span>
           </div>
@@ -2482,26 +2779,48 @@
             <button type="button" class="bg-theme-chip" data-theme="custom" id="chipCustomBg" title="Fondo Personalizado Libre" style="position:relative; overflow:hidden;">
               <span class="bg-dot custom" id="bgCustomDot" style="background:#2a2e3d;"></span>
               <span>🎨 Libre</span>
-              <input type="color" id="bgCustomPicker" value="#2a2e3d" style="position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer;">
+              <input type="color" id="bgCustomPicker" value="#2a2e3d" style="display:none;">
             </button>
           </div>
         </div>
 
-        <!-- Sliders Mezcla e Intensidad (Como estaban antes) -->
-        <div class="controls-grid" style="align-items:center; margin-bottom:8px;">
-          <div id="boxScale">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
-              <label style="margin:0;">Frecuencia / Ritmo</label>
-              <span id="vColScale" style="font-size:11px; font-weight:700; color:var(--accent);">3.5</span>
+        <!-- Sliders Mezcla e Intensidad (Studio 2-Col Grid Simétrico) -->
+        <div class="studio-2col-grid" id="rowColorSliders" style="margin-bottom:8px;">
+          <div class="studio-slider-card" id="boxScale">
+            <div class="studio-slider-header">
+              <div class="studio-slider-title">
+                <span>Frecuencia</span>
+                <span class="studio-slider-hint">Ritmo</span>
+              </div>
+              <span class="studio-val-badge" id="vColScale">3.5</span>
             </div>
-            <input type="range" id="colorScale" min="0.5" max="10.0" step="0.2" value="3.5">
+            <div class="studio-slider-track-wrap">
+              <input type="range" id="colorScale" min="0.5" max="10.0" step="0.2" value="3.5">
+            </div>
+            <div class="studio-quick-pills">
+              <button type="button" class="studio-pill" data-set-target="colorScale" data-set-value="1.5">1.5</button>
+              <button type="button" class="studio-pill active" data-set-target="colorScale" data-set-value="3.5">3.5</button>
+              <button type="button" class="studio-pill" data-set-target="colorScale" data-set-value="6.0">6.0</button>
+              <button type="button" class="studio-pill" data-set-target="colorScale" data-set-value="9.0">9.0</button>
+            </div>
           </div>
-          <div id="boxIntensity">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
-              <label style="margin:0;">Saturación / Brillo</label>
-              <span id="vColIntensity" style="font-size:11px; font-weight:700; color:var(--accent);">100%</span>
+          <div class="studio-slider-card" id="boxIntensity">
+            <div class="studio-slider-header">
+              <div class="studio-slider-title">
+                <span>Saturación</span>
+                <span class="studio-slider-hint">Brillo</span>
+              </div>
+              <span class="studio-val-badge" id="vColIntensity">100%</span>
             </div>
-            <input type="range" id="colorIntensity" min="15" max="200" step="5" value="100">
+            <div class="studio-slider-track-wrap">
+              <input type="range" id="colorIntensity" min="15" max="200" step="5" value="100">
+            </div>
+            <div class="studio-quick-pills">
+              <button type="button" class="studio-pill" data-set-target="colorIntensity" data-set-value="50">50%</button>
+              <button type="button" class="studio-pill active" data-set-target="colorIntensity" data-set-value="100">100%</button>
+              <button type="button" class="studio-pill" data-set-target="colorIntensity" data-set-value="150">150%</button>
+              <button type="button" class="studio-pill" data-set-target="colorIntensity" data-set-value="200">200%</button>
+            </div>
           </div>
         </div>
 
@@ -2594,6 +2913,52 @@
       </button>
     </nav>
   </section>
+
+  <!-- STUDIO COLOR PICKER MODAL (ELIMINA DIÁLOGOS NATIVOS DEL SISTEMA) -->
+  <div id="studioColorModal" class="studio-color-modal-backdrop" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="scpTitle">
+    <div class="studio-color-sheet">
+      <div class="studio-color-header">
+        <div class="studio-color-title-group">
+          <span class="studio-color-title" id="scpTitle">🎨 Color Libre</span>
+          <span class="studio-color-sub">Toca o arrastra para elegir cualquier tono libremente</span>
+        </div>
+        <button type="button" class="studio-color-close" id="scpBtnClose" aria-label="Cerrar">✕</button>
+      </div>
+
+      <!-- 2D Color Spectrum Box (Saturation x Value/Lightness) -->
+      <div class="scp-spectrum-wrap" id="scpSpectrumWrap">
+        <div class="scp-spectrum-base" id="scpSpectrumBase"></div>
+        <div class="scp-spectrum-white"></div>
+        <div class="scp-spectrum-black"></div>
+        <div class="scp-handle" id="scpHandle"></div>
+      </div>
+
+      <!-- Rainbow Hue Slider (0 - 360°) -->
+      <div class="scp-hue-wrap">
+        <input type="range" id="scpHueRange" min="0" max="360" step="1" value="205" class="scp-hue-slider" aria-label="Matiz Arcoíris">
+      </div>
+
+      <!-- Preview & Quick Swatches -->
+      <div class="scp-preview-row">
+        <div class="scp-swatch" id="scpSwatch"></div>
+        <div class="scp-hex-badge" id="scpHexBadge">#2A2E3D</div>
+        <div class="scp-tones-row">
+          <button type="button" class="scp-tone-dot" data-hex="#ffffff" title="Blanco Puro" style="background:#ffffff;"></button>
+          <button type="button" class="scp-tone-dot" data-hex="#f5f0e8" title="Pergamino Suave" style="background:#f5f0e8;"></button>
+          <button type="button" class="scp-tone-dot" data-hex="#eee4d5" title="Papel Arena" style="background:#eee4d5;"></button>
+          <button type="button" class="scp-tone-dot" data-hex="#1c2331" title="Pizarra Grafito" style="background:#1c2331;"></button>
+          <button type="button" class="scp-tone-dot" data-hex="#0d0f14" title="Noche Oscura" style="background:#0d0f14;"></button>
+          <button type="button" class="scp-tone-dot" data-hex="#2a2e3d" title="Azul Studio" style="background:#2a2e3d;"></button>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="studio-color-actions">
+        <button type="button" class="scp-btn-cancel" id="scpBtnCancel">Cancelar</button>
+        <button type="button" class="scp-btn-apply" id="scpBtnApply">Aplicar Color</button>
+      </div>
+    </div>
+  </div>
 
 <script>
 const canvas = document.getElementById('canvas');
@@ -7970,7 +8335,8 @@ function attachWorkerHandler(worker) {
     ptsX = newX;
     ptsY = newY;
     if (htCircles) {
-      halftoneCirclesData = htCircles;
+      // Ordenar puntos de arriba a abajo para el barrido de serigrafía en la animación
+      halftoneCirclesData = htCircles.slice().sort((a, b) => (a.y - b.y) || (a.x - b.x));
     } else {
       halftoneCirclesData = null;
     }
@@ -7979,7 +8345,9 @@ function attachWorkerHandler(worker) {
     if (ENGINE_MODE === 'stencil_cross') {
       statusPhase = '✓ Boceto con Cruces (0% CPU en reposo)';
     } else if (ENGINE_MODE === 'halftone_dots') {
-      statusPhase = `✓ Trama de Puntos (${htCircles ? htCircles.length : ptsX.length} puntos) · 0% CPU`;
+      statusPhase = (HALFTONE_TYPE === 'dots')
+        ? `✓ Trama de Puntos (${htCircles ? htCircles.length : 0} puntos) · 0% CPU`
+        : `✓ Trama Espiral 1-Trazo (${ptsX.length} nodos) · 0% CPU`;
     } else {
       statusPhase = done
         ? '✓ Completado (0% CPU en reposo)'
@@ -8467,9 +8835,21 @@ function render() {
       const limit = Math.min(halftoneCirclesData.length - 1, drawProgressCount);
       if (limit < halftoneCirclesData.length - 1) {
         const d = halftoneCirclesData[limit];
-        ctx.fillStyle = (COLOR_MODE === 'mono') ? getMonoStrokeColor() : getOrganicLineColor(limit, halftoneCirclesData.length, d.x, d.y);
+        const dotColor = (COLOR_MODE === 'mono') ? getMonoStrokeColor() : getOrganicLineColor(limit, halftoneCirclesData.length, d.x, d.y);
+        // Línea sutil de rasqueta serigráfica que avanza con la tinta
+        ctx.strokeStyle = dotColor;
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.arc(d.x, d.y, Math.max(1.8, d.r * 1.25), 0, Math.PI * 2);
+        ctx.moveTo(0, d.y);
+        ctx.lineTo(W, d.y);
+        ctx.globalAlpha = 0.35;
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+
+        // Puntero de entintado
+        ctx.fillStyle = dotColor;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, Math.max(2.2, d.r * 1.3), 0, Math.PI * 2);
         ctx.fill();
       }
       return;
@@ -8492,6 +8872,9 @@ function render() {
 
 function startColorFlow() {
   if (isColorFlowing) return;
+  if (isAnimatingDraw) {
+    stopAnimation();
+  }
   if (COLOR_MODE === 'mono') {
     COLOR_MODE = 'organic_flow';
     const cm = document.getElementById('colorMode');
@@ -8549,10 +8932,17 @@ function updateStatsText() {
 }
 
 function startAnimation() {
-  const isHtDots = (ENGINE_MODE === 'halftone_dots' && HALFTONE_TYPE === 'dots' && halftoneCirclesData && halftoneCirclesData.length > 0);
-  if (!isHtDots && ptsX.length < 4) return;
+  if (isColorFlowing) {
+    stopColorFlow();
+  }
+  if (ENGINE_MODE === 'halftone_dots' && HALFTONE_TYPE === 'dots') {
+    if (!halftoneCirclesData || halftoneCirclesData.length === 0) return;
+  } else {
+    if (ptsX.length < 4) return;
+  }
   stopLiveGrowth();
   isAnimatingDraw = true;
+  const isHtDots = (ENGINE_MODE === 'halftone_dots' && HALFTONE_TYPE === 'dots' && halftoneCirclesData && halftoneCirclesData.length > 0);
   drawProgressCount = isHtDots ? 0 : 2;
   lastAnimatedIndex = isHtDots ? 0 : 1;
 
@@ -8562,6 +8952,11 @@ function startAnimation() {
   aCtx.clearRect(0, 0, W, H);
 
   document.getElementById('btnAnimate').textContent = '⏹ Mostrar Completo';
+  const floatBtn = document.getElementById('btnAnimateFloat');
+  if (floatBtn) {
+    floatBtn.textContent = '⏹';
+    floatBtn.classList.add('active');
+  }
   if (typeof updateActiveFunctionPill === 'function') updateActiveFunctionPill();
 
   function stepAnim() {
@@ -8574,7 +8969,8 @@ function startAnimation() {
     if (ENGINE_MODE === 'halftone_dots' && HALFTONE_TYPE === 'dots' && halftoneCirclesData && halftoneCirclesData.length > 0) {
       const dots = halftoneCirclesData;
       const totalDots = dots.length;
-      const speed = Math.max(25, Math.round(totalDots / 160));
+      // Ritmo fluido de impresión serigráfica: ~4.5 segundos a 60 FPS
+      const speed = Math.max(10, Math.round(totalDots / 270));
       const nextLimit = Math.min(totalDots, drawProgressCount + speed);
       const isMono = (COLOR_MODE === 'mono');
       const monoStroke = getMonoStrokeColor();
@@ -8594,8 +8990,9 @@ function startAnimation() {
         stopAnimation();
         render();
         updateStatsText();
-        if (recorder && recorder.state === 'recording') {
-          btnRec.click();
+        if (typeof recorder !== 'undefined' && recorder && recorder.state === 'recording') {
+          const bR = document.getElementById('btnRecord');
+          if (bR) bR.click();
         }
       } else {
         animRafId = requestAnimationFrame(stepAnim);
@@ -8606,8 +9003,6 @@ function startAnimation() {
     const totalLen = ptsX.length;
     const speed = Math.max(40, Math.round(totalLen / 240));
     const nextLimit = Math.min(totalLen - 1, drawProgressCount + speed);
-
-    const aCtx = animAccumCanvas.getContext('2d');
     const startIdx = Math.max(1, lastAnimatedIndex);
     aCtx.lineWidth = LINE_W;
     aCtx.lineCap = 'round';
@@ -8641,8 +9036,9 @@ function startAnimation() {
       stopAnimation();
       render();
       updateStatsText();
-      if (recorder && recorder.state === 'recording') {
-        btnRec.click();
+      if (typeof recorder !== 'undefined' && recorder && recorder.state === 'recording') {
+        const bR = document.getElementById('btnRecord');
+        if (bR) bR.click();
       }
     } else {
       animRafId = requestAnimationFrame(stepAnim);
@@ -8659,6 +9055,11 @@ function stopAnimation() {
     animRafId = null;
   }
   document.getElementById('btnAnimate').textContent = '🎬 Animar Dibujo';
+  const floatBtn = document.getElementById('btnAnimateFloat');
+  if (floatBtn) {
+    floatBtn.textContent = '🎬';
+    floatBtn.classList.remove('active');
+  }
   if (typeof updateActiveFunctionPill === 'function') updateActiveFunctionPill();
 }
 
@@ -9089,13 +9490,244 @@ function syncBgThemeChips(theme) {
     else if (theme === 'kraft') bgLabel.textContent = 'Papel Arena';
     else if (theme === 'custom') {
       const hex = (BG_COLORS.custom || '#2a2e3d').toUpperCase();
-      bgLabel.textContent = `Personalizado (${hex})`;
+      bgLabel.textContent = `Libre (${hex})`;
     }
   }
   const dot = document.getElementById('bgCustomDot');
   if (dot && BG_COLORS.custom) {
     dot.style.background = BG_COLORS.custom;
   }
+}
+
+// =========================================================
+// STUDIO COLOR PICKER CONTROLLER (100% IN-APP · CERO DIÁLOGOS DEL SISTEMA)
+// =========================================================
+function hsvToRgb(h, s, v) {
+  const c = v * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = v - c;
+  let r = 0, g = 0, b = 0;
+  if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
+  else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
+  else if (h >= 120 && h < 180) { r = 0; g = c; b = x; }
+  else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
+  else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
+  else { r = c; g = 0; b = x; }
+  return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+}
+
+function rgbToHexStr(r, g, b) {
+  return '#' + [r, g, b].map(x => {
+    const hex = Math.max(0, Math.min(255, Math.round(x))).toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  }).join('').toUpperCase();
+}
+
+function hexToHsv(hex) {
+  let clean = (hex || '#000000').replace('#', '').trim();
+  if (clean.length === 3) clean = clean.split('').map(c => c + c).join('');
+  const num = parseInt(clean, 16) || 0;
+  const r = ((num >> 16) & 255) / 255;
+  const g = ((num >> 8) & 255) / 255;
+  const b = (num & 255) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const delta = max - min;
+  let h = 0;
+  if (delta > 0) {
+    if (max === r) h = ((g - b) / delta) % 6;
+    else if (max === g) h = (b - r) / delta + 2;
+    else h = (r - g) / delta + 4;
+    h = Math.round(h * 60);
+    if (h < 0) h += 360;
+  }
+  const s = max === 0 ? 0 : delta / max;
+  const v = max;
+  return { h, s, v };
+}
+
+let scpCurrentH = 205;
+let scpCurrentS = 0.8;
+let scpCurrentV = 0.9;
+let scpInitialHex = '#2A2E3D';
+let scpOnPreviewCb = null;
+let scpOnApplyCb = null;
+let scpOnCancelCb = null;
+
+const scpModalEl = document.getElementById('studioColorModal');
+const scpTitleEl = document.getElementById('scpTitle');
+const scpSpectrumWrapEl = document.getElementById('scpSpectrumWrap');
+const scpSpectrumBaseEl = document.getElementById('scpSpectrumBase');
+const scpHandleEl = document.getElementById('scpHandle');
+const scpHueRangeEl = document.getElementById('scpHueRange');
+const scpSwatchEl = document.getElementById('scpSwatch');
+const scpHexBadgeEl = document.getElementById('scpHexBadge');
+const scpBtnApplyEl = document.getElementById('scpBtnApply');
+const scpBtnCancelEl = document.getElementById('scpBtnCancel');
+const scpBtnCloseEl = document.getElementById('scpBtnClose');
+
+function computeCurrentScpHex() {
+  const rgb = hsvToRgb(scpCurrentH, scpCurrentS, scpCurrentV);
+  return rgbToHexStr(rgb[0], rgb[1], rgb[2]);
+}
+
+function updateScpUi(triggerPreview = true) {
+  const hex = computeCurrentScpHex();
+  if (scpSpectrumBaseEl) {
+    scpSpectrumBaseEl.style.backgroundColor = `hsl(${scpCurrentH}, 100%, 50%)`;
+  }
+  if (scpHueRangeEl) {
+    scpHueRangeEl.value = Math.round(scpCurrentH);
+  }
+  if (scpHandleEl) {
+    scpHandleEl.style.left = `${(scpCurrentS * 100).toFixed(2)}%`;
+    scpHandleEl.style.top = `${((1 - scpCurrentV) * 100).toFixed(2)}%`;
+    scpHandleEl.style.backgroundColor = hex;
+  }
+  if (scpSwatchEl) {
+    scpSwatchEl.style.backgroundColor = hex;
+  }
+  if (scpHexBadgeEl) {
+    scpHexBadgeEl.textContent = hex;
+  }
+  if (triggerPreview && typeof scpOnPreviewCb === 'function') {
+    scpOnPreviewCb(hex);
+  }
+}
+
+function handleSpectrumPointer(e) {
+  if (!scpSpectrumWrapEl) return;
+  const rect = scpSpectrumWrapEl.getBoundingClientRect();
+  const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : rect.left);
+  const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : rect.top);
+  const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+  const y = Math.max(0, Math.min(rect.height, clientY - rect.top));
+  scpCurrentS = Math.max(0, Math.min(1, x / rect.width));
+  scpCurrentV = Math.max(0, Math.min(1, 1 - (y / rect.height)));
+  updateScpUi(true);
+}
+
+if (scpSpectrumWrapEl) {
+  let isDraggingSpectrum = false;
+
+  const onPointerDown = (e) => {
+    isDraggingSpectrum = true;
+    if (scpSpectrumWrapEl.setPointerCapture && e.pointerId !== undefined) {
+      try { scpSpectrumWrapEl.setPointerCapture(e.pointerId); } catch (_) {}
+    }
+    handleSpectrumPointer(e);
+  };
+
+  const onPointerMove = (e) => {
+    if (!isDraggingSpectrum) return;
+    handleSpectrumPointer(e);
+  };
+
+  const onPointerUp = (e) => {
+    if (!isDraggingSpectrum) return;
+    isDraggingSpectrum = false;
+    if (scpSpectrumWrapEl.releasePointerCapture && e.pointerId !== undefined) {
+      try { scpSpectrumWrapEl.releasePointerCapture(e.pointerId); } catch (_) {}
+    }
+    handleSpectrumPointer(e);
+  };
+
+  scpSpectrumWrapEl.addEventListener('pointerdown', onPointerDown);
+  scpSpectrumWrapEl.addEventListener('pointermove', onPointerMove);
+  scpSpectrumWrapEl.addEventListener('pointerup', onPointerUp);
+  scpSpectrumWrapEl.addEventListener('pointercancel', onPointerUp);
+}
+
+if (scpHueRangeEl) {
+  scpHueRangeEl.addEventListener('input', (e) => {
+    scpCurrentH = parseFloat(e.target.value) || 0;
+    updateScpUi(true);
+  });
+}
+
+document.querySelectorAll('.scp-tone-dot').forEach(dot => {
+  dot.addEventListener('click', (e) => {
+    e.preventDefault();
+    const hex = dot.getAttribute('data-hex');
+    if (!hex) return;
+    const hsv = hexToHsv(hex);
+    scpCurrentH = hsv.h;
+    scpCurrentS = hsv.s;
+    scpCurrentV = hsv.v;
+    updateScpUi(true);
+    if (typeof haptic === 'function') haptic(8);
+  });
+});
+
+function openStudioColorPicker({ title = '🎨 Color Libre', initialHex = '#2A2E3D', onPreview, onApply, onCancel }) {
+  scpInitialHex = (initialHex || '#2A2E3D').toUpperCase();
+  scpOnPreviewCb = onPreview || null;
+  scpOnApplyCb = onApply || null;
+  scpOnCancelCb = onCancel || null;
+
+  if (scpTitleEl) scpTitleEl.textContent = title;
+
+  const hsv = hexToHsv(scpInitialHex);
+  scpCurrentH = hsv.h;
+  scpCurrentS = hsv.s;
+  scpCurrentV = hsv.v;
+
+  updateScpUi(false);
+
+  if (scpModalEl) {
+    scpModalEl.style.display = 'flex';
+  }
+}
+
+function closeStudioColorPicker() {
+  if (scpModalEl) {
+    scpModalEl.style.display = 'none';
+  }
+  scpOnPreviewCb = null;
+  scpOnApplyCb = null;
+  scpOnCancelCb = null;
+}
+
+if (scpBtnApplyEl) {
+  scpBtnApplyEl.addEventListener('click', (e) => {
+    e.preventDefault();
+    const hex = computeCurrentScpHex();
+    if (typeof scpOnApplyCb === 'function') {
+      scpOnApplyCb(hex);
+    }
+    closeStudioColorPicker();
+    if (typeof haptic === 'function') haptic(12);
+  });
+}
+
+if (scpBtnCancelEl) {
+  scpBtnCancelEl.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (typeof scpOnCancelCb === 'function') {
+      scpOnCancelCb(scpInitialHex);
+    }
+    closeStudioColorPicker();
+  });
+}
+
+if (scpBtnCloseEl) {
+  scpBtnCloseEl.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (typeof scpOnCancelCb === 'function') {
+      scpOnCancelCb(scpInitialHex);
+    }
+    closeStudioColorPicker();
+  });
+}
+
+if (scpModalEl) {
+  scpModalEl.addEventListener('click', (e) => {
+    if (e.target === scpModalEl) {
+      if (typeof scpOnCancelCb === 'function') {
+        scpOnCancelCb(scpInitialHex);
+      }
+      closeStudioColorPicker();
+    }
+  });
 }
 
 // Click Listeners para los Carousels y Chips Visuales
@@ -9128,16 +9760,35 @@ document.querySelectorAll('.bg-theme-chip').forEach(chip => {
     const theme = chip.getAttribute('data-theme');
     if (!theme) return;
     if (theme === 'custom') {
-      if (e.target.id !== 'bgCustomPicker') {
-        const p = document.getElementById('bgCustomPicker');
-        if (p) {
-          if (typeof p.showPicker === 'function') {
-            try { p.showPicker(); } catch (err) { p.click(); }
-          } else {
-            p.click();
-          }
+      openStudioColorPicker({
+        title: '🎨 Color Libre de Lienzo',
+        initialHex: BG_COLORS.custom || '#2a2e3d',
+        onPreview: (hex) => {
+          BG_COLORS.custom = hex;
+          BG_THEME = 'custom';
+          const sel = document.getElementById('bgTheme');
+          if (sel) sel.value = 'custom';
+          syncBgThemeChips('custom');
+          lineCacheDirty = true;
+          render();
+        },
+        onApply: (hex) => {
+          BG_COLORS.custom = hex;
+          BG_THEME = 'custom';
+          const sel = document.getElementById('bgTheme');
+          if (sel) sel.value = 'custom';
+          syncBgThemeChips('custom');
+          lineCacheDirty = true;
+          render();
+        },
+        onCancel: (origHex) => {
+          BG_COLORS.custom = origHex;
+          syncBgThemeChips(BG_THEME);
+          lineCacheDirty = true;
+          render();
         }
-      }
+      });
+      return;
     }
     const sel = document.getElementById('bgTheme');
     if (sel && sel.value !== theme) {
@@ -9146,22 +9797,6 @@ document.querySelectorAll('.bg-theme-chip').forEach(chip => {
     }
   });
 });
-
-const customBgPicker = document.getElementById('bgCustomPicker');
-if (customBgPicker) {
-  const handleBgPicker = (e) => {
-    const hex = e.target.value;
-    BG_COLORS.custom = hex;
-    BG_THEME = 'custom';
-    const sel = document.getElementById('bgTheme');
-    if (sel) sel.value = 'custom';
-    syncBgThemeChips('custom');
-    lineCacheDirty = true;
-    render();
-  };
-  customBgPicker.addEventListener('input', handleBgPicker);
-  customBgPicker.addEventListener('change', handleBgPicker);
-}
 
 document.getElementById('colorMode').addEventListener('change', (e) => {
   COLOR_MODE = e.target.value;
@@ -9258,6 +9893,58 @@ for (const pickId of ['colPick1', 'colPick2', 'colPick3']) {
   });
 }
 
+const pickMap = [
+  { itemId: 'itemColPick1', inputId: 'colPick1', title: '🎨 Color Sombra (Tono 1)' },
+  { itemId: 'itemColPick2', inputId: 'colPick2', title: '🎨 Color Medio (Tono 2)' },
+  { itemId: 'itemColPick3', inputId: 'colPick3', title: '🎨 Color Luz (Tono 3)' }
+];
+
+pickMap.forEach(({ itemId, inputId, title }) => {
+  const itemEl = document.getElementById(itemId);
+  const inputEl = document.getElementById(inputId);
+  if (!itemEl || !inputEl) return;
+
+  const triggerPicker = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const origVal = inputEl.value;
+    openStudioColorPicker({
+      title,
+      initialHex: origVal,
+      onPreview: (hex) => {
+        inputEl.value = hex;
+        document.getElementById('colorPalette').value = 'custom';
+        COLOR_PALETTE = 'custom';
+        syncPaletteCards('custom');
+        syncCustomColorsFromPickers();
+        if (COLOR_MODE === 'mono') {
+          COLOR_MODE = 'organic_flow';
+          document.getElementById('colorMode').value = 'organic_flow';
+          syncColorModeCards('organic_flow');
+          updateColorPanelVisibility();
+        }
+        lineCacheDirty = true;
+        render();
+      },
+      onApply: (hex) => {
+        inputEl.value = hex;
+        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+        inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+        if (typeof haptic === 'function') haptic(12);
+      },
+      onCancel: (prevHex) => {
+        inputEl.value = prevHex;
+        syncCustomColorsFromPickers();
+        lineCacheDirty = true;
+        render();
+      }
+    });
+  };
+
+  inputEl.addEventListener('click', triggerPicker);
+  itemEl.addEventListener('click', triggerPicker);
+});
+
 document.getElementById('colorScale').addEventListener('input', (e) => {
   COLOR_SCALE = parseFloat(e.target.value);
   document.getElementById('vColScale').textContent = COLOR_SCALE.toFixed(1);
@@ -9334,21 +10021,23 @@ const vHtMode = document.getElementById('vHalftoneMode');
 
 if (btnHtDots && btnHtLine) {
   btnHtDots.addEventListener('click', () => {
+    if (HALFTONE_TYPE === 'dots') return;
     HALFTONE_TYPE = 'dots';
     btnHtDots.classList.add('active');
     btnHtLine.classList.remove('active');
     if (vHtMode) vHtMode.textContent = 'Círculos';
     lineCacheDirty = true;
-    render();
+    rebuildPortrait(false);
     if (typeof haptic === 'function') haptic(10);
   });
   btnHtLine.addEventListener('click', () => {
+    if (HALFTONE_TYPE === 'spiral') return;
     HALFTONE_TYPE = 'spiral';
     btnHtLine.classList.add('active');
     btnHtDots.classList.remove('active');
     if (vHtMode) vHtMode.textContent = '1-Trazo';
     lineCacheDirty = true;
-    render();
+    rebuildPortrait(false);
     if (typeof haptic === 'function') haptic(10);
   });
 }
