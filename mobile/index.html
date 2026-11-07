@@ -116,6 +116,15 @@
       color: #ffffff;
       box-shadow: 0 2px 10px var(--green-glow);
     }
+    @keyframes spinBtn {
+      0% { transform: rotate(0deg) scale(0.92); }
+      50% { transform: rotate(180deg) scale(1.08); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+    .icon-btn.spinning {
+      animation: spinBtn 0.52s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
 
     .upload-btn {
       height: 36px;
@@ -7384,7 +7393,14 @@ function generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, si
 function generateHalftonePopArtPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, spacing = 6.5, scalePct = 115, angleDeg = 45, halftoneType = 'dots', bgClean = 0.000, seed = 0) {
   const S = Math.max(3.5, spacing);
   const dotScale = (scalePct || 115) / 100.0;
-  const rad = ((angleDeg !== undefined ? angleDeg : 45) * Math.PI) / 180;
+
+  // Desfase armónico según la semilla de recálculo (reubicación controlada de la retícula serigráfica)
+  // Para seed === 0 conserva la alineación canónica fija inicial
+  const uShift = (seed > 0) ? (((seed * 3) % 7) * (S / 7) - S * 0.4) : 0;
+  const vShift = (seed > 0) ? (((seed * 5) % 7) * (S / 7) - S * 0.4) : 0;
+  const angleJitter = (seed > 0) ? (((seed * 7) % 5) - 2) * 0.75 : 0;
+
+  const rad = (((angleDeg !== undefined ? angleDeg : 45) + angleJitter) * Math.PI) / 180;
   const cosA = Math.cos(rad);
   const sinA = Math.sin(rad);
 
@@ -7393,6 +7409,13 @@ function generateHalftonePopArtPortrait(coralToneMap, step232Stencil, silhouette
   const sampleR = S * 0.45;
   const sStep = Math.max(1, Math.floor(sampleR * 0.5));
   const sampleR2 = sampleR * sampleR;
+
+  // Generador pseudoaleatorio determinista para micro-variación serigráfica
+  let rng = (1337 + (seed >>> 0) * 7919) >>> 0;
+  function nextRng() {
+    rng = (rng * 1664525 + 1013904223) >>> 0;
+    return (rng >>> 8) / 16777216.0;
+  }
 
   const circles = [];
   const ptsX = [];
@@ -7408,8 +7431,11 @@ function generateHalftonePopArtPortrait(coralToneMap, step232Stencil, silhouette
     const vStep = (rowIdx % 2 === 0) ? S : -S;
 
     for (let v = vStart; (vStep > 0 ? v <= vEnd : v >= vEnd); v += vStep) {
-      const x = cx + u * cosA - v * sinA;
-      const y = cy + u * sinA + v * cosA;
+      // Micro-jitter controlado de impresión serigráfica artesanal
+      const jx = (seed > 0) ? (nextRng() - 0.5) * S * 0.12 : 0;
+      const jy = (seed > 0) ? (nextRng() - 0.5) * S * 0.12 : 0;
+      const x = cx + (u + uShift) * cosA - (v + vShift) * sinA + jx;
+      const y = cy + (u + uShift) * sinA + (v + vShift) * cosA + jy;
 
       if (x < -S || x > W + S || y < -S || y > H + S) continue;
 
@@ -7467,9 +7493,10 @@ function generateHalftonePopArtPortrait(coralToneMap, step232Stencil, silhouette
       if (halftoneType === 'spiral') {
         const coils = Math.max(1, Math.min(4, Math.round(r / 1.7)));
         const steps = coils * 12;
+        const angleOffset = (seed > 0) ? (seed * 1.6180339887) % (Math.PI * 2) : 0;
         for (let st = 0; st <= steps; st++) {
           const frac = st / steps;
-          const th = frac * coils * Math.PI * 2;
+          const th = frac * coils * Math.PI * 2 + angleOffset;
           const curR = r * frac;
           ptsX.push(+(x + curR * Math.cos(th)).toFixed(1));
           ptsY.push(+(y + curR * Math.sin(th)).toFixed(1));
@@ -10002,6 +10029,19 @@ function triggerRebuildPortrait() {
   REBUILD_SEED++;
   ptsX = new Float32Array(0);
   ptsY = new Float32Array(0);
+  halftoneCirclesData = null;
+  lineCacheDirty = true;
+
+  const btn = document.getElementById('btnRebuildTop');
+  if (btn) {
+    btn.classList.remove('spinning');
+    void btn.offsetWidth;
+    btn.classList.add('spinning');
+    setTimeout(() => {
+      if (btn) btn.classList.remove('spinning');
+    }, 550);
+  }
+
   render();
   rebuildPortrait(true);
 }
