@@ -1771,6 +1771,7 @@
       <option value="keith_haring">🕺 15. Keith Haring Pop-Art (Muñecos, Perros y Línea Continua)</option>
       <option value="haring_croc">🐊 16. Keith Haring Cocodrilos (Hombre-Cocodrilo y Fauces Pop-Art)</option>
       <option value="haring_puzzle">🧩 17. Keith Haring Puzle Humano (Cuadro de Formas Humanas)</option>
+      <option value="halftone_dots">⚫ 18. Trama de Puntos (Halftone Pop-Art)</option>
     </select>
 
     <div id="dockContent">
@@ -1862,6 +1863,11 @@
             <span class="card-title">Puzle Humano</span>
             <span class="card-badge">Haring Formas</span>
           </div>
+          <div class="style-card" data-mode="halftone_dots">
+            <span class="card-emoji">⚫</span>
+            <span class="card-title">Trama Puntos</span>
+            <span class="card-badge">Halftone Pop-Art</span>
+          </div>
         </div>
         <!-- CONTROLES DINÁMICOS DE ESPIRAL ÁUREA -->
         <div id="boxSpiralControls" style="display:none; margin-top:10px;">
@@ -1935,6 +1941,93 @@
             </div>
           </div>
         </div>
+
+        <!-- CONTROLES DINÁMICOS DE TRAMA DE PUNTOS / HALFTONE -->
+        <div id="boxHalftoneControls" style="display:none; margin-top:8px;">
+          <div class="studio-section-title" style="margin-top:2px; margin-bottom:6px;">
+            <span class="sec-icon">⚫📐</span> PARÁMETROS TRAMA DE PUNTOS
+          </div>
+
+          <div class="studio-2col-grid">
+            <!-- Paso / Separación de Puntos -->
+            <div class="studio-slider-card">
+              <div class="studio-slider-header">
+                <div class="studio-slider-title">
+                  <span>Paso Trama</span>
+                  <span class="studio-slider-hint">Separación</span>
+                </div>
+                <span class="studio-val-badge" id="vHalftoneSpacing">6.5px</span>
+              </div>
+              <div class="studio-slider-track-wrap">
+                <input type="range" id="halftoneSpacing" min="4.0" max="15.0" step="0.5" value="6.5">
+              </div>
+              <div class="studio-quick-pills">
+                <button type="button" class="studio-pill" data-set-target="halftoneSpacing" data-set-value="4.5">4.5 HD</button>
+                <button type="button" class="studio-pill active" data-set-target="halftoneSpacing" data-set-value="6.5">6.5 Base</button>
+                <button type="button" class="studio-pill" data-set-target="halftoneSpacing" data-set-value="9.0">9.0 Medio</button>
+                <button type="button" class="studio-pill" data-set-target="halftoneSpacing" data-set-value="13.0">13 Macro</button>
+              </div>
+            </div>
+
+            <!-- Cobertura / Ganancia de Punto -->
+            <div class="studio-slider-card">
+              <div class="studio-slider-header">
+                <div class="studio-slider-title">
+                  <span>Cobertura</span>
+                  <span class="studio-slider-hint">Ganancia punto</span>
+                </div>
+                <span class="studio-val-badge" id="vHalftoneScale">115%</span>
+              </div>
+              <div class="studio-slider-track-wrap">
+                <input type="range" id="halftoneScale" min="70" max="160" step="5" value="115">
+              </div>
+              <div class="studio-quick-pills">
+                <button type="button" class="studio-pill" data-set-target="halftoneScale" data-set-value="85">85%</button>
+                <button type="button" class="studio-pill active" data-set-target="halftoneScale" data-set-value="115">115%</button>
+                <button type="button" class="studio-pill" data-set-target="halftoneScale" data-set-value="135">135%</button>
+                <button type="button" class="studio-pill" data-set-target="halftoneScale" data-set-value="155">155%</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="studio-2col-grid" style="margin-top:6px;">
+            <!-- Ángulo de Retícula -->
+            <div class="studio-slider-card">
+              <div class="studio-slider-header">
+                <div class="studio-slider-title">
+                  <span>Ángulo Retícula</span>
+                  <span class="studio-slider-hint">Inclinación</span>
+                </div>
+                <span class="studio-val-badge" id="vHalftoneAngle">45°</span>
+              </div>
+              <div class="studio-slider-track-wrap">
+                <input type="range" id="halftoneAngle" min="0" max="90" step="5" value="45">
+              </div>
+              <div class="studio-quick-pills">
+                <button type="button" class="studio-pill" data-set-target="halftoneAngle" data-set-value="0">0° Recta</button>
+                <button type="button" class="studio-pill" data-set-target="halftoneAngle" data-set-value="30">30° Print</button>
+                <button type="button" class="studio-pill active" data-set-target="halftoneAngle" data-set-value="45">45° Clásica</button>
+                <button type="button" class="studio-pill" data-set-target="halftoneAngle" data-set-value="60">60° Hex</button>
+              </div>
+            </div>
+
+            <!-- Modo de Trazo: Puntos vs Espiral Continua -->
+            <div class="studio-slider-card">
+              <div class="studio-slider-header">
+                <div class="studio-slider-title">
+                  <span>Modo Trazo</span>
+                  <span class="studio-slider-hint">Plotter vs Puntos</span>
+                </div>
+                <span class="studio-val-badge" id="vHalftoneMode">Círculos</span>
+              </div>
+              <div class="studio-quick-pills" style="margin-top:7px;">
+                <button type="button" class="studio-pill active" id="btnHalftoneTypeDots" data-htype="dots" title="Círculos Vectoriales">⚫ Puntos</button>
+                <button type="button" class="studio-pill" id="btnHalftoneTypeLine" data-htype="spiral" title="Trazado continuo en una sola línea para plotter">🌀 1-Trazo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div id="modeDesc" class="mode-desc-bar">
           🧠 Coral: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros en U de extremo a extremo.
         </div>
@@ -2670,6 +2763,13 @@ let liveNodesX = null;
 let liveNodesY = null;
 let liveNodeCount = 0;
 
+// Parámetros y Estado del Modo Trama de Puntos (Halftone Pop-Art)
+let HALFTONE_SPACING = 6.5;
+let HALFTONE_SCALE = 115;
+let HALFTONE_ANGLE = 45;
+let HALFTONE_TYPE = 'dots'; // 'dots' | 'spiral'
+let halftoneCirclesData = null;
+
 const MODE_DESCRIPTIONS = {
   coral: '🧠 Coral Cerebral Dendrítico: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros redondeados en U sin dejar huecos vacíos.',
   coral_tsp: '🌊 Coral Orgánico TSP: Stippling adaptativo por tono + repulsión + ruta continua 2-Opt libre de cruces + curvas Chaikin.',
@@ -2687,7 +2787,8 @@ const MODE_DESCRIPTIONS = {
   golden_spiral:  '🌻 Espiral Áurea Proporcional: Crecimiento espiral logarítmico según la Proporción Áurea (φ = 1.618), con paso elástico guiado por la luz del rostro y micro-ondulación de Fibonacci.',
   keith_haring:   '🕺 Keith Haring Pop-Art (Mural en Línea Continua): Esculpe el retrato encajando la iconografía inconfundible de Keith Haring (muñecos bailando con brazos en alto, perros ladrando, corazones radiantes, acróbatas y rayas de movimiento cinético) en un único trazo continuo.',
   haring_croc:    '🐊 Keith Haring Cocodrilos (Bestiario Pop-Art): Esculpe el retrato con los icónicos cocodrilos de Keith Haring (cocodrilos de perfil con cresta dorsal en sierra y grandes fauces dentadas, el famoso Hombre-Cocodrilo con brazos en alto y caimanes en S) tejidos en una sola línea continua.',
-  haring_puzzle:  '🧩 Keith Haring Puzle Humano (Cuadro de Formas Humanas): Rellena el retrato de extremo a extremo con decenas de figuras humanas de Keith Haring en múltiples escalas y ángulos que se abrazan y encajan unas con otras como un puzle viviente en línea continua.'
+  haring_puzzle:  '🧩 Keith Haring Puzle Humano (Cuadro de Formas Humanas): Rellena el retrato de extremo a extremo con decenas de figuras humanas de Keith Haring en múltiples escalas y ángulos que se abrazan y encajan unas con otras como un puzle viviente en línea continua.',
+  halftone_dots:  '⚫ Trama de Puntos (Halftone Pop-Art): Retícula angular serigráfica a 45° con puntos de área proporcional a la densidad tonal y ganancia de punto en sombras profundas.'
 };
 
 const MODE_PRESETS = {
@@ -2707,7 +2808,8 @@ const MODE_PRESETS = {
   golden_spiral:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.48, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1 },
   keith_haring:   { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3 },
   haring_croc:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3 },
-  haring_puzzle:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3 }
+  haring_puzzle:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3 },
+  halftone_dots:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.52, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.0 }
 };
 
 function syncPresetPills(targetId, val, tolerance = 1.0) {
@@ -2768,6 +2870,9 @@ function syncSlidersFromState() {
   setSlider('colorIntensity', 'vColIntensity', Math.round(COLOR_INTENSITY * 100), null, '%');
   setSlider('haringIconCount', 'vHaringIcons', HARING_ICON_COUNT);
   setSlider('haringIconSize', 'vHaringSize', HARING_ICON_SIZE, null, '%');
+  setSlider('halftoneSpacing', 'vHalftoneSpacing', HALFTONE_SPACING, 1, 'px');
+  setSlider('halftoneScale', 'vHalftoneScale', HALFTONE_SCALE, null, '%');
+  setSlider('halftoneAngle', 'vHalftoneAngle', HALFTONE_ANGLE, null, '°');
   syncPresetPills('maxN', TARGET_NODES, 500);
   syncPresetPills('lineW', LINE_W, 0.15);
   syncPresetPills('chaikinPasses', CHAIKIN_PASSES, 0.1);
@@ -2779,6 +2884,9 @@ function syncSlidersFromState() {
   syncPresetPills('maxR', MAX_R, 0.3);
   syncPresetPills('haringIconCount', HARING_ICON_COUNT, 8);
   syncPresetPills('haringIconSize', HARING_ICON_SIZE, 8);
+  syncPresetPills('halftoneSpacing', HALFTONE_SPACING, 0.3);
+  syncPresetPills('halftoneScale', HALFTONE_SCALE, 6);
+  syncPresetPills('halftoneAngle', HALFTONE_ANGLE, 3);
   syncViewLayerCards(VIEW_MODE);
 }
 syncSlidersFromState();
@@ -7504,15 +7612,137 @@ function generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, si
   };
 }
 
+// =========================================================
+// 18. MOTOR TRAMA DE PUNTOS POP-ART (HALFTONE RETÍCULA 45°)
+// =========================================================
+function generateHalftonePopArtPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, spacing = 6.5, scalePct = 115, angleDeg = 45, halftoneType = 'dots', bgClean = 0.000, seed = 0) {
+  const S = Math.max(3.5, spacing);
+  const dotScale = (scalePct || 115) / 100.0;
+  const rad = ((angleDeg !== undefined ? angleDeg : 45) * Math.PI) / 180;
+  const cosA = Math.cos(rad);
+  const sinA = Math.sin(rad);
+
+  const maxRadius = (S / Math.SQRT2) * dotScale;
+  const diag = Math.sqrt(W * W + H * H) * 0.5 + S * 2;
+  const sampleR = S * 0.45;
+  const sStep = Math.max(1, Math.floor(sampleR * 0.5));
+  const sampleR2 = sampleR * sampleR;
+
+  const circles = [];
+  const ptsX = [];
+  const ptsY = [];
+
+  const cx = W * 0.5;
+  const cy = H * 0.5;
+
+  let rowIdx = 0;
+  for (let u = -diag; u <= diag; u += S, rowIdx++) {
+    const vStart = (rowIdx % 2 === 0) ? -diag : diag;
+    const vEnd = (rowIdx % 2 === 0) ? diag : -diag;
+    const vStep = (rowIdx % 2 === 0) ? S : -S;
+
+    for (let v = vStart; (vStep > 0 ? v <= vEnd : v >= vEnd); v += vStep) {
+      const x = cx + u * cosA - v * sinA;
+      const y = cy + u * sinA + v * cosA;
+
+      if (x < -S || x > W + S || y < -S || y > H + S) continue;
+
+      const ix = Math.round(x);
+      const iy = Math.round(y);
+
+      let isBg = false;
+      if (ix >= 0 && ix < W && iy >= 0 && iy < H) {
+        if (silhouetteMask && !silhouetteMask[iy * W + ix]) {
+          isBg = true;
+        }
+      } else {
+        isBg = true;
+      }
+
+      if (isBg && bgClean > 0.015) {
+        continue;
+      }
+
+      let sumTone = 0;
+      let count = 0;
+      for (let dy = -sampleR; dy <= sampleR; dy += sStep) {
+        for (let dx = -sampleR; dx <= sampleR; dx += sStep) {
+          if (dx * dx + dy * dy <= sampleR2) {
+            const sx = Math.round(x + dx);
+            const sy = Math.round(y + dy);
+            if (sx >= 0 && sx < W && sy >= 0 && sy < H) {
+              const idx = sy * W + sx;
+              const c = coralToneMap ? coralToneMap[idx] : 1.0;
+              const s = step232Stencil ? step232Stencil[idx] : 1.0;
+              const toneVal = Math.min(c, s * 0.68 + c * 0.32);
+              sumTone += (1.0 - toneVal);
+              count++;
+            }
+          }
+        }
+      }
+
+      if (count === 0) continue;
+      let darkness = sumTone / count;
+
+      if (isBg) {
+        darkness *= Math.max(0.0, 1.0 - bgClean * 4.0);
+      }
+
+      darkness = Math.pow(Math.max(0, darkness), 1.0 / 1.22);
+      if (darkness < 0.035) continue;
+
+      let r = maxRadius * Math.sqrt(darkness);
+      r = Math.min(maxRadius, r);
+      if (r < 0.45) continue;
+
+      circles.push({ x: +x.toFixed(1), y: +y.toFixed(1), r: +r.toFixed(2), tone: +darkness.toFixed(3) });
+
+      if (halftoneType === 'spiral') {
+        const coils = Math.max(1, Math.min(4, Math.round(r / 1.7)));
+        const steps = coils * 12;
+        for (let st = 0; st <= steps; st++) {
+          const frac = st / steps;
+          const th = frac * coils * Math.PI * 2;
+          const curR = r * frac;
+          ptsX.push(+(x + curR * Math.cos(th)).toFixed(1));
+          ptsY.push(+(y + curR * Math.sin(th)).toFixed(1));
+        }
+      } else {
+        ptsX.push(+x.toFixed(1));
+        ptsY.push(+y.toFixed(1));
+      }
+    }
+  }
+
+  if (ptsX.length < 3) {
+    ptsX.push(W * 0.1, W * 0.9, W * 0.5);
+    ptsY.push(H * 0.1, H * 0.1, H * 0.9);
+  }
+
+  return { ptsX, ptsY, circles };
+}
 
 self.onmessage = function(e) {
   const {
     jobId, engineMode, step232Stencil, coralToneMap, silhouetteMask, smoothSilMap,
     W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0, maxTimeMs,
-    customFocalX, customFocalY, haringIconCount = 95, haringIconSize = 100
+    customFocalX, customFocalY, haringIconCount = 95, haringIconSize = 100,
+    halftoneSpacing = 6.5, halftoneScale = 115, halftoneAngle = 45, halftoneType = 'dots', bgClean = 0.000
   } = e.data;
 
   const tStart = performance.now();
+
+  if (engineMode === 'halftone_dots') {
+    let { ptsX, ptsY, circles } = generateHalftonePopArtPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, halftoneSpacing, halftoneScale, halftoneAngle, halftoneType, bgClean, seed);
+    if (halftoneType === 'spiral' && CHAIKIN_PASSES > 0) {
+      ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+    }
+    const outX = new Float32Array(ptsX);
+    const outY = new Float32Array(ptsY);
+    self.postMessage({ jobId, ptsX: outX, ptsY: outY, halftoneCircles: circles, pass: 1, totalPasses: 1, done: true }, [outX.buffer, outY.buffer]);
+    return;
+  }
 
   if (engineMode === 'keith_haring') {
     let { ptsX, ptsY } = generateKeithHaringPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed, haringIconCount, haringIconSize);
@@ -7709,16 +7939,23 @@ let currentJobId = 0;
 
 function attachWorkerHandler(worker) {
   worker.onmessage = (e) => {
-    const { jobId, ptsX: newX, ptsY: newY, pass, totalPasses, done } = e.data;
+    const { jobId, ptsX: newX, ptsY: newY, halftoneCircles: htCircles, pass, totalPasses, done } = e.data;
     if (jobId !== currentJobId) return;
 
     if (done) workerBusy = false;
     ptsX = newX;
     ptsY = newY;
+    if (htCircles) {
+      halftoneCirclesData = htCircles;
+    } else {
+      halftoneCirclesData = null;
+    }
     lineCacheDirty = true;
 
     if (ENGINE_MODE === 'stencil_cross') {
       statusPhase = '✓ Boceto con Cruces (0% CPU en reposo)';
+    } else if (ENGINE_MODE === 'halftone_dots') {
+      statusPhase = `✓ Trama de Puntos (${htCircles ? htCircles.length : ptsX.length} puntos) · 0% CPU`;
     } else {
       statusPhase = done
         ? '✓ Completado (0% CPU en reposo)'
@@ -7798,7 +8035,12 @@ function rebuildPortrait(needsStencilRebuild = true) {
     customFocalX,
     customFocalY,
     haringIconCount: HARING_ICON_COUNT,
-    haringIconSize: HARING_ICON_SIZE
+    haringIconSize: HARING_ICON_SIZE,
+    halftoneSpacing: HALFTONE_SPACING,
+    halftoneScale: HALFTONE_SCALE,
+    halftoneAngle: HALFTONE_ANGLE,
+    halftoneType: HALFTONE_TYPE,
+    bgClean: BG_CLEAN
   }, [s232Copy.buffer, coralCopy.buffer, silCopy.buffer, smSilCopy.buffer]);
 }
 
@@ -8083,6 +8325,23 @@ function rebuildLineCache() {
   const lCtx = lineCacheCanvas.getContext('2d');
   lCtx.clearRect(0, 0, W, H);
 
+  // MODO TRAMA DE PUNTOS (HALFTONE POP-ART): Renderizado de círculos de alta precisión
+  if (ENGINE_MODE === 'halftone_dots' && HALFTONE_TYPE === 'dots' && halftoneCirclesData && halftoneCirclesData.length > 0) {
+    const dots = halftoneCirclesData;
+    const isMono = (COLOR_MODE === 'mono');
+    const monoStroke = getMonoStrokeColor();
+    for (let i = 0; i < dots.length; i++) {
+      const d = dots[i];
+      if (d.r <= 0.1) continue;
+      lCtx.fillStyle = isMono ? monoStroke : getOrganicLineColor(i, dots.length, d.x, d.y);
+      lCtx.beginPath();
+      lCtx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+      lCtx.fill();
+    }
+    lineCacheDirty = false;
+    return;
+  }
+
   const totalLen = ptsX.length;
   if (totalLen < 3) {
     lineCacheDirty = false;
@@ -8176,10 +8435,21 @@ function render() {
     ctx.globalAlpha = 1.0;
   }
 
-  if (ptsX.length < 3) return;
+  if (ptsX.length < 3 && (!halftoneCirclesData || halftoneCirclesData.length === 0)) return;
 
   if (isAnimatingDraw) {
     ctx.drawImage(animAccumCanvas, 0, 0);
+    if (ENGINE_MODE === 'halftone_dots' && HALFTONE_TYPE === 'dots' && halftoneCirclesData && halftoneCirclesData.length > 0) {
+      const limit = Math.min(halftoneCirclesData.length - 1, drawProgressCount);
+      if (limit < halftoneCirclesData.length - 1) {
+        const d = halftoneCirclesData[limit];
+        ctx.fillStyle = (COLOR_MODE === 'mono') ? getMonoStrokeColor() : getOrganicLineColor(limit, halftoneCirclesData.length, d.x, d.y);
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, Math.max(1.8, d.r * 1.25), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      return;
+    }
     const limit = Math.min(ptsX.length - 1, drawProgressCount);
     if (limit < ptsX.length - 1) {
       ctx.fillStyle = getOrganicLineColor(limit, ptsX.length, ptsX[limit], ptsY[limit]);
@@ -8245,19 +8515,22 @@ function stopColorFlow() {
 }
 
 function updateStatsText() {
+  const isHtDots = (ENGINE_MODE === 'halftone_dots' && HALFTONE_TYPE === 'dots' && halftoneCirclesData);
+  const totalCount = isHtDots ? halftoneCirclesData.length : ptsX.length;
   const text = isAnimatingDraw
-    ? `Dibujando trazo (${Math.round((drawProgressCount / Math.max(1, ptsX.length)) * 100)}%)`
+    ? `Dibujando ${isHtDots ? 'trama' : 'trazo'} (${Math.round((drawProgressCount / Math.max(1, totalCount)) * 100)}%)`
     : statusPhase;
   document.getElementById('stats').textContent =
-    `Puntos: ${ptsX.length.toLocaleString()} | ${text}`;
+    `${isHtDots ? 'Puntos' : 'Nodos'}: ${totalCount.toLocaleString()} | ${text}`;
 }
 
 function startAnimation() {
-  if (ptsX.length < 4) return;
+  const isHtDots = (ENGINE_MODE === 'halftone_dots' && HALFTONE_TYPE === 'dots' && halftoneCirclesData && halftoneCirclesData.length > 0);
+  if (!isHtDots && ptsX.length < 4) return;
   stopLiveGrowth();
   isAnimatingDraw = true;
-  drawProgressCount = 2;
-  lastAnimatedIndex = 1;
+  drawProgressCount = isHtDots ? 0 : 2;
+  lastAnimatedIndex = isHtDots ? 0 : 1;
 
   animAccumCanvas.width = W;
   animAccumCanvas.height = H;
@@ -8270,6 +8543,38 @@ function startAnimation() {
     if (!isAnimatingDraw) return;
     if (document.hidden) {
       animRafId = requestAnimationFrame(stepAnim);
+      return;
+    }
+
+    if (ENGINE_MODE === 'halftone_dots' && HALFTONE_TYPE === 'dots' && halftoneCirclesData && halftoneCirclesData.length > 0) {
+      const dots = halftoneCirclesData;
+      const totalDots = dots.length;
+      const speed = Math.max(25, Math.round(totalDots / 160));
+      const nextLimit = Math.min(totalDots, drawProgressCount + speed);
+      const isMono = (COLOR_MODE === 'mono');
+      const monoStroke = getMonoStrokeColor();
+      for (let i = lastAnimatedIndex; i < nextLimit; i++) {
+        const d = dots[i];
+        if (d.r <= 0.1) continue;
+        aCtx.fillStyle = isMono ? monoStroke : getOrganicLineColor(i, totalDots, d.x, d.y);
+        aCtx.beginPath();
+        aCtx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        aCtx.fill();
+      }
+      lastAnimatedIndex = nextLimit;
+      drawProgressCount = nextLimit;
+      render();
+      updateStatsText();
+      if (drawProgressCount >= totalDots) {
+        stopAnimation();
+        render();
+        updateStatsText();
+        if (recorder && recorder.state === 'recording') {
+          btnRec.click();
+        }
+      } else {
+        animRafId = requestAnimationFrame(stepAnim);
+      }
       return;
     }
 
@@ -8993,6 +9298,34 @@ bindParam('maxR', 'vMax', v => MAX_R = v, false, 1);
 bindParam('chaikinPasses', 'vChaikin', v => CHAIKIN_PASSES = v, false, null);
 bindParam('haringIconCount', 'vHaringIcons', v => { HARING_ICON_COUNT = v; syncPresetPills('haringIconCount', v, 8); }, false, null);
 bindParam('haringIconSize', 'vHaringSize', v => { HARING_ICON_SIZE = v; syncPresetPills('haringIconSize', v, 8); }, false, null, '%');
+bindParam('halftoneSpacing', 'vHalftoneSpacing', v => { HALFTONE_SPACING = v; syncPresetPills('halftoneSpacing', v, 0.4); }, false, 1, 'px');
+bindParam('halftoneScale', 'vHalftoneScale', v => { HALFTONE_SCALE = v; syncPresetPills('halftoneScale', v, 6); }, false, null, '%');
+bindParam('halftoneAngle', 'vHalftoneAngle', v => { HALFTONE_ANGLE = v; syncPresetPills('halftoneAngle', v, 4); }, false, null, '°');
+
+const btnHtDots = document.getElementById('btnHalftoneTypeDots');
+const btnHtLine = document.getElementById('btnHalftoneTypeLine');
+const vHtMode = document.getElementById('vHalftoneMode');
+
+if (btnHtDots && btnHtLine) {
+  btnHtDots.addEventListener('click', () => {
+    HALFTONE_TYPE = 'dots';
+    btnHtDots.classList.add('active');
+    btnHtLine.classList.remove('active');
+    if (vHtMode) vHtMode.textContent = 'Círculos';
+    lineCacheDirty = true;
+    render();
+    if (typeof haptic === 'function') haptic(10);
+  });
+  btnHtLine.addEventListener('click', () => {
+    HALFTONE_TYPE = 'spiral';
+    btnHtLine.classList.add('active');
+    btnHtDots.classList.remove('active');
+    if (vHtMode) vHtMode.textContent = '1-Trazo';
+    lineCacheDirty = true;
+    render();
+    if (typeof haptic === 'function') haptic(10);
+  });
+}
 
 document.getElementById('lineW').addEventListener('input', (e) => {
   LINE_W = parseFloat(e.target.value);
@@ -9055,7 +9388,10 @@ const pillToleranceMap = {
   'minR': 0.2,
   'maxR': 0.3,
   'haringIconCount': 8,
-  'haringIconSize': 8
+  'haringIconSize': 8,
+  'halftoneSpacing': 0.4,
+  'halftoneScale': 6,
+  'halftoneAngle': 4
 };
 
 document.querySelectorAll('.preset-pill[data-set-target], .studio-pill[data-set-target]').forEach(pill => {
@@ -9263,12 +9599,24 @@ document.getElementById('btnPng').onclick = () => {
 
 document.getElementById('btnSvg').onclick = () => {
   const len = ptsX.length;
-  if (len < 3) return;
+  if (len < 3 && (!halftoneCirclesData || halftoneCirclesData.length === 0)) return;
 
   const bgFill = getBgHex(BG_THEME);
   let pathsMarkup = '';
 
-  if (COLOR_MODE === 'mono') {
+  if (ENGINE_MODE === 'halftone_dots' && HALFTONE_TYPE === 'dots' && halftoneCirclesData && halftoneCirclesData.length > 0) {
+    const dots = halftoneCirclesData;
+    const isMono = (COLOR_MODE === 'mono');
+    const monoStroke = getMonoStrokeColor();
+    const circleList = [];
+    for (let i = 0; i < dots.length; i++) {
+      const d = dots[i];
+      if (d.r <= 0.1) continue;
+      const fillCol = isMono ? monoStroke : getOrganicLineColor(i, dots.length, d.x, d.y);
+      circleList.push(`  <circle cx="${d.x.toFixed(2)}" cy="${d.y.toFixed(2)}" r="${d.r.toFixed(2)}" fill="${fillCol}"/>`);
+    }
+    pathsMarkup = circleList.join('\n');
+  } else if (COLOR_MODE === 'mono') {
     const strokeCol = getMonoStrokeColor();
     const effW = LINE_W * (COLOR_INTENSITY > 1.0 ? (1.0 + (COLOR_INTENSITY - 1.0) * 0.16) : (0.86 + COLOR_INTENSITY * 0.14));
     const mx0 = (ptsX[0] + ptsX[1]) * 0.5;
@@ -9355,10 +9703,14 @@ function updateFocalMarker() {
   const marker = document.getElementById('focalMarker');
   const box = document.getElementById('boxSpiralControls');
   const boxHaring = document.getElementById('boxHaringIconControls');
+  const boxHalftone = document.getElementById('boxHalftoneControls');
   const txt = document.getElementById('focalCoordsText');
   const statusPill = document.getElementById('statusPill');
   if (boxHaring) {
     boxHaring.style.display = (ENGINE_MODE === 'keith_haring' || ENGINE_MODE === 'haring_croc' || ENGINE_MODE === 'haring_puzzle') ? 'block' : 'none';
+  }
+  if (boxHalftone) {
+    boxHalftone.style.display = (ENGINE_MODE === 'halftone_dots') ? 'block' : 'none';
   }
   if (ENGINE_MODE === 'golden_spiral') {
     if (box) box.style.display = 'block';
@@ -9378,7 +9730,13 @@ function updateFocalMarker() {
   } else {
     if (marker) marker.style.display = 'none';
     if (box) box.style.display = 'none';
-    if (statusPill) statusPill.textContent = 'Línea Continua · 100% Vectorial';
+    if (statusPill) {
+      if (ENGINE_MODE === 'halftone_dots') {
+        statusPill.textContent = '⚫ Trama Pop-Art · Retícula Litográfica';
+      } else {
+        statusPill.textContent = 'Línea Continua · 100% Vectorial';
+      }
+    }
   }
 }
 
