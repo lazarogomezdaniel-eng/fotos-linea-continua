@@ -152,24 +152,13 @@
       flex-shrink: 0;
     }
 
-    /* Selector Bimodal Puro en Cabecera (Línea Pura vs Calco Puro) */
-    .header-layer-bar {
+    /* Pulsador Inspector de Calco en Cabecera (Modo Solo No Destructivo · Opción 3) */
+    .stencil-solo-btn {
       height: 36px;
-      display: inline-flex;
-      align-items: center;
-      gap: 2px;
+      padding: 0 14px;
+      border-radius: 10px;
       background: rgba(15, 22, 36, 0.90);
       border: 1px solid var(--border-light);
-      border-radius: 10px;
-      padding: 3px;
-      flex-shrink: 0;
-    }
-    .header-layer-bar .floating-layer-btn {
-      height: 28px;
-      padding: 0 12px;
-      border-radius: 7px;
-      border: 1px solid transparent;
-      background: transparent;
       color: var(--text-dim);
       font-size: 12px;
       font-weight: 600;
@@ -177,32 +166,71 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 5px;
-      transition: all 0.16s ease;
+      gap: 6px;
+      transition: all 0.18s var(--ease-spring);
+      flex-shrink: 0;
       white-space: nowrap;
+      user-select: none;
+      -webkit-user-select: none;
     }
-    .header-layer-bar .floating-layer-btn:hover {
+    .stencil-solo-btn:hover {
       color: #f8fafc;
+      border-color: rgba(255, 255, 255, 0.22);
     }
-    .header-layer-bar .floating-layer-btn:active {
-      transform: scale(0.95);
+    .stencil-solo-btn:active {
+      transform: scale(0.94);
     }
-    .header-layer-bar .floating-layer-btn.active {
-      background: linear-gradient(135deg, rgba(30, 58, 138, 0.75) 0%, rgba(14, 28, 54, 0.98) 100%);
-      color: #38bdf8;
-      border-color: rgba(56, 189, 248, 0.45);
-      box-shadow: 0 1px 8px rgba(56, 189, 248, 0.22);
+    .stencil-solo-btn.active {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.22) 0%, rgba(180, 83, 9, 0.38) 100%);
+      border-color: #f59e0b;
+      color: #fbbf24;
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.38), inset 0 0 8px rgba(245, 158, 11, 0.18);
       font-weight: 700;
+    }
+    .stencil-solo-btn .stencil-icon {
+      font-size: 13px;
+      display: inline-block;
+      transition: transform 0.18s var(--ease-spring);
+    }
+    .stencil-solo-btn.active .stencil-icon {
+      transform: scale(1.15) rotate(-6deg);
+    }
+
+    .icon-btn.reset {
+      font-size: 17px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+    .icon-btn.reset:hover {
+      color: #fca5a5;
+      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.12);
+    }
+    .icon-btn.reset:active {
+      transform: rotate(-180deg) scale(0.92);
+      color: #ef4444;
     }
 
     @media (max-width: 360px) {
-      .header-layer-bar .floating-layer-btn {
+      .stencil-solo-btn {
+        padding: 0 9px;
+        font-size: 11px;
+        gap: 4px;
+      }
+      .upload-btn {
         padding: 0 8px;
         font-size: 11px;
       }
-      .upload-btn {
-        padding: 0 9px;
-        font-size: 11px;
+      .header-right {
+        gap: 5px;
+      }
+      .header-left {
+        gap: 5px;
+      }
+      .icon-btn {
+        width: 33px;
+        height: 33px;
+        font-size: 15px;
       }
     }
 
@@ -1470,14 +1498,15 @@
       <button id="btnInstallApp" class="icon-btn" style="display:none;" title="Instalar App">📲</button>
     </div>
 
-    <!-- SELECTOR BIMODAL PURO EN CABECERA (SIEMPRE FUSIÓN 0%) -->
-    <div class="header-layer-bar" role="radiogroup" aria-label="Vista pura en el lienzo">
-      <button type="button" class="floating-layer-btn active" data-view-value="line" aria-pressed="true" title="Línea Continua Pura (0% Fusión)">✒️ Línea</button>
-      <button type="button" class="floating-layer-btn" data-view-value="stencil" aria-pressed="false" title="Calco a Lápiz Puro (0% Fusión)">✏️ Calco</button>
-    </div>
+    <!-- BOTÓN PULSADOR INSPECTOR DE CALCO (MODO SOLO NO DESTRUCTIVO · OPCIÓN 3) -->
+    <button type="button" id="btnToggleStencil" class="stencil-solo-btn" aria-pressed="false" title="Inspeccionar Calco a Lápiz Puro (Modo Solo / Tocar de nuevo para volver)">
+      <span class="stencil-icon">✏️</span>
+      <span class="stencil-text">Calco</span>
+    </button>
 
     <div class="header-right">
       <button id="btnCompare" class="icon-btn" title="Mantén pulsado para comparar con foto original">👁️</button>
+      <button id="btnResetAll" class="icon-btn reset" title="Restablecer Ajustes de Fábrica (100% Limpio)">↺</button>
       <button id="btnRebuildTop" class="icon-btn primary" title="Recalcular Trazado">🔄</button>
     </div>
   </header>
@@ -2609,6 +2638,14 @@ function setFusionOpacity(rawVal) {
   syncPresetPills('fusionOpacity', clean, 4);
 }
 
+function updateStencilSoloButtonUI() {
+  const btn = document.getElementById('btnToggleStencil');
+  if (!btn) return;
+  const isSoloActive = (VIEW_MODE === 'stencil');
+  btn.classList.toggle('active', isSoloActive);
+  btn.setAttribute('aria-pressed', isSoloActive ? 'true' : 'false');
+}
+
 function syncViewLayerCards(val = VIEW_MODE) {
   const activeVal = (val === 'both') ? 'line' : val;
   const badgeMap = {
@@ -2620,16 +2657,7 @@ function syncViewLayerCards(val = VIEW_MODE) {
   if (badge && badgeMap[activeVal]) {
     badge.textContent = badgeMap[activeVal];
   }
-  document.querySelectorAll('.floating-layer-btn[data-view-value]').forEach(btn => {
-    const btnVal = btn.getAttribute('data-view-value');
-    // Los botones superiores representan las vistas 100% PURAS (FUSION_OPACITY === 0):
-    // Si hay fusión activa (>0%), ninguno queda encendido para que un toque en Línea o Calco restaure al instante el 0% puro.
-    const isTarget = (btnVal === 'line')
-      ? (activeVal === 'line' && FUSION_OPACITY === 0)
-      : (btnVal === activeVal && FUSION_OPACITY === 0);
-    btn.classList.toggle('active', isTarget);
-    btn.setAttribute('aria-pressed', isTarget ? 'true' : 'false');
-  });
+  updateStencilSoloButtonUI();
 }
 
 function syncSlidersFromState() {
@@ -9152,6 +9180,33 @@ function loadFromImageElement(img) {
   cachedBlurRadius = -1;
   cachedBlurFine = null;
 
+  // Reset inteligente de sesión fotográfica (Opción 3):
+  // 1. Detener animaciones previas si estuvieran en marcha
+  stopAnimation();
+  stopLiveGrowth();
+
+  // 2. Limpiar encuadre y zoom a 1x centrado
+  resetCanvasZoom();
+
+  // 3. Limpiar punto focal manual para que la espiral calcule ojos automáticamente en la nueva foto
+  customFocalX = null;
+  customFocalY = null;
+  if (typeof updateFocalMarker === 'function') updateFocalMarker();
+
+  // 4. Salir del modo calco solo si estuviera encendido
+  if (VIEW_MODE !== 'line') {
+    VIEW_MODE = 'line';
+    const selView = document.getElementById('viewMode');
+    if (selView) selView.value = 'line';
+  }
+  updateStencilSoloButtonUI();
+
+  // 5. Reiniciar fusión a 0% pura para que el nuevo retrato empiece limpio
+  setFusionOpacity(0);
+
+  // 6. Restaurar parámetros óptimos de lectura de retrato para el estilo actual
+  applyModePreset(ENGINE_MODE);
+
   // Garantizar alta definición por defecto al abrir una foto para que los rasgos se distingan nítidos de primeras
   const optimalNodes = isMobileDevice ? 38000 : 44000;
   if (TARGET_NODES < optimalNodes) {
@@ -10127,6 +10182,12 @@ function setFusionSource(source) {
   FUSION_SOURCE = source;
   if (btnFusionStencil) btnFusionStencil.classList.toggle('active', source === 'stencil');
   if (btnFusionPhoto) btnFusionPhoto.classList.toggle('active', source === 'photo');
+  if (VIEW_MODE !== 'line') {
+    VIEW_MODE = 'line';
+    const sel = document.getElementById('viewMode');
+    if (sel) sel.value = 'line';
+    updateStencilSoloButtonUI();
+  }
   render();
   if (typeof haptic === 'function') haptic(8);
 }
@@ -10145,13 +10206,18 @@ if (elFusion) {
       VIEW_MODE = 'line';
       const sel = document.getElementById('viewMode');
       if (sel) sel.value = 'line';
+      updateStencilSoloButtonUI();
     }
-    syncViewLayerCards('line');
     render();
   });
   elFusion.addEventListener('change', (e) => {
     setFusionOpacity(e.target.value);
-    syncViewLayerCards(VIEW_MODE);
+    if (VIEW_MODE !== 'line') {
+      VIEW_MODE = 'line';
+      const sel = document.getElementById('viewMode');
+      if (sel) sel.value = 'line';
+      updateStencilSoloButtonUI();
+    }
     render();
   });
 }
@@ -10201,21 +10267,119 @@ document.querySelectorAll('.studio-subnav-btn[data-subtab]').forEach(btn => {
   });
 });
 
-// Botones Superiores de Vista Pura (Línea Pura vs Calco Puro — SIEMPRE Fusión 0%)
-document.querySelectorAll('.floating-layer-btn[data-view-value]').forEach(btn => {
-  btn.addEventListener('click', (e) => {
+// Pulsador Inspector de Calco en Cabecera (Modo Solo No Destructivo · Opción 3)
+const btnToggleStencil = document.getElementById('btnToggleStencil');
+if (btnToggleStencil) {
+  btnToggleStencil.addEventListener('click', (e) => {
     e.preventDefault();
-    const val = btn.getAttribute('data-view-value');
-    const sel = document.getElementById('viewMode');
-    if (!sel || !val) return;
-    setFusionOpacity(0);
-    VIEW_MODE = val;
-    sel.value = val;
-    syncViewLayerCards(val);
-    render();
     haptic(10);
+    const sel = document.getElementById('viewMode');
+
+    if (VIEW_MODE === 'stencil') {
+      // 2º toque: Apagar modo solo y volver a la composición con línea y fusión intactas
+      VIEW_MODE = 'line';
+      if (sel) sel.value = 'line';
+    } else {
+      // 1er toque: Encender modo Solo Calco 100% puro (SIN modificar el valor de la barra de fusión)
+      VIEW_MODE = 'stencil';
+      if (sel) sel.value = 'stencil';
+    }
+    updateStencilSoloButtonUI();
+    render();
   });
-});
+}
+
+// Botón Reset General a Cero de Fábrica (Opción 3)
+function performFactoryReset() {
+  haptic(14);
+  stopAnimation();
+  stopLiveGrowth();
+  stopColorFlow();
+  resetCanvasZoom();
+
+  // 1. Limpiar punto focal manual (para que la espiral detecte ojos sola)
+  customFocalX = null;
+  customFocalY = null;
+  if (typeof updateFocalMarker === 'function') updateFocalMarker();
+
+  // 2. Apagar calco solo y volver a línea pura
+  VIEW_MODE = 'line';
+  const selView = document.getElementById('viewMode');
+  if (selView) selView.value = 'line';
+  updateStencilSoloButtonUI();
+
+  // 3. Fusión a 0%
+  setFusionOpacity(0);
+  setFusionSource('stencil');
+
+  // 4. Color y Fondo a Valores de Fábrica (Monocromo sobre Blanco Puro)
+  COLOR_MODE = 'mono';
+  const selColMode = document.getElementById('colorMode');
+  if (selColMode) selColMode.value = 'mono';
+  syncColorModeCards('mono');
+
+  COLOR_PALETTE = 'iris';
+  const selPal = document.getElementById('colorPalette');
+  if (selPal) selPal.value = 'iris';
+  syncPaletteCards('iris');
+
+  COLOR_HUE = 205;
+  const inHue = document.getElementById('colorHue');
+  if (inHue) inHue.value = '205';
+  const vHue = document.getElementById('vColHue');
+  if (vHue) vHue.textContent = '205°';
+
+  COLOR_INTENSITY = 1.0;
+  const inInt = document.getElementById('colorIntensity');
+  if (inInt) inInt.value = '100';
+  const vInt = document.getElementById('vColIntensity');
+  if (vInt) vInt.textContent = '100%';
+
+  COLOR_SCALE = 1.0;
+  const inScale = document.getElementById('colorScale');
+  if (inScale) inScale.value = '1.0';
+  const vScale = document.getElementById('vColScale');
+  if (vScale) vScale.textContent = '1.0';
+
+  BG_THEME = 'white';
+  const selBg = document.getElementById('bgTheme');
+  if (selBg) selBg.value = 'white';
+  syncBgThemeChips('white');
+  updateColorPanelVisibility();
+
+  // 5. Parámetros óptimos del estilo actual
+  TARGET_NODES = isMobileDevice ? 38000 : 44000;
+  HARING_ICON_COUNT = 95;
+  HARING_ICON_SIZE = 100;
+  HALFTONE_SPACING = 6.5;
+  HALFTONE_SCALE = 115;
+  HALFTONE_ANGLE = 45;
+  applyModePreset(ENGINE_MODE);
+  syncMaxNPresets(TARGET_NODES);
+
+  // 6. Efecto visual de giro en el botón Reset
+  const rBtn = document.getElementById('btnResetAll');
+  if (rBtn) {
+    rBtn.classList.remove('spinning');
+    void rBtn.offsetWidth;
+    rBtn.classList.add('spinning');
+    setTimeout(() => {
+      if (rBtn) rBtn.classList.remove('spinning');
+    }, 520);
+  }
+
+  lineCacheDirty = true;
+  rebuildPortrait(true);
+  statusPhase = 'Ajustes restablecidos de fábrica (100% Limpio)';
+  updateStatsText();
+}
+
+const btnResetAll = document.getElementById('btnResetAll');
+if (btnResetAll) {
+  btnResetAll.addEventListener('click', () => {
+    performFactoryReset();
+  });
+}
 
 // Guardia de Scroll Táctil con Bloqueo de Eje (Impide revertir el slider al levantar el dedo en diagonal)
 document.querySelectorAll('input[type="range"]:not(.scp-hue-slider)').forEach(slider => {
@@ -10743,9 +10907,9 @@ if (btnCompare) {
   const onCompareStart = (e) => {
     e.preventDefault();
     haptic(6);
+    prevViewMode = VIEW_MODE;
     const selView = document.getElementById('viewMode');
     if (selView) {
-      prevViewMode = selView.value;
       selView.value = 'photo';
       selView.dispatchEvent(new Event('change'));
     }

@@ -5401,6 +5401,25 @@ function loadFromImageElement(img) {
   cachedBlurRadius = -1;
   cachedBlurFine = null;
 
+  // Reset inteligente de sesión fotográfica (Opción 3)
+  stopAnimation();
+  stopLiveGrowth();
+
+  if (VIEW_MODE !== 'line') {
+    VIEW_MODE = 'line';
+    const selView = document.getElementById('viewMode');
+    if (selView) selView.value = 'line';
+    syncViewLayerCards('line');
+  }
+
+  applyModePreset(ENGINE_MODE);
+
+  const optimalNodes = isMobileDevice ? 22000 : 26000;
+  if (TARGET_NODES < optimalNodes) {
+    TARGET_NODES = optimalNodes;
+    syncSlidersFromState();
+  }
+
   rebuildPortrait(true);
 }
 
