@@ -563,6 +563,7 @@ let COLOR_HUE = 205;
 let COLOR_SCALE = 3.5;
 let COLOR_INTENSITY = 1.0;
 let BG_THEME = 'white';
+let isCustomPhotoLoaded = false;
 let customColorsRGB = [
   [255, 77, 109],  // #ff4d6d
   [0, 210, 255],   // #00d2ff
@@ -692,21 +693,21 @@ const MODE_DESCRIPTIONS = {
 };
 
 const MODE_PRESETS = {
-  coral:          { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 4.8, chaikin: 2 },
-  coral_tsp:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 6.5, chaikin: 2 },
-  stencil_clean:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.28, bgClean: 0.000, minR: 1.6, maxR: 8.5, chaikin: 1 },
-  stencil_cross:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.32, bgClean: 0.000, minR: 2.6, maxR: 9.0, chaikin: 1 },
-  live_growth:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.28, bgClean: 0.000, minR: 2.8, maxR: 9.0, chaikin: 1 },
-  golden:         { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.42, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1 },
-  fractal:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1 },
-  hex_spiral:     { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.05 },
-  iso_diamond:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0 },
-  pursuit_vortex: { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1 },
-  panot_bcn:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1 },
-  flor_bcn:       { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.60, bgClean: 0.000, minR: 1.8, maxR: 6.5, chaikin: 1 },
-  flor_fractal:   { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 7.0, chaikin: 1 },
-  golden_spiral:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.70, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1 },
-  honeycomb:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 6.0, chaikin: 0, lineW: 1.0, honeycombSize: 14.0, fusionOpacity: 50 }
+  coral:          { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 4.8, chaikin: 2, lineW: 1.0, colorMode: 'mono' },
+  coral_tsp:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 6.5, chaikin: 2, lineW: 1.0, colorMode: 'organic_flow', colorPalette: 'ocean' },
+  stencil_clean:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.28, bgClean: 0.000, minR: 1.6, maxR: 8.5, chaikin: 1, lineW: 1.0, colorMode: 'mono' },
+  stencil_cross:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.32, bgClean: 0.000, minR: 2.6, maxR: 9.0, chaikin: 1, lineW: 1.0, colorMode: 'mono' },
+  live_growth:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.28, bgClean: 0.000, minR: 2.8, maxR: 9.0, chaikin: 1, lineW: 1.0, colorMode: 'mono' },
+  golden:         { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.42, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1, lineW: 1.0, colorMode: 'line_strand', colorPalette: 'cyan_amber' },
+  fractal:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1, lineW: 1.0, colorMode: 'mono' },
+  hex_spiral:     { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.05, colorMode: 'mono' },
+  iso_diamond:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.0, colorMode: 'mono' },
+  pursuit_vortex: { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1, lineW: 1.0, colorMode: 'mono' },
+  panot_bcn:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1, lineW: 1.0, colorMode: 'organic_flow', colorPalette: 'forest' },
+  flor_bcn:       { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.60, bgClean: 0.000, minR: 1.8, maxR: 6.5, chaikin: 1, lineW: 1.0, colorMode: 'mono' },
+  flor_fractal:   { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 7.0, chaikin: 1, lineW: 1.0, colorMode: 'mono' },
+  golden_spiral:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.70, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.0, colorMode: 'organic_flow', colorPalette: 'cyan_amber' },
+  honeycomb:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 6.0, chaikin: 0, lineW: 1.0, honeycombSize: 14.0, fusionOpacity: 50, colorMode: 'mono' }
 };
 
 function syncSlidersFromState() {
@@ -5593,7 +5594,9 @@ function stopAnimation() {
 // =========================================================
 // 5. CARGA DE IMAGEN Y RETRATO DEMO INICIAL
 // =========================================================
-function loadFromImageElement(img) {
+function loadFromImageElement(img, isUserUpload = false) {
+  isCustomPhotoLoaded = Boolean(isUserUpload);
+
   const maxDim = isMobileDevice ? 640 : 740;
   const scale = Math.min(maxDim / img.width, maxDim / img.height);
   W = canvas.width = Math.round(img.width * scale);
@@ -5914,7 +5917,7 @@ function initDemoPortrait() {
   dCtx.stroke();
 
   const img = new Image();
-  img.onload = () => loadFromImageElement(img);
+  img.onload = () => loadFromImageElement(img, false);
   img.src = dCanvas.toDataURL();
 }
 
@@ -5927,7 +5930,7 @@ document.getElementById('imgInput').addEventListener('change', (e) => {
   const reader = new FileReader();
   reader.onload = (ev) => {
     const img = new Image();
-    img.onload = () => loadFromImageElement(img);
+    img.onload = () => loadFromImageElement(img, true);
     img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
@@ -5943,6 +5946,39 @@ function applyModePreset(mode) {
   MIN_R = p.minR;
   MAX_R = p.maxR;
   CHAIKIN_PASSES = p.chaikin;
+  if (p.lineW !== undefined) LINE_W = p.lineW;
+
+  if (!isCustomPhotoLoaded) {
+    // Modo Escaparate inicial
+    const targetColorMode = p.colorMode !== undefined ? p.colorMode : 'mono';
+    COLOR_MODE = targetColorMode;
+    const selColor = document.getElementById('colorMode');
+    if (selColor) selColor.value = targetColorMode;
+
+    if (p.colorPalette !== undefined) {
+      COLOR_PALETTE = p.colorPalette;
+      const selPal = document.getElementById('colorPalette');
+      if (selPal) selPal.value = p.colorPalette;
+      const presetCols = PALETTE_PRESETS[p.colorPalette];
+      if (presetCols) {
+        const p1 = document.getElementById('colPick1');
+        const p2 = document.getElementById('colPick2');
+        const p3 = document.getElementById('colPick3');
+        if (p1 && p2 && p3) {
+          p1.value = presetCols[0];
+          p2.value = presetCols[1];
+          p3.value = presetCols[2];
+          if (typeof syncCustomColorsFromPickers === 'function') syncCustomColorsFromPickers();
+        }
+      }
+    }
+
+    if (targetColorMode === 'mono' && isColorFlowing && typeof stopColorFlow === 'function') {
+      stopColorFlow();
+    }
+    if (typeof updateColorPanelVisibility === 'function') updateColorPanelVisibility();
+  }
+
   lineCacheDirty = true;
   syncSlidersFromState();
 }
