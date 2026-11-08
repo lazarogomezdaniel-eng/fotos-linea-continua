@@ -1675,17 +1675,18 @@
       <option value="haring_croc">🐊 16. Keith Haring Cocodrilos (Hombre-Cocodrilo y Fauces Pop-Art)</option>
       <option value="haring_puzzle">🧩 17. Keith Haring Puzle Humano (Cuadro de Formas Humanas)</option>
       <option value="halftone_dots">⚫ 18. Trama de Puntos (Halftone Pop-Art)</option>
+      <option value="honeycomb">🐝 19. Colmena Hexagonal (Panal de Abeja Orgánico)</option>
     </select>
 
     <div id="dockContent">
       <!-- =========================================================
-           TAB 1: ESTILOS (18 ESTILOS + AJUSTES ESPECÍFICOS)
+           TAB 1: ESTILOS (19 ESTILOS + AJUSTES ESPECÍFICOS)
            ========================================================= -->
       <div class="tab-pane active" id="paneEstilo">
         <div class="studio-group-block">
           <div class="studio-block-header">
             <span class="studio-block-label">Algoritmo de Trazado</span>
-            <span class="studio-block-value">18 Estilos</span>
+            <span class="studio-block-value">19 Estilos</span>
           </div>
           <div class="style-carousel" id="styleCarousel">
             <div class="style-card active" data-mode="coral">
@@ -1778,6 +1779,11 @@
               <span class="card-title">Trama Puntos</span>
               <span class="card-badge">Halftone Pop-Art</span>
             </div>
+            <div class="style-card" data-mode="honeycomb">
+              <span class="card-emoji">🐝</span>
+              <span class="card-title">Modo Colmena</span>
+              <span class="card-badge">Panal Hexagonal</span>
+            </div>
           </div>
         </div>
 
@@ -1866,6 +1872,42 @@
                 <button type="button" class="studio-pill active" id="btnHalftoneTypeDots" data-htype="dots">⚫ Puntos</button>
                 <button type="button" class="studio-pill" id="btnHalftoneTypeLine" data-htype="spiral">🌀 1-Trazo</button>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTROLES DINÁMICOS DE MODO COLMENA / PANAL HEXAGONAL -->
+        <div id="boxHoneycombControls" class="studio-group-block is-hidden">
+          <div class="studio-2col-grid">
+            <div class="studio-slider-card">
+              <div class="studio-slider-header">
+                <span class="studio-slider-title">Tamaño de Hexágono</span>
+                <span class="studio-val-badge" id="vHoneycombSize">9.0px</span>
+              </div>
+              <div class="studio-slider-track-wrap">
+                <input type="range" id="honeycombSize" min="4.0" max="22.0" step="0.5" value="9.0">
+              </div>
+            </div>
+
+            <div class="studio-slider-card">
+              <div class="studio-slider-header">
+                <span class="studio-slider-title">Cámaras del Panal</span>
+                <span class="studio-val-badge" id="vHoneycombWalls">3 Anillos</span>
+              </div>
+              <div class="studio-slider-track-wrap">
+                <input type="range" id="honeycombWalls" min="1" max="5" step="1" value="3">
+              </div>
+            </div>
+          </div>
+
+          <div class="studio-slider-card" style="margin-top:8px;">
+            <div class="studio-slider-header">
+              <span class="studio-slider-title">Detalle Anatómico</span>
+              <span class="studio-val-badge" id="vHoneycombSubdiv">Sub-Panal Activo</span>
+            </div>
+            <div class="studio-quick-pills">
+              <button type="button" class="studio-pill active" id="btnHoneycombSubdivOn">🐝 Sub-Panal en Ojos y Rasgos</button>
+              <button type="button" class="studio-pill" id="btnHoneycombSubdivOff">⚪ Panal Uniforme</button>
             </div>
           </div>
         </div>
@@ -2673,6 +2715,11 @@ let HALFTONE_ANGLE = 45;
 let HALFTONE_TYPE = 'dots'; // 'dots' | 'spiral'
 let halftoneCirclesData = null;
 
+// Parámetros del Modo Colmena (Panal Hexagonal Adaptativo)
+let HONEYCOMB_SIZE = 9.0;
+let HONEYCOMB_WALLS = 3;
+let HONEYCOMB_SUBDIV = true;
+
 const MODE_DESCRIPTIONS = {
   coral: '🧠 Coral Cerebral Dendrítico: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros redondeados en U sin dejar huecos vacíos.',
   coral_tsp: '🌊 Coral Orgánico TSP: Stippling adaptativo por tono + repulsión + ruta continua 2-Opt libre de cruces + curvas Chaikin.',
@@ -2681,7 +2728,7 @@ const MODE_DESCRIPTIONS = {
   live_growth: '🌱 Crecimiento Diferencial en Vivo CON CRUCES: El trazo nace en el centro del rostro y teje en vivo sobre los rasgos cruzando líneas con alta calidad.',
   golden: '🌻 Proporción Áurea (φ = 1.61803): Distribuye los nodos en espiral de Fermat con el ángulo áureo exacto (137.50776°) y brazos espirales de Fibonacci (55/89).',
   fractal: '❄️ Curva Fractal Adaptativa (Hilbert 2ⁿ): Subdivide recursivamente el retrato en una curva fractal autosemejante más densa en ojos y sombras, con 0 cruces.',
-  hex_spiral: '🌀 Mosaico Hex-Espiral: Teje una red continua de espirales hexagonales e isométricas cuya densidad de vueltas esculpe las sombras del retrato.',
+  hex_spiral: '🌀 Mosaico Hex-Espiral V5: Espirales hexagonales bifilares continuas libres de cruces que modulan la densidad de giros según las luces y sombras del retrato.',
   iso_diamond: '💎 Mosaico Rombos Isométricos 3D: Celdas de rombos/cubos 3D con pliegues concéntricos modulados por las luces y sombras del retrato.',
   pursuit_vortex: '🌪️ Vórtice Geométrico en Espiral: Celdas poligonales con giro progresivo (curvas de persecución) que esculpen el volumen facial.',
   panot_bcn:      '🧱 Panots de Barcelona: Teje una red continua de baldosas completas con marco perimetral y la icónica Flor de Barcelona en bajorrelieve.',
@@ -2691,7 +2738,8 @@ const MODE_DESCRIPTIONS = {
   keith_haring:   '🕺 Keith Haring Pop-Art (Mural en Línea Continua): Esculpe el retrato encajando la iconografía inconfundible de Keith Haring (muñecos bailando con brazos en alto, perros ladrando, corazones radiantes, acróbatas y rayas de movimiento cinético) en un único trazo continuo.',
   haring_croc:    '🐊 Keith Haring Cocodrilos (Bestiario Pop-Art): Esculpe el retrato con los icónicos cocodrilos de Keith Haring (cocodrilos de perfil con cresta dorsal en sierra y grandes fauces dentadas, el famoso Hombre-Cocodrilo con brazos en alto y caimanes en S) tejidos en una sola línea continua.',
   haring_puzzle:  '🧩 Keith Haring Puzle Humano (Cuadro de Formas Humanas): Rellena el retrato de extremo a extremo con decenas de figuras humanas de Keith Haring en múltiples escalas y ángulos que se abrazan y encajan unas con otras como un puzle viviente en línea continua.',
-  halftone_dots:  '⚫ Trama de Puntos (Halftone Pop-Art): Retícula angular serigráfica a 45° con puntos de área proporcional a la densidad tonal y ganancia de punto en sombras profundas.'
+  halftone_dots:  '⚫ Trama de Puntos (Halftone Pop-Art): Retícula angular serigráfica a 45° con puntos de área proporcional a la densidad tonal y ganancia de punto en sombras profundas.',
+  honeycomb:      '🐝 Colmena Hexagonal (Panal de Abeja Orgánico): Mosaico continuo de celdas hexagonales 100% encajadas que esculpen los rasgos y volúmenes del retrato mediante cámaras y anillos concéntricos adaptativos.'
 };
 
 const MODE_PRESETS = {
@@ -2702,7 +2750,7 @@ const MODE_PRESETS = {
   live_growth:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.28, bgClean: 0.000, minR: 2.8, maxR: 9.0, chaikin: 1 },
   golden:         { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.42, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1 },
   fractal:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1 },
-  hex_spiral:     { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1 },
+  hex_spiral:     { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.05 },
   iso_diamond:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0 },
   pursuit_vortex: { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1 },
   panot_bcn:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1 },
@@ -2712,7 +2760,8 @@ const MODE_PRESETS = {
   keith_haring:   { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3 },
   haring_croc:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3 },
   haring_puzzle:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3 },
-  halftone_dots:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.52, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.0 }
+  halftone_dots:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.52, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.0 },
+  honeycomb:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 6.0, chaikin: 0, lineW: 1.0 }
 };
 
 function syncSliderProgress(el) {
@@ -4617,25 +4666,26 @@ function generateDendriticCoralPortrait(toneMap, silhouetteMask, smoothSilMap, W
 }
 
 /**
- * MODO 8: MOSAICO HEX-ESPIRAL GEOMÉTRICO:
- * Teje una red continua de celdas hexagonales/isométricas donde la densidad de espirales concéntricas
- * y el anclaje a las crestas de contraste esculpen los rasgos faciales con alta nitidez y fidelidad.
+ * MODO 8: MOSAICO HEX-ESPIRAL BIFILAR NO CRUZADO (V5 DE MÁXIMA CALIDAD)
+ * Retícula hexagonal pointy-top con encaje matemático perfecto.
+ * En cada celda genera una espiral bifilar de Fermat (brazo entrante + núcleo 180° + brazo saliente desfasado pi rad)
+ * 100% libre de auto-intersecciones y con densidad de giros modulada por las luces y sombras del retrato.
  */
 function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0) {
   const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
-  const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
-  const cellR = Math.max(2.6, Math.min(12.0, MIN_R * 3.4 * maxRScale * nodeScale));
+  const maxRScale = 0.82 + (MAX_R / 15.0) * 0.38;
+  const cellR = Math.max(3.2, Math.min(13.5, MIN_R * 3.0 * maxRScale * nodeScale));
   const dxHex = cellR * Math.sqrt(3);
   const dyHex = cellR * 1.5;
-  const offX = (seed % 7) * 0.14 * dxHex;
-  const offY = ((seed * 3) % 7) * 0.14 * dyHex;
+  const offX = ((seed % 11) / 11) * 0.3 * dxHex;
+  const offY = (((seed * 3) % 11) / 11) * 0.3 * dyHex;
 
   const outX = [];
   const outY = [];
   const rows = Math.ceil(H / dyHex) + 1;
   const cols = Math.ceil(W / dxHex) + 1;
-  const lightCut = Math.max(0.04, Math.min(0.20, 0.04 + (MAX_R / 35.0) * 0.12));
-  const maxTurns = Math.max(2, Math.min(8, Math.round(7.5 - MIN_R * 0.65)));
+  const lightCut = Math.max(0.04, Math.min(0.18, 0.04 + (MAX_R / 40.0) * 0.10));
+  const maxTurns = Math.max(2, Math.min(7, Math.round(7.2 - MIN_R * 0.55)));
 
   for (let r = 1; r < rows - 1; r++) {
     const cy = r * dyHex + offY;
@@ -4647,7 +4697,7 @@ function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask,
       if (!silhouetteMask[idx]) continue;
       const dark = Math.max(0, 1.0 - (coralToneMap ? coralToneMap[idx] : 1.0));
       const lineDark = Math.max(0, 1.0 - (step232Stencil ? step232Stencil[idx] : 1.0));
-      if (Math.min(1.0, dark * 0.65 + lineDark * 0.95) >= 0.065) {
+      if (Math.min(1.0, dark * 0.65 + lineDark * 0.95) >= 0.055) {
         if (firstC === -1) firstC = c;
         lastC = c;
       }
@@ -4672,55 +4722,230 @@ function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask,
       const lineDark = Math.max(0, 1.0 - s232);
       const effDark = Math.min(1.0, dark * 0.65 + lineDark * 0.95);
 
-      // Ridge-locking: alineación de vértices con contornos faciales (ojos, nariz, labios, cejas)
+      // Ridge-locking hacia contornos anatómicos
       let px = cx, py = cy;
-      if (effDark > 0.09 && idx > W && idx < W * (H - 1) - 1) {
+      if (effDark > 0.08 && idx > W && idx < W * (H - 1) - 1) {
         const gx = (coralToneMap[idx + 1] - coralToneMap[idx - 1]) * 0.5 + (step232Stencil[idx + 1] - step232Stencil[idx - 1]) * 0.5;
         const gy = (coralToneMap[idx + W] - coralToneMap[idx - W]) * 0.5 + (step232Stencil[idx + W] - step232Stencil[idx - W]) * 0.5;
-        const pull = Math.min(2.2, effDark * 1.8);
+        const pull = Math.min(2.0, effDark * 1.6);
         px = Math.max(5, Math.min(W - 5, px - gx * pull));
         py = Math.max(5, Math.min(H - 5, py - gy * pull));
       }
 
-      const enterAng = l2r ? Math.PI : 0;
-      const exitAng = l2r ? 0 : Math.PI;
+      const baseAng = l2r ? Math.PI : 0;
+      const enterAng = baseAng;
+      const exitAng = baseAng + Math.PI;
 
       if (effDark < lightCut) {
-        // Preservar zonas de luz / brillo limpio sin saturar con líneas
-        outX.push(px + Math.cos(enterAng) * (cellR * 0.88));
-        outY.push(py + Math.sin(enterAng) * (cellR * 0.88));
-        outX.push(px + Math.cos(exitAng) * (cellR * 0.88));
-        outY.push(py + Math.sin(exitAng) * (cellR * 0.88));
+        // En luces altas: trazo limpio por el perímetro hexagonal superior o inferior
+        const arcSign = (r & 1) ? 1 : -1;
+        outX.push(px + Math.cos(enterAng) * (cellR * 0.866));
+        outY.push(py + Math.sin(enterAng) * (cellR * 0.866));
+        outX.push(px + Math.cos(enterAng + arcSign * Math.PI / 3) * (cellR * 0.866));
+        outY.push(py + Math.sin(enterAng + arcSign * Math.PI / 3) * (cellR * 0.866));
+        outX.push(px + Math.cos(exitAng) * (cellR * 0.866));
+        outY.push(py + Math.sin(exitAng) * (cellR * 0.866));
         continue;
       }
 
-      const turns = Math.min(maxTurns, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.25) * (maxTurns - 0.8))));
+      const turns = Math.min(maxTurns, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.22) * (maxTurns - 0.8))));
       const totalCorners = turns * 6;
+      const coreR = cellR * 0.20;
 
-      outX.push(px + Math.cos(enterAng) * (cellR * 0.92));
-      outY.push(py + Math.sin(enterAng) * (cellR * 0.92));
-
-      // Espiral hexagonal hacia el núcleo de la celda
+      // Brazo A: Espiral hexagonal hacia el núcleo (inward)
       for (let k = 0; k <= totalCorners; k++) {
         const u = k / totalCorners;
-        const rad = cellR * 0.92 * (1.0 - u * 0.82);
+        const rad = cellR * 0.866 * (1.0 - u * 0.76);
         const ang = enterAng + k * (Math.PI / 3);
         outX.push(px + Math.cos(ang) * rad);
         outY.push(py + Math.sin(ang) * rad);
       }
 
-      // Desenlace fluido hacia el punto de enlace con el siguiente hexágono vecino
-      const unwindSteps = Math.max(3, Math.round(totalCorners * 0.45));
-      for (let k = 1; k <= unwindSteps; k++) {
-        const u = k / unwindSteps;
-        const rad = cellR * (0.18 + u * 0.74);
-        const ang = enterAng + totalCorners * (Math.PI / 3) + u * (exitAng - (enterAng + totalCorners * (Math.PI / 3)));
+      // Núcleo hexagonal: giro de 180° a radio constante mínimo para enlazar con el Brazo B
+      const endAng = enterAng + totalCorners * (Math.PI / 3);
+      for (let s = 1; s <= 3; s++) {
+        const ang = endAng + s * (Math.PI / 3);
+        outX.push(px + Math.cos(ang) * coreR);
+        outY.push(py + Math.sin(ang) * coreR);
+      }
+
+      // Brazo B: Espiral hexagonal hacia el exterior intercalada (outward, desfasada sin cruzar)
+      const outwardStartAng = endAng + Math.PI;
+      for (let k = 1; k <= totalCorners; k++) {
+        const u = k / totalCorners;
+        const rad = coreR + u * (cellR * 0.866 - coreR);
+        const ang = outwardStartAng + k * (Math.PI / 3);
         outX.push(px + Math.cos(ang) * rad);
         outY.push(py + Math.sin(ang) * rad);
       }
-      outX.push(px + Math.cos(exitAng) * (cellR * 0.92));
-      outY.push(py + Math.sin(exitAng) * (cellR * 0.92));
+
+      // Conexión directa al punto de enlace de salida con la siguiente celda
+      outX.push(px + Math.cos(exitAng) * (cellR * 0.866));
+      outY.push(py + Math.sin(exitAng) * (cellR * 0.866));
     }
+  }
+
+  return {
+    ptsX: new Float32Array(outX),
+    ptsY: new Float32Array(outY)
+  };
+}
+
+/**
+ * MODO 19: COLMENA HEXAGONAL ADAPTATIVA (PANAL DE ABEJA ORGÁNICO)
+ * Mosaico continuo de celdas hexagonales 100% encajadas que esculpen los rasgos
+ * y sombras del retrato mediante cámaras concéntricas, costillas radiales Y y sub-panales en ojos y rasgos.
+ */
+function generateHoneycombPortrait(
+  coralToneMap, step232Stencil, silhouetteMask, smoothSilMap,
+  W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0,
+  honeycombSize = 9.0, honeycombWalls = 3, honeycombSubdiv = true
+) {
+  const baseR = (honeycombSize && honeycombSize >= 3.5)
+    ? honeycombSize
+    : Math.max(3.8, Math.min(18.0, (MIN_R * 2.6 + MAX_R * 0.6) * Math.sqrt(24000 / Math.max(5000, TARGET_NODES))));
+
+  const cellR = baseR;
+  const dxHex = cellR * Math.sqrt(3);
+  const dyHex = cellR * 1.5;
+  const offX = ((seed % 13) / 13) * 0.25 * dxHex;
+  const offY = (((seed * 5) % 13) / 13) * 0.25 * dyHex;
+
+  const rows = Math.ceil(H / dyHex) + 1;
+  const cols = Math.ceil(W / dxHex) + 1;
+  const maxChambers = Math.max(1, Math.min(5, honeycombWalls || 3));
+
+  const outX = [];
+  const outY = [];
+
+  for (let r = 1; r < rows - 1; r++) {
+    const cy = r * dyHex + offY;
+    let firstC = -1, lastC = -1;
+
+    for (let c = 1; c < cols - 1; c++) {
+      const cx = c * dxHex + ((r & 1) ? dxHex * 0.5 : 0) + offX;
+      if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+      const dark = Math.max(0, 1.0 - (coralToneMap ? coralToneMap[idx] : 1.0));
+      const lineDark = Math.max(0, 1.0 - (step232Stencil ? step232Stencil[idx] : 1.0));
+      if (Math.min(1.0, dark * 0.65 + lineDark * 0.95) >= 0.045) {
+        if (firstC === -1) firstC = c;
+        lastC = c;
+      }
+    }
+    if (firstC === -1) continue;
+
+    const l2r = (r & 1) === 0;
+    const startC = l2r ? firstC : lastC;
+    const endC = l2r ? lastC : firstC;
+    const stepC = l2r ? 1 : -1;
+
+    for (let c = startC; l2r ? c <= endC : c >= endC; c += stepC) {
+      const cx = c * dxHex + ((r & 1) ? dxHex * 0.5 : 0) + offX;
+      if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+
+      const tone = coralToneMap ? coralToneMap[idx] : 0.5;
+      const s232 = step232Stencil ? step232Stencil[idx] : 1.0;
+      const dark = Math.max(0, 1.0 - tone);
+      const lineDark = Math.max(0, 1.0 - s232);
+      const effDark = Math.min(1.0, dark * 0.62 + lineDark * 0.98);
+
+      let gx = 0, gy = 0, gMag = 0;
+      if (idx > W && idx < W * (H - 1) - 1) {
+        gx = (coralToneMap[idx + 1] - coralToneMap[idx - 1]) * 0.5 + (step232Stencil[idx + 1] - step232Stencil[idx - 1]) * 0.5;
+        gy = (coralToneMap[idx + W] - coralToneMap[idx - W]) * 0.5 + (step232Stencil[idx + W] - step232Stencil[idx - W]) * 0.5;
+        gMag = Math.hypot(gx, gy);
+      }
+
+      let px = cx, py = cy;
+      if (gMag > 0.08) {
+        const pull = Math.min(2.2, gMag * 2.0);
+        px = Math.max(5, Math.min(W - 5, px - gx * pull));
+        py = Math.max(5, Math.min(H - 5, py - gy * pull));
+      }
+
+      const enterX = px + (l2r ? -0.866 * cellR : 0.866 * cellR);
+      const enterY = py;
+      const exitX = px + (l2r ? 0.866 * cellR : -0.866 * cellR);
+      const exitY = py;
+
+      // NIVEL 0: Luces extremas y fondos limpios (arco perimetral de 3 lados)
+      if (effDark < 0.075) {
+        const sideSign = (r & 1) ? 1 : -1;
+        outX.push(enterX, px, exitX);
+        outY.push(enterY, py + sideSign * cellR, exitY);
+        continue;
+      }
+
+      let chambers = Math.min(maxChambers, Math.max(1, Math.round(effDark * (maxChambers + 0.5))));
+      const isFeatureSubdiv = honeycombSubdiv && (gMag > 0.16 || lineDark > 0.35);
+
+      // Vértices perimetrales del hexágono pointy-top
+      const vOrder = l2r ? [3, 4, 5, 0, 1, 2] : [0, 5, 4, 3, 2, 1];
+      for (let i = 0; i < 6; i++) {
+        const m = vOrder[i];
+        const ang = (m * Math.PI / 3) + (Math.PI / 6);
+        outX.push(px + Math.cos(ang) * cellR);
+        outY.push(py + Math.sin(ang) * cellR);
+      }
+
+      if (isFeatureSubdiv) {
+        const shiftX = (gMag > 0.01) ? -(gx / gMag) * (cellR * 0.16) : 0;
+        const shiftY = (gMag > 0.01) ? -(gy / gMag) * (cellR * 0.16) : 0;
+        const subR1 = cellR * 0.65;
+        const subR2 = cellR * 0.35;
+
+        for (let i = 0; i < 6; i++) {
+          const m = vOrder[i];
+          const ang = (m * Math.PI / 3) + (Math.PI / 6);
+          outX.push(px + shiftX + Math.cos(ang) * subR1);
+          outY.push(py + shiftY + Math.sin(ang) * subR1);
+        }
+        for (let i = 0; i < 6; i++) {
+          const m = vOrder[i];
+          const ang = (m * Math.PI / 3) + (Math.PI / 6);
+          outX.push(px + shiftX * 1.5 + Math.cos(ang) * subR2);
+          outY.push(py + shiftY * 1.5 + Math.sin(ang) * subR2);
+        }
+        outX.push(px + shiftX * 2.0);
+        outY.push(py + shiftY * 2.0);
+      } else if (chambers >= 2) {
+        for (let ch = 1; ch <= chambers; ch++) {
+          const frac = 1.0 - (ch / (chambers + 1));
+          const curR = cellR * Math.max(0.22, frac);
+          const dirOrder = (ch & 1) ? vOrder : vOrder.slice().reverse();
+          for (let i = 0; i < 6; i++) {
+            const m = dirOrder[i];
+            const ang = (m * Math.PI / 3) + (Math.PI / 6);
+            outX.push(px + Math.cos(ang) * curR);
+            outY.push(py + Math.sin(ang) * curR);
+          }
+        }
+        if (chambers >= 3) {
+          const yAngles = [Math.PI / 6, 5 * Math.PI / 6, 9 * Math.PI / 6];
+          for (let yIdx = 0; yIdx < 3; yIdx++) {
+            const yAng = yAngles[yIdx];
+            outX.push(px);
+            outY.push(py);
+            outX.push(px + Math.cos(yAng) * (cellR * 0.75));
+            outY.push(py + Math.sin(yAng) * (cellR * 0.75));
+          }
+          outX.push(px);
+          outY.push(py);
+        }
+      }
+
+      outX.push(exitX);
+      outY.push(exitY);
+    }
+  }
+
+  if (outX.length < 3) {
+    outX.push(W * 0.2, W * 0.8, W * 0.5);
+    outY.push(H * 0.2, H * 0.2, H * 0.8);
   }
 
   return {
@@ -8174,7 +8399,8 @@ self.onmessage = function(e) {
     jobId, engineMode, step232Stencil, coralToneMap, silhouetteMask, smoothSilMap,
     W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0, maxTimeMs,
     customFocalX, customFocalY, haringIconCount = 95, haringIconSize = 100,
-    halftoneSpacing = 6.5, halftoneScale = 115, halftoneAngle = 45, halftoneType = 'dots', bgClean = 0.000
+    halftoneSpacing = 6.5, halftoneScale = 115, halftoneAngle = 45, halftoneType = 'dots', bgClean = 0.000,
+    honeycombSize = 9.0, honeycombWalls = 3, honeycombSubdiv = true
   } = e.data;
 
   const tStart = performance.now();
@@ -8244,6 +8470,17 @@ self.onmessage = function(e) {
 
   if (engineMode === 'hex_spiral') {
     let { ptsX, ptsY } = generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
+    if (CHAIKIN_PASSES > 0) {
+      ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+    }
+    const outX = new Float32Array(ptsX);
+    const outY = new Float32Array(ptsY);
+    self.postMessage({ jobId, ptsX: outX, ptsY: outY, pass: 1, totalPasses: 1, done: true }, [outX.buffer, outY.buffer]);
+    return;
+  }
+
+  if (engineMode === 'honeycomb') {
+    let { ptsX, ptsY } = generateHoneycombPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, TARGET_NODES, seed, honeycombSize, honeycombWalls, honeycombSubdiv);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -8491,6 +8728,9 @@ function rebuildPortrait(needsStencilRebuild = true) {
     halftoneScale: HALFTONE_SCALE,
     halftoneAngle: HALFTONE_ANGLE,
     halftoneType: HALFTONE_TYPE,
+    honeycombSize: HONEYCOMB_SIZE,
+    honeycombWalls: HONEYCOMB_WALLS,
+    honeycombSubdiv: HONEYCOMB_SUBDIV,
     bgClean: BG_CLEAN
   }, [s232Copy.buffer, coralCopy.buffer, silCopy.buffer, smSilCopy.buffer]);
 }
@@ -8930,6 +9170,7 @@ function rebuildLineCache() {
   }
 
   const isGoldenSpiral = (ENGINE_MODE === 'golden_spiral');
+  const isCrispPolygon = (ENGINE_MODE === 'honeycomb' || ENGINE_MODE === 'hex_spiral' || ENGINE_MODE === 'iso_diamond');
 
   if (COLOR_MODE === 'mono') {
     const monoStroke = getMonoStrokeColor();
@@ -8941,19 +9182,29 @@ function rebuildLineCache() {
       const midIdx = (start + end) >> 1;
 
       lCtx.lineWidth = getPenWidth(ptsX[midIdx], ptsY[midIdx], LINE_W);
-      lCtx.beginPath();
-      const mx0 = (ptsX[start - 1] + ptsX[start]) * 0.5;
-      const my0 = (ptsY[start - 1] + ptsY[start]) * 0.5;
-      lCtx.moveTo(mx0, my0);
+      if (isCrispPolygon) {
+        lCtx.beginPath();
+        lCtx.moveTo(ptsX[start - 1], ptsY[start - 1]);
+        const segEnd = isGoldenSpiral ? (end - 1) : end;
+        for (let i = start; i <= segEnd; i++) {
+          lCtx.lineTo(ptsX[i], ptsY[i]);
+        }
+        lCtx.stroke();
+      } else {
+        lCtx.beginPath();
+        const mx0 = (ptsX[start - 1] + ptsX[start]) * 0.5;
+        const my0 = (ptsY[start - 1] + ptsY[start]) * 0.5;
+        lCtx.moveTo(mx0, my0);
 
-      const segEnd = isGoldenSpiral ? (end - 1) : end;
-      for (let i = start; i <= segEnd; i++) {
-        const nxt = Math.min(totalLen - 1, i + 1);
-        const mx1 = (ptsX[i] + ptsX[nxt]) * 0.5;
-        const my1 = (ptsY[i] + ptsY[nxt]) * 0.5;
-        lCtx.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
+        const segEnd = isGoldenSpiral ? (end - 1) : end;
+        for (let i = start; i <= segEnd; i++) {
+          const nxt = Math.min(totalLen - 1, i + 1);
+          const mx1 = (ptsX[i] + ptsX[nxt]) * 0.5;
+          const my1 = (ptsY[i] + ptsY[nxt]) * 0.5;
+          lCtx.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
+        }
+        lCtx.stroke();
       }
-      lCtx.stroke();
     }
   } else {
     // Trazado multicolor orgánico por micro-segmentos adaptativos (fluido en GPU a 60fps)
@@ -8979,19 +9230,29 @@ function rebuildLineCache() {
 
       lCtx.strokeStyle = getOrganicLineColor(midIdx, totalLen, ptsX[midIdx], ptsY[midIdx]);
       lCtx.lineWidth = getPenWidth(ptsX[midIdx], ptsY[midIdx], LINE_W);
-      lCtx.beginPath();
-      const mx0 = (ptsX[start - 1] + ptsX[start]) * 0.5;
-      const my0 = (ptsY[start - 1] + ptsY[start]) * 0.5;
-      lCtx.moveTo(mx0, my0);
+      if (isCrispPolygon) {
+        lCtx.beginPath();
+        lCtx.moveTo(ptsX[start - 1], ptsY[start - 1]);
+        const segEnd = isGoldenSpiral ? (end - 1) : end;
+        for (let i = start; i <= segEnd; i++) {
+          lCtx.lineTo(ptsX[i], ptsY[i]);
+        }
+        lCtx.stroke();
+      } else {
+        lCtx.beginPath();
+        const mx0 = (ptsX[start - 1] + ptsX[start]) * 0.5;
+        const my0 = (ptsY[start - 1] + ptsY[start]) * 0.5;
+        lCtx.moveTo(mx0, my0);
 
-      const segEnd = isGoldenSpiral ? (end - 1) : end;
-      for (let i = start; i <= segEnd; i++) {
-        const nxt = Math.min(totalLen - 1, i + 1);
-        const mx1 = (ptsX[i] + ptsX[nxt]) * 0.5;
-        const my1 = (ptsY[i] + ptsY[nxt]) * 0.5;
-        lCtx.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
+        const segEnd = isGoldenSpiral ? (end - 1) : end;
+        for (let i = start; i <= segEnd; i++) {
+          const nxt = Math.min(totalLen - 1, i + 1);
+          const mx1 = (ptsX[i] + ptsX[nxt]) * 0.5;
+          const my1 = (ptsY[i] + ptsY[nxt]) * 0.5;
+          lCtx.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
+        }
+        lCtx.stroke();
       }
-      lCtx.stroke();
     }
   }
 
@@ -9211,22 +9472,32 @@ function startAnimation() {
       drawStencilCleanRange(aCtx, startIdx, nextLimit, totalLen, chunkStep);
     } else {
       const isGoldenSpiral = (ENGINE_MODE === 'golden_spiral');
+      const isCrispPolygon = (ENGINE_MODE === 'honeycomb' || ENGINE_MODE === 'hex_spiral' || ENGINE_MODE === 'iso_diamond');
       for (let s = startIdx; s < nextLimit; s += chunkStep) {
         const e = Math.min(nextLimit, s + chunkStep);
         if (isGoldenSpiral && isChunkOffViewport(s, e, totalLen)) continue;
         const m = (s + e) >> 1;
         aCtx.strokeStyle = getOrganicLineColor(m, totalLen, ptsX[m], ptsY[m]);
         aCtx.lineWidth = getPenWidth(ptsX[m], ptsY[m], LINE_W);
-        aCtx.beginPath();
-        const mx0 = (ptsX[s - 1] + ptsX[s]) * 0.5;
-        const my0 = (ptsY[s - 1] + ptsY[s]) * 0.5;
-        aCtx.moveTo(mx0, my0);
-        for (let i = s; i < e; i++) {
-          const mx1 = (ptsX[i] + ptsX[i + 1]) * 0.5;
-          const my1 = (ptsY[i] + ptsY[i + 1]) * 0.5;
-          aCtx.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
+        if (isCrispPolygon) {
+          aCtx.beginPath();
+          aCtx.moveTo(ptsX[s - 1], ptsY[s - 1]);
+          for (let i = s; i < e; i++) {
+            aCtx.lineTo(ptsX[i], ptsY[i]);
+          }
+          aCtx.stroke();
+        } else {
+          aCtx.beginPath();
+          const mx0 = (ptsX[s - 1] + ptsX[s]) * 0.5;
+          const my0 = (ptsY[s - 1] + ptsY[s]) * 0.5;
+          aCtx.moveTo(mx0, my0);
+          for (let i = s; i < e; i++) {
+            const mx1 = (ptsX[i] + ptsX[i + 1]) * 0.5;
+            const my1 = (ptsY[i] + ptsY[i + 1]) * 0.5;
+            aCtx.quadraticCurveTo(ptsX[i], ptsY[i], mx1, my1);
+          }
+          aCtx.stroke();
         }
-        aCtx.stroke();
       }
     }
 
@@ -10259,6 +10530,35 @@ bindParam('haringIconSize', 'vHaringSize', v => { HARING_ICON_SIZE = v; }, false
 bindParam('halftoneSpacing', 'vHalftoneSpacing', v => { HALFTONE_SPACING = v; }, false, 1, 'px');
 bindParam('halftoneScale', 'vHalftoneScale', v => { HALFTONE_SCALE = v; }, false, null, '%');
 bindParam('halftoneAngle', 'vHalftoneAngle', v => { HALFTONE_ANGLE = v; }, false, null, '°');
+bindParam('honeycombSize', 'vHoneycombSize', v => { HONEYCOMB_SIZE = v; }, false, 1, 'px');
+bindParam('honeycombWalls', 'vHoneycombWalls', v => { HONEYCOMB_WALLS = v; }, false, null, ' Anillos');
+
+const btnHcSubdivOn = document.getElementById('btnHoneycombSubdivOn');
+const btnHcSubdivOff = document.getElementById('btnHoneycombSubdivOff');
+const vHcSubdiv = document.getElementById('vHoneycombSubdiv');
+
+if (btnHcSubdivOn && btnHcSubdivOff) {
+  btnHcSubdivOn.addEventListener('click', () => {
+    if (HONEYCOMB_SUBDIV) return;
+    HONEYCOMB_SUBDIV = true;
+    btnHcSubdivOn.classList.add('active');
+    btnHcSubdivOff.classList.remove('active');
+    if (vHcSubdiv) vHcSubdiv.textContent = 'Sub-Panal Activo';
+    lineCacheDirty = true;
+    rebuildPortrait(false);
+    if (typeof haptic === 'function') haptic(10);
+  });
+  btnHcSubdivOff.addEventListener('click', () => {
+    if (!HONEYCOMB_SUBDIV) return;
+    HONEYCOMB_SUBDIV = false;
+    btnHcSubdivOff.classList.add('active');
+    btnHcSubdivOn.classList.remove('active');
+    if (vHcSubdiv) vHcSubdiv.textContent = 'Panal Uniforme';
+    lineCacheDirty = true;
+    rebuildPortrait(false);
+    if (typeof haptic === 'function') haptic(10);
+  });
+}
 
 const btnHtDots = document.getElementById('btnHalftoneTypeDots');
 const btnHtLine = document.getElementById('btnHalftoneTypeLine');
@@ -10482,6 +10782,9 @@ function performFactoryReset() {
   HALFTONE_SPACING = 6.5;
   HALFTONE_SCALE = 115;
   HALFTONE_ANGLE = 45;
+  HONEYCOMB_SIZE = 9.0;
+  HONEYCOMB_WALLS = 3;
+  HONEYCOMB_SUBDIV = true;
   applyModePreset(ENGINE_MODE);
   syncMaxNPresets(TARGET_NODES);
 
@@ -10784,18 +11087,21 @@ function updateFocalMarker() {
   const box = document.getElementById('boxSpiralControls');
   const boxHaring = document.getElementById('boxHaringIconControls');
   const boxHalftone = document.getElementById('boxHalftoneControls');
+  const boxHoneycomb = document.getElementById('boxHoneycombControls');
   const modeDesc = document.getElementById('modeDesc');
   const txt = document.getElementById('focalCoordsText');
   const statusPill = document.getElementById('statusPill');
 
   const isHaring = (ENGINE_MODE === 'keith_haring' || ENGINE_MODE === 'haring_croc' || ENGINE_MODE === 'haring_puzzle');
   const isHalftone = (ENGINE_MODE === 'halftone_dots');
+  const isHoneycomb = (ENGINE_MODE === 'honeycomb');
   const isSpiral = (ENGINE_MODE === 'golden_spiral');
 
   if (boxHaring) boxHaring.classList.toggle('is-hidden', !isHaring);
   if (boxHalftone) boxHalftone.classList.toggle('is-hidden', !isHalftone);
+  if (boxHoneycomb) boxHoneycomb.classList.toggle('is-hidden', !isHoneycomb);
   if (box) box.classList.toggle('is-hidden', !isSpiral);
-  if (modeDesc) modeDesc.classList.toggle('is-hidden', isHaring || isHalftone);
+  if (modeDesc) modeDesc.classList.toggle('is-hidden', isHaring || isHalftone || isHoneycomb);
 
   if (isSpiral) {
     if (customFocalX !== null && customFocalY !== null) {
@@ -10837,6 +11143,8 @@ function updateActiveFunctionPill() {
   } else if (activeTabId === 'paneTrazo') {
     if (ENGINE_MODE === 'halftone_dots') {
       statusPill.textContent = '⚫ Trama de Puntos';
+    } else if (ENGINE_MODE === 'honeycomb') {
+      statusPill.textContent = '🐝 Panal Hexagonal';
     } else {
       const activeSubtab = document.querySelector('#paneTrazo .studio-subnav-btn.active');
       const subId = activeSubtab ? activeSubtab.getAttribute('data-subtab') : '';
