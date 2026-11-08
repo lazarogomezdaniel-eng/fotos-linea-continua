@@ -2636,12 +2636,11 @@ function generateDendriticCoralPortrait(toneMap, silhouetteMask, smoothSilMap, W
  * En cada celda genera una espiral bifilar de Fermat (brazo entrante + núcleo 180° + brazo saliente desfasado pi rad)
  * 100% libre de auto-intersecciones y con densidad de giros modulada por las luces y sombras del retrato.
  */
-function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0, hexSpiralSize = 8.5) {
-  const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
-  const maxRScale = 0.82 + (MAX_R / 15.0) * 0.38;
-  const cellR = (hexSpiralSize && hexSpiralSize >= 3.0)
-    ? hexSpiralSize
-    : Math.max(3.2, Math.min(13.5, MIN_R * 3.0 * maxRScale * nodeScale));
+function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 5.5, TARGET_NODES = 38000, seed = 0, hexSpiralSize = 8.5) {
+  const baseSize = (hexSpiralSize && hexSpiralSize >= 3.0) ? hexSpiralSize : 8.5;
+  const nodeScale = Math.sqrt(38000 / Math.max(5000, TARGET_NODES));
+  const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
+  const cellR = Math.max(2.8, Math.min(20.0, baseSize * nodeScale * maxRScale));
   const dxHex = cellR * Math.sqrt(3);
   const dyHex = cellR * 1.5;
   const offX = ((seed % 11) / 11) * 0.3 * dxHex;
@@ -2750,14 +2749,14 @@ function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask,
  */
 function generateHoneycombPortrait(
   coralToneMap, step232Stencil, silhouetteMask, smoothSilMap,
-  W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0,
+  W, H, MIN_R = 1.5, MAX_R = 6.0, TARGET_NODES = 38000, seed = 0,
   honeycombSize = 14.0, honeycombWalls = 3, honeycombSubdiv = true
 ) {
-  const baseR = (honeycombSize && honeycombSize >= 3.5)
-    ? honeycombSize
-    : Math.max(3.8, Math.min(18.0, (MIN_R * 2.6 + MAX_R * 0.6) * Math.sqrt(24000 / Math.max(5000, TARGET_NODES))));
+  const baseSize = (honeycombSize && honeycombSize >= 3.5) ? honeycombSize : 14.0;
+  const nodeScale = Math.sqrt(38000 / Math.max(5000, TARGET_NODES));
+  const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
+  const cellR = Math.max(3.2, Math.min(32.0, baseSize * nodeScale * maxRScale));
 
-  const cellR = baseR;
   const dxHex = cellR * Math.sqrt(3);
   const dyHex = cellR * 1.5;
   const offX = ((seed % 13) / 13) * 0.25 * dxHex;
@@ -2765,7 +2764,7 @@ function generateHoneycombPortrait(
 
   const rows = Math.ceil(H / dyHex) + 1;
   const cols = Math.ceil(W / dxHex) + 1;
-  const maxChambers = Math.max(1, Math.min(5, honeycombWalls || 3));
+  const maxChambers = Math.max(1, Math.min(6, Math.round((honeycombWalls || 3) / Math.pow(nodeScale, 0.4))));
 
   const outX = [];
   const outY = [];
@@ -3571,12 +3570,11 @@ function generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TA
  * Red continua de facetas isométricas (rombos 60°/120°) con pliegues concéntricos
  * adaptados a los rasgos y claroscuros del retrato.
  */
-function generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0, isoDiamondSize = 11.0) {
-  const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
+function generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 5.5, TARGET_NODES = 38000, seed = 0, isoDiamondSize = 11.0) {
+  const baseSize = (isoDiamondSize && isoDiamondSize >= 4.0) ? isoDiamondSize : 11.0;
+  const nodeScale = Math.sqrt(38000 / Math.max(5000, TARGET_NODES));
   const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
-  const dW = (isoDiamondSize && isoDiamondSize >= 4.0)
-    ? isoDiamondSize
-    : Math.max(4.2, Math.min(18.0, MIN_R * 4.4 * maxRScale * nodeScale));
+  const dW = Math.max(3.8, Math.min(24.0, baseSize * nodeScale * maxRScale));
   const dH = dW * 0.57735;
   const offX = (seed % 7) * 0.14 * dW;
   const offY = ((seed * 3) % 7) * 0.14 * dH;
@@ -3676,12 +3674,11 @@ function generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask
  * Celdas poligonales con curvas de persecución que convergen en vórtices
  * modulados por los rasgos, pupilas y claroscuros del retrato.
  */
-function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0, vortexSize = 8.5) {
-  const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
+function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 5.5, TARGET_NODES = 38000, seed = 0, vortexSize = 8.5) {
+  const baseSize = (vortexSize && vortexSize >= 3.0) ? vortexSize : 8.5;
+  const nodeScale = Math.sqrt(38000 / Math.max(5000, TARGET_NODES));
   const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
-  const cellR = (vortexSize && vortexSize >= 3.0)
-    ? vortexSize
-    : Math.max(3.0, Math.min(24.0, MIN_R * 3.4 * maxRScale * nodeScale));
+  const cellR = Math.max(2.8, Math.min(20.0, baseSize * nodeScale * maxRScale));
   const dx = cellR * 1.62;
   const dy = cellR * 1.38;
   const offX = (seed % 7) * 0.14 * dx;
@@ -3794,12 +3791,11 @@ function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteM
  * inspiradas en las divisiones regulares del plano de M.C. Escher.
  * Modula pliegues concéntricos continuos según los claroscuros del retrato con 0 cruces de pluma.
  */
-function generateEscherYPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 5.5, TARGET_NODES = 24000, seed = 0, escherSize = 6.0) {
-  const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
+function generateEscherYPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 5.5, TARGET_NODES = 38000, seed = 0, escherSize = 6.0) {
+  const baseSize = (escherSize && escherSize >= 3.0) ? escherSize : 6.0;
+  const nodeScale = Math.sqrt(38000 / Math.max(5000, TARGET_NODES));
   const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
-  const cellR = (escherSize && escherSize >= 3.0)
-    ? escherSize
-    : Math.max(3.0, Math.min(24.0, MIN_R * 3.4 * maxRScale * nodeScale));
+  const cellR = Math.max(2.8, Math.min(26.0, baseSize * nodeScale * maxRScale));
 
   const L = cellR;
   const sqrt3 = 1.7320508;
@@ -3811,8 +3807,8 @@ function generateEscherYPortrait(coralToneMap, step232Stencil, silhouetteMask, W
   const outX = [];
   const outY = [];
 
-  const lightCut = Math.max(0.03, Math.min(0.16, 0.03 + (MAX_R / 45.0) * 0.10));
-  const maxFolds = Math.max(2, Math.min(6, Math.round(6.2 - MIN_R * 0.55)));
+  const lightCut = Math.max(0.02, Math.min(0.22, 0.03 + (MAX_R / 45.0) * 0.12));
+  const maxFolds = Math.max(2, Math.min(8, Math.round((6.2 - MIN_R * 0.55) / Math.pow(nodeScale, 0.45))));
 
   function getRotatedPoint(x, y, angleDeg, cx, cy) {
     const rad = angleDeg * 0.01745329;
@@ -3962,12 +3958,11 @@ function generateEscherYPortrait(coralToneMap, step232Stencil, silhouetteMask, W
  * Teje una red continua de baldosas completas con marco perimetral biselado y la icónica Flor de Barcelona
  * en bajorrelieve (4 pétalos diagonales en esquinas y pistilo central).
  */
-function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0, panotSize = 14.0) {
-  const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
+function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 5.5, TARGET_NODES = 38000, seed = 0, panotSize = 14.0) {
+  const baseSize = (panotSize && panotSize >= 6.0) ? panotSize : 14.0;
+  const nodeScale = Math.sqrt(38000 / Math.max(5000, TARGET_NODES));
   const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
-  const tileSize = (panotSize && panotSize >= 6.0)
-    ? panotSize
-    : Math.max(7.5, Math.min(26.0, MIN_R * 4.9 * maxRScale * nodeScale));
+  const tileSize = Math.max(5.0, Math.min(28.0, baseSize * nodeScale * maxRScale));
   const halfS = tileSize * 0.5;
   const offX = (seed % 7) * 0.14 * tileSize;
   const offY = ((seed * 3) % 7) * 0.14 * tileSize;
@@ -4099,12 +4094,11 @@ function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouette
  * Esculpe el rostro exclusivamente con la icónica Flor de Barcelona (4 pétalos modernistas y pistilo central).
  * Sin marco cuadrado ni baldosa: 100% silueta floral continua con relieves concéntricos según el claroscuro.
  */
-function generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 20000, seed = 0, florBcnSize = 15.0) {
-  const nodeScale = Math.sqrt(20000 / Math.max(4000, TARGET_NODES));
+function generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.8, MAX_R = 6.5, TARGET_NODES = 38000, seed = 0, florBcnSize = 15.0) {
+  const baseSize = (florBcnSize && florBcnSize >= 6.0) ? florBcnSize : 15.0;
+  const nodeScale = Math.sqrt(38000 / Math.max(5000, TARGET_NODES));
   const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
-  const flowerSpacing = (florBcnSize && florBcnSize >= 6.0)
-    ? florBcnSize
-    : Math.max(8.0, Math.min(32.0, MIN_R * 5.0 * maxRScale * nodeScale));
+  const flowerSpacing = Math.max(6.0, Math.min(32.0, baseSize * nodeScale * maxRScale));
   const halfS = flowerSpacing * 0.5;
   const offX = (seed % 7) * 0.14 * flowerSpacing;
   const offY = ((seed * 3) % 7) * 0.14 * flowerSpacing;
