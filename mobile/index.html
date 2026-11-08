@@ -1134,6 +1134,9 @@
       .swatch-grid-2 {
         grid-template-columns: repeat(4, minmax(0, 1fr));
       }
+      .swatch-grid-3 {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+      }
     }
 
     .swatch-chip {
@@ -2280,27 +2283,29 @@
             </div>
 
             <select id="colorMode" style="display:none;">
-              <option value="mono" selected>⚫ Monocromo</option>
-              <option value="organic_flow">🌊 Flujo Orgánico</option>
+              <option value="mono" selected>✒️ Tinta Plana</option>
+              <option value="organic_flow">🌊 Degradado Líquido</option>
+              <option value="tonal_blend">🌡️ Fusión Tonal</option>
               <option value="photo_exact">📸 Color Foto</option>
               <option value="photo_fusion">🖼️ Foto + Mezcla</option>
-              <option value="line_strand">🧵 Tramos de Línea</option>
-              <option value="organic_spatial">🌀 Ondas 2D</option>
-              <option value="tonal_blend">🌡️ Fusión Tonal</option>
-              <option value="rainbow">🌈 Rainbow (Hilo)</option>
-              <option value="rainbow_bands">🏳️‍🌈 Rainbow (Franjas)</option>
+              <option value="rainbow">🌈 Arcoíris</option>
             </select>
 
             <div class="color-carousel" id="colorModeCarousel">
               <div class="color-mode-card active" data-mode="mono">
                 <div class="color-mode-preview" style="background: linear-gradient(135deg, #0f172a 0%, #334155 50%, #000000 100%);"></div>
-                <div class="color-mode-title">Monocromo</div>
-                <div class="color-mode-badge">Tinta Pura</div>
+                <div class="color-mode-title">Tinta Plana</div>
+                <div class="color-mode-badge">1 Color</div>
               </div>
               <div class="color-mode-card" data-mode="organic_flow">
                 <div class="color-mode-preview" style="background: linear-gradient(135deg, #ff007f 0%, #7928ca 50%, #00dfd8 100%);"></div>
-                <div class="color-mode-title">Flujo Orgánico</div>
-                <div class="color-mode-badge">Dinámico</div>
+                <div class="color-mode-title">Degradado Líquido</div>
+                <div class="color-mode-badge">3 Colores</div>
+              </div>
+              <div class="color-mode-card" data-mode="tonal_blend">
+                <div class="color-mode-preview" style="background: linear-gradient(135deg, #f97316 0%, #a855f7 50%, #06b6d4 100%);"></div>
+                <div class="color-mode-title">Fusión Tonal</div>
+                <div class="color-mode-badge">Sombras/Luz</div>
               </div>
               <div class="color-mode-card" data-mode="photo_exact">
                 <div class="color-mode-preview" style="background: radial-gradient(circle, #f59e0b 0%, #ef4444 45%, #6366f1 90%);"></div>
@@ -2312,31 +2317,47 @@
                 <div class="color-mode-title">Foto + Mezcla</div>
                 <div class="color-mode-badge">Híbrido</div>
               </div>
-              <div class="color-mode-card" data-mode="line_strand">
-                <div class="color-mode-preview" style="background: linear-gradient(135deg, #ec4899 0%, #3b82f6 50%, #10b981 100%);"></div>
-                <div class="color-mode-title">Tramos Línea</div>
-                <div class="color-mode-badge">Segmentos</div>
-              </div>
-              <div class="color-mode-card" data-mode="organic_spatial">
-                <div class="color-mode-preview" style="background: conic-gradient(from 180deg at 50% 50%, #06b6d4 0deg, #3b82f6 120deg, #ec4899 240deg, #06b6d4 360deg);"></div>
-                <div class="color-mode-title">Ondas 2D</div>
-                <div class="color-mode-badge">Espacial</div>
-              </div>
-              <div class="color-mode-card" data-mode="tonal_blend">
-                <div class="color-mode-preview" style="background: linear-gradient(135deg, #f97316 0%, #a855f7 50%, #06b6d4 100%);"></div>
-                <div class="color-mode-title">Fusión Tonal</div>
-                <div class="color-mode-badge">Suave</div>
-              </div>
               <div class="color-mode-card" data-mode="rainbow">
-                <div class="color-mode-preview" style="background: linear-gradient(135deg, #ff0055 0%, #ffcc00 33%, #00ccff 66%, #cc00ff 100%);"></div>
-                <div class="color-mode-title">Hilo Arcoíris</div>
-                <div class="color-mode-badge">Continuo</div>
-              </div>
-              <div class="color-mode-card" data-mode="rainbow_bands">
                 <div class="color-mode-preview" style="background: linear-gradient(90deg, #ff0000 0%, #ff7f00 20%, #ffff00 40%, #00ff00 60%, #0000ff 80%, #8b00ff 100%);"></div>
-                <div class="color-mode-title">Franjas Arcoíris</div>
-                <div class="color-mode-badge">Bandas</div>
+                <div class="color-mode-title">Arcoíris</div>
+                <div class="color-mode-badge">Espectro</div>
               </div>
+            </div>
+          </div>
+
+          <!-- Selector de Tinta Plana (Color Único de Estudio) -->
+          <div id="boxMonoInk" class="studio-group-block">
+            <div class="studio-block-header">
+              <span class="studio-block-label">Color de Tinta</span>
+              <span class="studio-block-value" id="currentMonoInkLabel">Negro Carbón</span>
+            </div>
+
+            <div class="swatch-grid-3" id="monoInkGroup">
+              <button type="button" class="swatch-chip mono-ink-chip active" data-ink="black" title="Tinta Negra Carbón">
+                <span class="swatch-dot" style="background:#0e1118; border:1px solid rgba(255,255,255,0.25);"></span>
+                <span class="swatch-label">Negro</span>
+              </button>
+              <button type="button" class="swatch-chip mono-ink-chip" data-ink="white" title="Tinta Blanca Pura">
+                <span class="swatch-dot" style="background:#f8fafc; border:1px solid rgba(0,0,0,0.15);"></span>
+                <span class="swatch-label">Blanco</span>
+              </button>
+              <button type="button" class="swatch-chip mono-ink-chip" data-ink="sepia" title="Tinta Sepia Grabado">
+                <span class="swatch-dot" style="background:#52361b;"></span>
+                <span class="swatch-label">Sepia</span>
+              </button>
+              <button type="button" class="swatch-chip mono-ink-chip" data-ink="indigo" title="Tinta Azul Índigo Estilográfica">
+                <span class="swatch-dot" style="background:#0f2b48;"></span>
+                <span class="swatch-label">Índigo</span>
+              </button>
+              <button type="button" class="swatch-chip mono-ink-chip" data-ink="sanguine" title="Tinta Sanguina Leonardo">
+                <span class="swatch-dot" style="background:#8b263e;"></span>
+                <span class="swatch-label">Sanguina</span>
+              </button>
+              <button type="button" class="swatch-chip mono-ink-chip" data-ink="custom" id="chipCustomMonoInk" title="Color de Tinta Libre">
+                <span class="swatch-dot custom" id="monoInkCustomDot" style="background:#0f2b48;"></span>
+                <span class="swatch-label">Libre</span>
+                <input type="color" id="monoInkCustomPicker" value="#0f2b48" style="display:none;">
+              </button>
             </div>
           </div>
 
@@ -2344,37 +2365,29 @@
           <div id="boxPalette" class="studio-group-block is-hidden">
             <div class="studio-block-header">
               <span class="studio-block-label">Armonía Cromática</span>
-              <span class="studio-block-value" id="currentPaletteLabel">Iris Orgánico</span>
+              <span class="studio-block-value" id="currentPaletteLabel">Iris Neón</span>
             </div>
 
             <select id="colorPalette" style="display:none;">
-              <optgroup label="📐 Teoría del Color">
-                <option value="triad">📐 Triádica (120°)</option>
-                <option value="analogous">🌿 Análoga (35°)</option>
-                <option value="split">🔀 Split-Comp.</option>
-                <option value="complementary">⚡ Complementaria</option>
-                <option value="warm_cool">🌡️ Frío-Cálido</option>
-                <option value="monochrome">🌓 Monocromía</option>
-              </optgroup>
               <optgroup label="🌈 Paletas de Autor">
-                <option value="iris" selected>🌈 Iris Orgánico</option>
-                <option value="cyan_amber">✨ Cian / Ámbar</option>
-                <option value="sunset">🌅 Atardecer</option>
-                <option value="ocean">🌊 Bioluminiscencia</option>
+                <option value="iris" selected>🌸 Iris Neón</option>
+                <option value="sunset">🌅 Atardecer Cálido</option>
+                <option value="ocean">🌊 Bioluminiscente</option>
                 <option value="forest">🍃 Bosque Boreal</option>
+                <option value="cyberpunk">🌆 Cyberpunk Tokio</option>
+                <option value="terracotta">🏺 Terracota & Desierto</option>
+                <option value="cyan_amber">✨ Cian / Ámbar</option>
               </optgroup>
-              <option value="custom">🎛️ Personalizada</option>
+              <optgroup label="📐 Teoría del Color (Rueda 360°)">
+                <option value="triad">📐 Contraste / Tríada (120°)</option>
+                <option value="analogous">🌿 Suave / Análoga (35°)</option>
+              </optgroup>
             </select>
 
             <div class="color-carousel" id="paletteCarousel">
               <div class="palette-card active" data-palette="iris">
                 <div class="palette-swatch" style="background: linear-gradient(90deg, #ff4d6d 0%, #00d2ff 50%, #9b5de5 100%);"></div>
-                <div class="palette-title">Iris Orgánico</div>
-                <div class="palette-badge">Autor</div>
-              </div>
-              <div class="palette-card" data-palette="cyan_amber">
-                <div class="palette-swatch" style="background: linear-gradient(90deg, #56cfe1 0%, #e0fbfc 50%, #f4a261 100%);"></div>
-                <div class="palette-title">Cian / Ámbar</div>
+                <div class="palette-title">Iris Neón</div>
                 <div class="palette-badge">Autor</div>
               </div>
               <div class="palette-card" data-palette="sunset">
@@ -2388,44 +2401,34 @@
                 <div class="palette-badge">Autor</div>
               </div>
               <div class="palette-card" data-palette="forest">
-                <div class="palette-swatch" style="background: linear-gradient(90deg, #2a9d8f 0%, #e76f51 50%, #264653 100%);"></div>
+                <div class="palette-swatch" style="background: linear-gradient(90deg, #2a9d8f 0%, #e9c46a 50%, #e76f51 100%);"></div>
                 <div class="palette-title">Bosque Boreal</div>
+                <div class="palette-badge">Autor</div>
+              </div>
+              <div class="palette-card" data-palette="cyberpunk">
+                <div class="palette-swatch" style="background: linear-gradient(90deg, #f72585 0%, #7209b7 50%, #4cc9f0 100%);"></div>
+                <div class="palette-title">Cyberpunk</div>
+                <div class="palette-badge">Autor</div>
+              </div>
+              <div class="palette-card" data-palette="terracotta">
+                <div class="palette-swatch" style="background: linear-gradient(90deg, #bc6c25 0%, #dda15e 50%, #606c38 100%);"></div>
+                <div class="palette-title">Terracota</div>
+                <div class="palette-badge">Autor</div>
+              </div>
+              <div class="palette-card" data-palette="cyan_amber">
+                <div class="palette-swatch" style="background: linear-gradient(90deg, #56cfe1 0%, #e0fbfc 50%, #f4a261 100%);"></div>
+                <div class="palette-title">Cian / Ámbar</div>
                 <div class="palette-badge">Autor</div>
               </div>
               <div class="palette-card" data-palette="triad">
                 <div class="palette-swatch" style="background: linear-gradient(90deg, #ff0055 0%, #00e5ff 50%, #ffe600 100%);"></div>
-                <div class="palette-title">Triádica (120°)</div>
+                <div class="palette-title">Tríada (120°)</div>
                 <div class="palette-badge">Teoría</div>
               </div>
               <div class="palette-card" data-palette="analogous">
                 <div class="palette-swatch" style="background: linear-gradient(90deg, #38ef7d 0%, #11998e 50%, #00d2ff 100%);"></div>
                 <div class="palette-title">Análoga (35°)</div>
                 <div class="palette-badge">Teoría</div>
-              </div>
-              <div class="palette-card" data-palette="split">
-                <div class="palette-swatch" style="background: linear-gradient(90deg, #ff3366 0%, #33ccff 50%, #33ff99 100%);"></div>
-                <div class="palette-title">Split-Comp.</div>
-                <div class="palette-badge">Teoría</div>
-              </div>
-              <div class="palette-card" data-palette="complementary">
-                <div class="palette-swatch" style="background: linear-gradient(90deg, #00d2ff 0%, #ff8c00 100%);"></div>
-                <div class="palette-title">Complementaria</div>
-                <div class="palette-badge">Teoría</div>
-              </div>
-              <div class="palette-card" data-palette="warm_cool">
-                <div class="palette-swatch" style="background: linear-gradient(90deg, #204080 0%, #30a0a0 50%, #ffaa20 100%);"></div>
-                <div class="palette-title">Frío-Cálido</div>
-                <div class="palette-badge">Teoría</div>
-              </div>
-              <div class="palette-card" data-palette="monochrome">
-                <div class="palette-swatch" style="background: linear-gradient(90deg, #1e293b 0%, #64748b 50%, #cbd5e1 100%);"></div>
-                <div class="palette-title">Monocromía</div>
-                <div class="palette-badge">Teoría</div>
-              </div>
-              <div class="palette-card" data-palette="custom">
-                <div class="palette-swatch" style="background: linear-gradient(90deg, #ff4d6d 0%, #00d2ff 50%, #9b5de5 100%);"></div>
-                <div class="palette-title">Personalizada</div>
-                <div class="palette-badge">Custom</div>
               </div>
             </div>
           </div>
@@ -2778,6 +2781,8 @@ let COLOR_PALETTE = 'iris';
 let COLOR_HUE = 205;
 let COLOR_SCALE = 3.5;
 let COLOR_INTENSITY = 1.0;
+let MONO_INK_THEME = 'black'; // 'black' | 'white' | 'sepia' | 'indigo' | 'sanguine' | 'custom'
+let MONO_CUSTOM_INK = '#0f2b48';
 let BG_THEME = 'white';
 let FUSION_OPACITY = 0; // 0..100 (%)
 let FUSION_SOURCE = 'stencil'; // 'stencil' | 'photo'
@@ -2864,11 +2869,26 @@ const RAINBOW_STOPS = [
 
 const PALETTE_PRESETS = {
   iris:        ['#ff4d6d', '#00d2ff', '#9b5de5'],
-  cyan_amber:  ['#56cfe1', '#e0fbfc', '#f4a261'],
   sunset:      ['#e63946', '#ffb703', '#8338ec'],
   ocean:       ['#00f5d4', '#00bbf9', '#5e60ce'],
-  forest:      ['#2a9d8f', '#e9c46a', '#e76f51']
+  forest:      ['#2a9d8f', '#e9c46a', '#e76f51'],
+  cyberpunk:   ['#f72585', '#7209b7', '#4cc9f0'],
+  terracotta:  ['#bc6c25', '#dda15e', '#606c38'],
+  cyan_amber:  ['#56cfe1', '#e0fbfc', '#f4a261']
 };
+
+const MONO_INK_COLORS = {
+  black:    '#0e1118',
+  white:    '#f8fafc',
+  sepia:    '#52361b',
+  indigo:   '#0f2b48',
+  sanguine: '#8b263e'
+};
+
+function getMonoInkHex(theme = MONO_INK_THEME) {
+  if (theme === 'custom') return MONO_CUSTOM_INK || '#0f2b48';
+  return MONO_INK_COLORS[theme] || (isBgDark(BG_THEME) ? '#f8fafc' : '#0e1118');
+}
 
 function hexToRgbTuple(hex) {
   if (!hex) return [255, 255, 255];
@@ -2962,7 +2982,7 @@ const MODE_PRESETS = {
   stencil_clean:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.28, bgClean: 0.000, minR: 1.6, maxR: 8.5, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' },
   stencil_cross:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.32, bgClean: 0.000, minR: 2.6, maxR: 9.0, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' },
   live_growth:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.28, bgClean: 0.000, minR: 2.8, maxR: 9.0, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' },
-  golden:         { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.42, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'line_strand', colorPalette: 'cyan_amber' },
+  golden:         { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.42, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'organic_flow', colorPalette: 'cyan_amber' },
   fractal:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' },
   hex_spiral:     { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.05, hexSpiralSize: 8.5, fusionOpacity: 0, colorMode: 'mono' },
   iso_diamond:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.0, isoDiamondSize: 11.0, fusionOpacity: 0, colorMode: 'mono' },
@@ -2972,7 +2992,7 @@ const MODE_PRESETS = {
   flor_fractal:   { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 7.0, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' },
   golden_spiral:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.70, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'organic_flow', colorPalette: 'cyan_amber' },
   keith_haring:   { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3, fusionOpacity: 20, colorMode: 'organic_flow', colorPalette: 'iris' },
-  haring_croc:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3, fusionOpacity: 20, colorMode: 'line_strand', colorPalette: 'forest' },
+  haring_croc:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3, fusionOpacity: 20, colorMode: 'organic_flow', colorPalette: 'forest' },
   haring_puzzle:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3, fusionOpacity: 25, colorMode: 'organic_flow', colorPalette: 'sunset' },
   halftone_dots:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.52, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' },
   honeycomb:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 6.0, chaikin: 0, lineW: 1.0, honeycombSize: 14.0, fusionOpacity: 50, colorMode: 'mono' }
@@ -8991,7 +9011,7 @@ function syncCustomColorsFromPickers() {
  */
 function getOrganicLineColor(i, totalLen, x, y) {
   if (COLOR_MODE === 'mono') {
-    return isBgDark() ? '#e8eef7' : '#0e1118';
+    return getMonoStrokeColor();
   }
 
   if (COLOR_MODE === 'photo_exact') {
@@ -9207,27 +9227,30 @@ function getOrganicLineColor(i, totalLen, x, y) {
 }
 
 function getMonoStrokeColor() {
-  const dark = isBgDark(BG_THEME);
-  if (dark) {
-    const alpha = Math.min(1.0, Math.max(0.20, 0.22 + 0.78 * Math.min(1.0, COLOR_INTENSITY)));
-    const boost = COLOR_INTENSITY > 1.0 ? Math.min(23, (COLOR_INTENSITY - 1.0) * 23) : 0;
-    const r = Math.min(255, 234 + boost) | 0;
-    const g = Math.min(255, 239 + boost) | 0;
-    const b = Math.min(255, 248 + boost) | 0;
-    return `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
-  } else if (BG_THEME === 'cream' || BG_THEME === 'kraft') {
-    const alpha = Math.min(1.0, Math.max(0.22, 0.25 + 0.75 * Math.min(1.0, COLOR_INTENSITY)));
-    const val = COLOR_INTENSITY >= 1.0
-      ? Math.max(0, (26 - (COLOR_INTENSITY - 1.0) * 26) | 0)
-      : Math.min(130, (26 + (1.0 - COLOR_INTENSITY) * 104) | 0);
-    return `rgba(${val},${val + 2},${val + 6},${alpha.toFixed(3)})`;
-  } else {
-    const alpha = Math.min(1.0, Math.max(0.20, 0.22 + 0.78 * Math.min(1.0, COLOR_INTENSITY)));
-    const val = COLOR_INTENSITY >= 1.0
-      ? Math.max(0, (14 - (COLOR_INTENSITY - 1.0) * 14) | 0)
-      : Math.min(150, (14 + (1.0 - COLOR_INTENSITY) * 136) | 0);
-    return `rgba(${val},${val},${val},${alpha.toFixed(3)})`;
+  const baseHex = getMonoInkHex(MONO_INK_THEME);
+  const rgb = hexToRgbTuple(baseHex);
+  const alpha = Math.min(1.0, Math.max(0.20, 0.22 + 0.78 * Math.min(1.0, COLOR_INTENSITY)));
+  let r = rgb[0], g = rgb[1], b = rgb[2];
+  if (COLOR_INTENSITY > 1.0) {
+    const factor = (COLOR_INTENSITY - 1.0) * 0.4;
+    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+    if (lum > 128) {
+      r = Math.min(255, r + factor * 40);
+      g = Math.min(255, g + factor * 40);
+      b = Math.min(255, b + factor * 40);
+    } else {
+      r = Math.max(0, r - factor * 20);
+      g = Math.max(0, g - factor * 20);
+      b = Math.max(0, b - factor * 20);
+    }
+  } else if (COLOR_INTENSITY < 1.0) {
+    const bgRgb = hexToRgbTuple(getBgHex(BG_THEME));
+    const t = 1.0 - COLOR_INTENSITY;
+    r = r * (1.0 - t * 0.45) + bgRgb[0] * (t * 0.45);
+    g = g * (1.0 - t * 0.45) + bgRgb[1] * (t * 0.45);
+    b = b * (1.0 - t * 0.45) + bgRgb[2] * (t * 0.45);
   }
+  return `rgba(${r | 0},${g | 0},${b | 0},${alpha.toFixed(3)})`;
 }
 
 function getPenWidth(x, y, baseWidth) {
@@ -10277,39 +10300,45 @@ function updateColorPanelVisibility() {
   const mode = COLOR_MODE;
   const isMono = (mode === 'mono');
   const isPhotoExact = (mode === 'photo_exact');
+  const isPhotoFusion = (mode === 'photo_fusion');
   const isRainbow = (mode === 'rainbow' || mode === 'rainbow_bands');
-  const usesCustomPalette = (!isMono && !isPhotoExact && !isRainbow);
+  const usesCustomPalette = (!isMono && !isPhotoExact && !isRainbow); // organic_flow, tonal_blend, photo_fusion
+  const isTheoreticalHarmony = (COLOR_PALETTE === 'triad' || COLOR_PALETTE === 'analogous');
 
+  const boxMonoInk = document.getElementById('boxMonoInk');
   const boxPalette = document.getElementById('boxPalette');
   const boxHue = document.getElementById('boxHue');
   const boxPickers = document.getElementById('boxPickers');
   const colorSimpleNotice = document.getElementById('colorSimpleNotice');
-  const colorMonoNotice = document.getElementById('colorMonoNotice');
   const boxScale = document.getElementById('boxScale');
   const boxIntensity = document.getElementById('boxIntensity');
   const boxFlow = document.getElementById('boxFlow');
 
+  if (boxMonoInk) boxMonoInk.classList.toggle('is-hidden', !isMono);
   if (boxPalette) boxPalette.classList.toggle('is-hidden', !usesCustomPalette);
   if (boxPickers) boxPickers.classList.toggle('is-hidden', !usesCustomPalette);
-  if (boxHue) boxHue.classList.toggle('is-hidden', !(usesCustomPalette || isRainbow));
+  if (boxHue) boxHue.classList.toggle('is-hidden', !(isRainbow || (usesCustomPalette && isTheoreticalHarmony)));
+
   if (colorSimpleNotice) {
-    colorSimpleNotice.classList.toggle('is-hidden', !(isMono || isPhotoExact));
+    colorSimpleNotice.classList.toggle('is-hidden', !(isPhotoExact || isPhotoFusion));
     const span = colorSimpleNotice.querySelector('span');
     if (span) {
-      span.innerHTML = isPhotoExact
-        ? '📸 <strong>Color Foto Original:</strong> Toma el pigmento real de cada punto del retrato. Ajusta saturación en <strong>Dinámica</strong>.'
-        : '✒️ <strong>Tinta Monocroma Pura:</strong> Elige un modo cromático arriba o cambia el papel en <strong>Lienzo & Fusión</strong>.';
+      if (isPhotoExact) {
+        span.innerHTML = '📸 <strong>Color Foto Original:</strong> Extrae el pigmento real directo de la fotografía. Ajusta saturación en <strong>Dinámica</strong>.';
+      } else if (isPhotoFusion) {
+        span.innerHTML = '🖼️ <strong>Foto + Mezcla:</strong> Fusión híbrida entre el pigmento de la fotografía y la paleta de tinta seleccionada.';
+      }
     }
   }
-  if (colorMonoNotice) colorMonoNotice.classList.toggle('is-hidden', !isMono);
+
   if (boxScale) boxScale.classList.toggle('is-hidden', isMono || isPhotoExact);
-  if (boxIntensity) boxIntensity.classList.toggle('is-hidden', isMono);
+  if (boxIntensity) boxIntensity.classList.remove('is-hidden');
   if (boxFlow) boxFlow.classList.remove('is-hidden');
 }
 
 function syncColorModeCards(mode) {
   const cards = document.querySelectorAll('.color-mode-card');
-  let selectedTitle = 'Monocromo';
+  let selectedTitle = 'Tinta Plana';
   cards.forEach(card => {
     const isSelected = (card.getAttribute('data-mode') === mode);
     card.classList.toggle('active', isSelected);
@@ -10324,7 +10353,7 @@ function syncColorModeCards(mode) {
 
 function syncPaletteCards(palette) {
   const cards = document.querySelectorAll('.palette-card');
-  let selectedTitle = 'Iris Orgánico';
+  let selectedTitle = (palette === 'custom') ? 'Personalizada' : 'Iris Neón';
   cards.forEach(card => {
     const isSelected = (card.getAttribute('data-palette') === palette);
     card.classList.toggle('active', isSelected);
@@ -10335,6 +10364,29 @@ function syncPaletteCards(palette) {
   });
   const label = document.getElementById('currentPaletteLabel');
   if (label) label.textContent = selectedTitle;
+}
+
+function syncMonoInkChips(theme) {
+  const chips = document.querySelectorAll('.mono-ink-chip');
+  chips.forEach(chip => {
+    chip.classList.toggle('active', chip.getAttribute('data-ink') === theme);
+  });
+  const label = document.getElementById('currentMonoInkLabel');
+  if (label) {
+    if (theme === 'black') label.textContent = 'Negro Carbón';
+    else if (theme === 'white') label.textContent = 'Blanco Puro';
+    else if (theme === 'sepia') label.textContent = 'Sepia Grabado';
+    else if (theme === 'indigo') label.textContent = 'Azul Índigo';
+    else if (theme === 'sanguine') label.textContent = 'Sanguina';
+    else if (theme === 'custom') {
+      const hex = (MONO_CUSTOM_INK || '#0F2B48').toUpperCase();
+      label.textContent = `Libre (${hex})`;
+    }
+  }
+  const dot = document.getElementById('monoInkCustomDot');
+  if (dot && MONO_CUSTOM_INK) {
+    dot.style.background = MONO_CUSTOM_INK;
+  }
 }
 
 function syncBgThemeChips(theme) {
@@ -10616,6 +10668,44 @@ document.querySelectorAll('.palette-card').forEach(card => {
   });
 });
 
+document.querySelectorAll('.mono-ink-chip').forEach(chip => {
+  chip.addEventListener('click', (e) => {
+    const ink = chip.getAttribute('data-ink');
+    if (!ink) return;
+    if (ink === 'custom') {
+      openStudioColorPicker({
+        title: '🎨 Color Libre de Tinta',
+        initialHex: MONO_CUSTOM_INK || '#0f2b48',
+        onPreview: (hex) => {
+          MONO_CUSTOM_INK = hex;
+          MONO_INK_THEME = 'custom';
+          syncMonoInkChips('custom');
+          lineCacheDirty = true;
+          render();
+        },
+        onApply: (hex) => {
+          MONO_CUSTOM_INK = hex;
+          MONO_INK_THEME = 'custom';
+          syncMonoInkChips('custom');
+          lineCacheDirty = true;
+          render();
+        },
+        onCancel: (origHex) => {
+          MONO_CUSTOM_INK = origHex;
+          syncMonoInkChips(MONO_INK_THEME);
+          lineCacheDirty = true;
+          render();
+        }
+      });
+      return;
+    }
+    MONO_INK_THEME = ink;
+    syncMonoInkChips(ink);
+    lineCacheDirty = true;
+    render();
+  });
+});
+
 document.querySelectorAll('.bg-theme-chip').forEach(chip => {
   chip.addEventListener('click', (e) => {
     const theme = chip.getAttribute('data-theme');
@@ -10656,6 +10746,18 @@ document.querySelectorAll('.bg-theme-chip').forEach(chip => {
       sel.value = theme;
       sel.dispatchEvent(new Event('change'));
     }
+    // Auto-ajuste inteligente de tinta blanca/negra al cambiar el papel
+    if (theme === 'dark' || theme === 'slate') {
+      if (MONO_INK_THEME === 'black') {
+        MONO_INK_THEME = 'white';
+        syncMonoInkChips(MONO_INK_THEME);
+      }
+    } else if (theme === 'white' || theme === 'cream' || theme === 'kraft') {
+      if (MONO_INK_THEME === 'white') {
+        MONO_INK_THEME = 'black';
+        syncMonoInkChips(MONO_INK_THEME);
+      }
+    }
   });
 });
 
@@ -10688,6 +10790,7 @@ document.getElementById('colorPalette').addEventListener('change', (e) => {
     }
   }
   syncPaletteCards(COLOR_PALETTE);
+  updateColorPanelVisibility();
   if (COLOR_MODE === 'mono') {
     COLOR_MODE = 'organic_flow';
     document.getElementById('colorMode').value = 'organic_flow';
@@ -10720,9 +10823,9 @@ document.getElementById('colorHue').addEventListener('input', (e) => {
     syncCustomColorsFromPickers();
   }
   if (COLOR_MODE === 'mono') {
-    COLOR_MODE = 'line_strand';
-    document.getElementById('colorMode').value = 'line_strand';
-    syncColorModeCards('line_strand');
+    COLOR_MODE = 'organic_flow';
+    document.getElementById('colorMode').value = 'organic_flow';
+    syncColorModeCards('organic_flow');
     updateColorPanelVisibility();
   }
   lineCacheDirty = true;
@@ -10739,10 +10842,10 @@ document.getElementById('colorIntensity').addEventListener('input', (e) => {
 
 for (const pickId of ['colPick1', 'colPick2', 'colPick3']) {
   document.getElementById(pickId).addEventListener('input', () => {
-    document.getElementById('colorPalette').value = 'custom';
     COLOR_PALETTE = 'custom';
     syncPaletteCards('custom');
     syncCustomColorsFromPickers();
+    updateColorPanelVisibility();
     if (COLOR_MODE === 'mono') {
       COLOR_MODE = 'organic_flow';
       document.getElementById('colorMode').value = 'organic_flow';
@@ -12122,6 +12225,7 @@ updateColorPanelVisibility();
 syncStyleCards(ENGINE_MODE);
 syncColorModeCards(COLOR_MODE);
 syncPaletteCards(COLOR_PALETTE);
+syncMonoInkChips(MONO_INK_THEME);
 syncBgThemeChips(BG_THEME);
 syncAllSlidersProgress();
 initSmartRangeSliders();
