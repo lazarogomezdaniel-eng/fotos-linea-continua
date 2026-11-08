@@ -2140,10 +2140,10 @@
           <div class="studio-slider-card">
             <div class="studio-slider-header">
               <span class="studio-slider-title">Tamaño de Celosía Escher</span>
-              <span class="studio-val-badge" id="vEscherSize">14.0px</span>
+              <span class="studio-val-badge" id="vEscherSize">6.0px</span>
             </div>
             <div class="studio-slider-track-wrap">
-              <input type="range" id="escherSize" min="6.0" max="28.0" step="0.5" value="14.0">
+              <input type="range" id="escherSize" min="4.0" max="24.0" step="0.5" value="6.0">
             </div>
           </div>
         </div>
@@ -3029,7 +3029,7 @@ let ISO_DIAMOND_SIZE = 11.0;
 let PANOT_SIZE = 14.0;
 let FLOR_BCN_SIZE = 15.0;
 let VORTEX_SIZE = 8.5;
-let ESCHER_SIZE = 14.0;
+let ESCHER_SIZE = 6.0;
 
 const MODE_DESCRIPTIONS = {
   coral: '🧠 Coral Cerebral Dendrítico: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros redondeados en U sin dejar huecos vacíos.',
@@ -3074,7 +3074,7 @@ const MODE_PRESETS = {
   haring_puzzle:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3, fusionOpacity: 25, colorMode: 'organic_flow', colorPalette: 'sunset' },
   halftone_dots:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.52, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' },
   honeycomb:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 6.0, chaikin: 0, lineW: 1.0, honeycombSize: 14.0, fusionOpacity: 50, colorMode: 'mono' },
-  escher_cube:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.0, escherSize: 14.0, fusionOpacity: 0, colorMode: 'mono' }
+  escher_cube:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.0, escherSize: 6.0, fusionOpacity: 50, colorMode: 'mono', monoInk: 'indigo' }
 };
 
 function syncSliderProgress(el) {
@@ -6154,12 +6154,12 @@ function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteM
  * inspiradas en las divisiones regulares del plano de M.C. Escher.
  * Modula pliegues concéntricos continuos según los claroscuros del retrato con 0 cruces de pluma.
  */
-function generateEscherYPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 5.5, TARGET_NODES = 24000, seed = 0, escherSize = 12.0) {
+function generateEscherYPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 5.5, TARGET_NODES = 24000, seed = 0, escherSize = 6.0) {
   const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
   const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
-  const cellR = (escherSize && escherSize >= 4.0)
+  const cellR = (escherSize && escherSize >= 3.0)
     ? escherSize
-    : Math.max(4.0, Math.min(24.0, MIN_R * 3.4 * maxRScale * nodeScale));
+    : Math.max(3.0, Math.min(24.0, MIN_R * 3.4 * maxRScale * nodeScale));
 
   const L = cellR;
   const sqrt3 = 1.7320508;
@@ -8888,7 +8888,7 @@ self.onmessage = function(e) {
     customFocalX, customFocalY, haringIconCount = 95, haringIconSize = 100,
     halftoneSpacing = 6.5, halftoneScale = 115, halftoneAngle = 45, halftoneType = 'dots', bgClean = 0.000,
     honeycombSize = 14.0, honeycombWalls = 3, honeycombSubdiv = true,
-    hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 14.0, florBcnSize = 15.0, vortexSize = 8.5, escherSize = 14.0
+    hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 14.0, florBcnSize = 15.0, vortexSize = 8.5, escherSize = 6.0
   } = e.data;
 
   const tStart = performance.now();
@@ -10533,10 +10533,19 @@ function applyModePreset(mode) {
     // pero garantizamos un "suelo mínimo inteligente" para que los modos de rejilla
     // nunca queden invisibles o ilegibles.
     // -------------------------------------------------------------------------
-    if (mode === 'honeycomb') {
+    if (mode === 'honeycomb' || mode === 'escher_cube') {
       if (FUSION_OPACITY < 40 || autoOpacityAssisted) {
         setFusionOpacity(50, false);
         autoOpacityAssisted = true;
+      }
+      if (mode === 'escher_cube') {
+        COLOR_MODE = 'mono';
+        const selCol = document.getElementById('colorMode');
+        if (selCol) selCol.value = 'mono';
+        if (typeof syncColorModeCards === 'function') syncColorModeCards('mono');
+        MONO_INK_THEME = 'indigo';
+        if (typeof syncMonoInkChips === 'function') syncMonoInkChips('indigo');
+        if (typeof updateColorPanelVisibility === 'function') updateColorPanelVisibility();
       }
     } else if (mode === 'haring_puzzle') {
       if (FUSION_OPACITY < 15 || autoOpacityAssisted) {
