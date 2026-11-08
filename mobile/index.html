@@ -2936,6 +2936,13 @@ const MONO_INK_COLORS = {
 
 function getMonoInkHex(theme = MONO_INK_THEME) {
   if (theme === 'custom') return MONO_CUSTOM_INK || '#0f2b48';
+  // Guardia estricta de contraste: nunca permitir tinta blanca sobre fondo claro o tinta negra sobre fondo oscuro
+  if (theme === 'white' && !isBgDark(BG_THEME)) {
+    return '#0e1118';
+  }
+  if (theme === 'black' && isBgDark(BG_THEME)) {
+    return '#f8fafc';
+  }
   return MONO_INK_COLORS[theme] || (isBgDark(BG_THEME) ? '#f8fafc' : '#0e1118');
 }
 
@@ -10780,6 +10787,18 @@ document.querySelectorAll('.mono-ink-chip').forEach(chip => {
       return;
     }
     MONO_INK_THEME = ink;
+    // Auto-ajuste bidireccional de contraste para evitar tinta blanca sobre lienzo blanco o tinta negra sobre lienzo oscuro
+    if (ink === 'white' && !isBgDark(BG_THEME)) {
+      BG_THEME = 'dark';
+      const selBg = document.getElementById('bgTheme');
+      if (selBg) selBg.value = 'dark';
+      syncBgThemeChips('dark');
+    } else if (ink === 'black' && isBgDark(BG_THEME)) {
+      BG_THEME = 'white';
+      const selBg = document.getElementById('bgTheme');
+      if (selBg) selBg.value = 'white';
+      syncBgThemeChips('white');
+    }
     syncMonoInkChips(ink);
     lineCacheDirty = true;
     render();
@@ -11325,6 +11344,12 @@ function performFactoryReset() {
   const selBg = document.getElementById('bgTheme');
   if (selBg) selBg.value = 'white';
   syncBgThemeChips('white');
+
+  // Asegurar siempre tinta legible por defecto según el modo (ej. sanguina en espiral áurea) o negro carbón
+  const defaultModeInk = (MODE_PRESETS[ENGINE_MODE] && MODE_PRESETS[ENGINE_MODE].monoInk) ? MODE_PRESETS[ENGINE_MODE].monoInk : 'black';
+  MONO_INK_THEME = defaultModeInk;
+  syncMonoInkChips(MONO_INK_THEME);
+
   updateColorPanelVisibility();
 
   // 5. Parámetros óptimos del estilo actual
