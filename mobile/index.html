@@ -10384,6 +10384,10 @@ document.querySelectorAll('.studio-subnav-btn[data-subtab]').forEach(btn => {
     parentTab.querySelectorAll('.subtrazo-pane, .subcolor-pane').forEach(pane => {
       pane.classList.toggle('active', pane.id === targetSubtab);
     });
+    const dockContent = document.getElementById('dockContent');
+    if (dockContent) {
+      dockContent.scrollTop = 0;
+    }
     if (typeof updateActiveFunctionPill === 'function') {
       updateActiveFunctionPill();
     }
@@ -10951,6 +10955,13 @@ document.querySelectorAll('#dockTabs .tab-btn').forEach(btn => {
     btn.classList.add('active');
     const targetPane = document.getElementById(tabId);
     if (targetPane) targetPane.classList.add('active');
+
+    // Siempre partir de la posición inicial arriba (scrollTop = 0) para ver títulos y controles primarios
+    const dockContent = document.getElementById('dockContent');
+    if (dockContent) {
+      dockContent.scrollTop = 0;
+    }
+
     if (dockState === 'collapsed') {
       setDockState('normal');
     }
