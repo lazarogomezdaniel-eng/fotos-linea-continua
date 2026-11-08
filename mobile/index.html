@@ -3018,7 +3018,7 @@ const MODE_PRESETS = {
   panot_bcn:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1, lineW: 1.0, panotSize: 14.0, fusionOpacity: 0, colorMode: 'organic_flow', colorPalette: 'forest' },
   flor_bcn:       { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.60, bgClean: 0.000, minR: 1.8, maxR: 6.5, chaikin: 1, lineW: 1.0, florBcnSize: 15.0, fusionOpacity: 0, colorMode: 'mono' },
   flor_fractal:   { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 7.0, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' },
-  golden_spiral:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.70, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'organic_flow', colorPalette: 'cyan_amber' },
+  golden_spiral:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.70, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono', monoInk: 'sanguine' },
   keith_haring:   { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3, fusionOpacity: 20, colorMode: 'organic_flow', colorPalette: 'iris' },
   haring_croc:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3, fusionOpacity: 20, colorMode: 'organic_flow', colorPalette: 'forest' },
   haring_puzzle:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3, fusionOpacity: 25, colorMode: 'organic_flow', colorPalette: 'sunset' },
@@ -10265,6 +10265,11 @@ function applyModePreset(mode) {
         }
       }
       if (typeof syncPaletteCards === 'function') syncPaletteCards(p.colorPalette);
+    }
+
+    if (p.monoInk !== undefined) {
+      MONO_INK_THEME = p.monoInk;
+      if (typeof syncMonoInkChips === 'function') syncMonoInkChips(p.monoInk);
     }
 
     if (targetColorMode === 'mono' && isColorFlowing && typeof stopColorFlow === 'function') {
