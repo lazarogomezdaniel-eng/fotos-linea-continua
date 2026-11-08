@@ -2003,10 +2003,10 @@
             <div class="studio-slider-card">
               <div class="studio-slider-header">
                 <span class="studio-slider-title">Tamaño de Hexágono</span>
-                <span class="studio-val-badge" id="vHoneycombSize">9.0px</span>
+                <span class="studio-val-badge" id="vHoneycombSize">14.0px</span>
               </div>
               <div class="studio-slider-track-wrap">
-                <input type="range" id="honeycombSize" min="4.0" max="22.0" step="0.5" value="9.0">
+                <input type="range" id="honeycombSize" min="4.0" max="22.0" step="0.5" value="14.0">
               </div>
             </div>
 
@@ -2850,7 +2850,7 @@ let HALFTONE_TYPE = 'dots'; // 'dots' | 'spiral'
 let halftoneCirclesData = null;
 
 // Parámetros del Modo Colmena (Panal Hexagonal Adaptativo)
-let HONEYCOMB_SIZE = 9.0;
+let HONEYCOMB_SIZE = 14.0;
 let HONEYCOMB_WALLS = 3;
 let HONEYCOMB_SUBDIV = true;
 
@@ -2893,9 +2893,9 @@ const MODE_PRESETS = {
   golden_spiral:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.70, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1 },
   keith_haring:   { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3 },
   haring_croc:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3 },
-  haring_puzzle:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3 },
+  haring_puzzle:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3, fusionOpacity: 25, colorMode: 'organic_flow', colorPalette: 'sunset' },
   halftone_dots:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.52, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.0 },
-  honeycomb:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 6.0, chaikin: 0, lineW: 1.0 }
+  honeycomb:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 6.0, chaikin: 0, lineW: 1.0, honeycombSize: 14.0, fusionOpacity: 50, colorMode: 'mono' }
 };
 
 function syncSliderProgress(el) {
@@ -2994,6 +2994,8 @@ function syncSlidersFromState() {
   setSlider('halftoneSpacing', 'vHalftoneSpacing', HALFTONE_SPACING, 1, 'px');
   setSlider('halftoneScale', 'vHalftoneScale', HALFTONE_SCALE, null, '%');
   setSlider('halftoneAngle', 'vHalftoneAngle', HALFTONE_ANGLE, null, '°');
+  setSlider('honeycombSize', 'vHoneycombSize', HONEYCOMB_SIZE, 1, 'px');
+  setSlider('honeycombWalls', 'vHoneycombWalls', HONEYCOMB_WALLS, null, ' Anillos');
   setFusionOpacity(FUSION_OPACITY);
   syncPresetPills('maxN', TARGET_NODES, 500);
   syncViewLayerCards(VIEW_MODE);
@@ -4933,7 +4935,7 @@ function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask,
 function generateHoneycombPortrait(
   coralToneMap, step232Stencil, silhouetteMask, smoothSilMap,
   W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0,
-  honeycombSize = 9.0, honeycombWalls = 3, honeycombSubdiv = true
+  honeycombSize = 14.0, honeycombWalls = 3, honeycombSubdiv = true
 ) {
   const baseR = (honeycombSize && honeycombSize >= 3.5)
     ? honeycombSize
@@ -8534,7 +8536,7 @@ self.onmessage = function(e) {
     W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0, maxTimeMs,
     customFocalX, customFocalY, haringIconCount = 95, haringIconSize = 100,
     halftoneSpacing = 6.5, halftoneScale = 115, halftoneAngle = 45, halftoneType = 'dots', bgClean = 0.000,
-    honeycombSize = 9.0, honeycombWalls = 3, honeycombSubdiv = true
+    honeycombSize = 14.0, honeycombWalls = 3, honeycombSubdiv = true
   } = e.data;
 
   const tStart = performance.now();
@@ -10041,6 +10043,62 @@ function applyModePreset(mode) {
   MAX_R = p.maxR;
   CHAIKIN_PASSES = p.chaikin;
   LINE_W = p.lineW !== undefined ? p.lineW : 1.0;
+
+  // Ajuste de tamaño específico para Colmena
+  if (p.honeycombSize !== undefined) {
+    HONEYCOMB_SIZE = p.honeycombSize;
+    const elHSize = document.getElementById('honeycombSize');
+    if (elHSize) {
+      elHSize.value = String(p.honeycombSize);
+      syncSliderProgress(elHSize);
+    }
+    const lblHSize = document.getElementById('vHoneycombSize');
+    if (lblHSize) lblHSize.textContent = `${p.honeycombSize.toFixed(1)}px`;
+  }
+
+  // Fusión con retrato por defecto (50% en colmena, 25% en puzle humano, o 0% si se cambia a otro estilo)
+  if (p.fusionOpacity !== undefined) {
+    setFusionOpacity(p.fusionOpacity);
+  } else if (FUSION_OPACITY === 50 || FUSION_OPACITY === 25) {
+    // Si veníamos de la opacidad automática de colmena o puzle, volver a 0%
+    setFusionOpacity(0);
+  }
+
+  // Composición de color inicial para puzle humano u otros estilos con preset de color
+  if (p.colorMode !== undefined) {
+    COLOR_MODE = p.colorMode;
+    const selColor = document.getElementById('colorMode');
+    if (selColor) selColor.value = p.colorMode;
+    if (typeof syncColorModeCards === 'function') syncColorModeCards(p.colorMode);
+    if (typeof updateColorPanelVisibility === 'function') updateColorPanelVisibility();
+
+    if (p.colorPalette !== undefined) {
+      COLOR_PALETTE = p.colorPalette;
+      const selPal = document.getElementById('colorPalette');
+      if (selPal) selPal.value = p.colorPalette;
+      const presetCols = PALETTE_PRESETS[p.colorPalette];
+      if (presetCols) {
+        const p1 = document.getElementById('colPick1');
+        const p2 = document.getElementById('colPick2');
+        const p3 = document.getElementById('colPick3');
+        if (p1 && p2 && p3) {
+          p1.value = presetCols[0];
+          p2.value = presetCols[1];
+          p3.value = presetCols[2];
+          if (typeof syncCustomColorsFromPickers === 'function') syncCustomColorsFromPickers();
+        }
+      }
+      if (typeof syncPaletteCards === 'function') syncPaletteCards(p.colorPalette);
+    }
+  } else if (mode !== 'haring_puzzle' && (mode === 'coral' || mode === 'stencil_clean' || mode === 'honeycomb') && COLOR_MODE === 'organic_flow' && COLOR_PALETTE === 'sunset') {
+    // Restaurar monocromo si volvemos a un estilo purista desde puzle
+    COLOR_MODE = 'mono';
+    const selColor = document.getElementById('colorMode');
+    if (selColor) selColor.value = 'mono';
+    if (typeof syncColorModeCards === 'function') syncColorModeCards('mono');
+    if (typeof updateColorPanelVisibility === 'function') updateColorPanelVisibility();
+  }
+
   lineCacheDirty = true;
   syncSlidersFromState();
 }
@@ -10925,7 +10983,7 @@ function performFactoryReset() {
   HALFTONE_SPACING = 6.5;
   HALFTONE_SCALE = 115;
   HALFTONE_ANGLE = 45;
-  HONEYCOMB_SIZE = 9.0;
+  HONEYCOMB_SIZE = 14.0;
   HONEYCOMB_WALLS = 3;
   HONEYCOMB_SUBDIV = true;
   applyModePreset(ENGINE_MODE);

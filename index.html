@@ -706,7 +706,7 @@ const MODE_PRESETS = {
   flor_bcn:       { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.60, bgClean: 0.000, minR: 1.8, maxR: 6.5, chaikin: 1 },
   flor_fractal:   { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 7.0, chaikin: 1 },
   golden_spiral:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.70, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1 },
-  honeycomb:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 6.0, chaikin: 0, lineW: 1.0 }
+  honeycomb:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 6.0, chaikin: 0, lineW: 1.0, honeycombSize: 14.0, fusionOpacity: 50 }
 };
 
 function syncSlidersFromState() {
@@ -2685,7 +2685,7 @@ function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask,
 function generateHoneycombPortrait(
   coralToneMap, step232Stencil, silhouetteMask, smoothSilMap,
   W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0,
-  honeycombSize = 9.0, honeycombWalls = 3, honeycombSubdiv = true
+  honeycombSize = 14.0, honeycombWalls = 3, honeycombSubdiv = true
 ) {
   const baseR = (honeycombSize && honeycombSize >= 3.5)
     ? honeycombSize
@@ -4715,7 +4715,7 @@ self.onmessage = function(e) {
   const {
     jobId, engineMode, step232Stencil, coralToneMap, silhouetteMask, smoothSilMap,
     W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0, maxTimeMs,
-    honeycombSize = 9.0, honeycombWalls = 3, honeycombSubdiv = true
+    honeycombSize = 14.0, honeycombWalls = 3, honeycombSubdiv = true
   } = e.data;
 
   const tStart = performance.now();
@@ -4981,7 +4981,7 @@ function rebuildPortrait(needsStencilRebuild = true) {
     CHAIKIN_PASSES,
     seed: REBUILD_SEED,
     maxTimeMs: isMobileDevice ? 650 : 1100,
-    honeycombSize: 9.0,
+    honeycombSize: 14.0,
     honeycombWalls: 3,
     honeycombSubdiv: true
   }, [s232Copy.buffer, coralCopy.buffer, silCopy.buffer, smSilCopy.buffer]);
@@ -5423,6 +5423,10 @@ function render() {
 
   if (VIEW_MODE === 'both') {
     ctx.globalAlpha = BG_THEME === 'dark' ? 0.14 : 0.28;
+    ctx.drawImage(stencilCanvas, 0, 0);
+    ctx.globalAlpha = 1.0;
+  } else if (VIEW_MODE === 'line' && ENGINE_MODE === 'honeycomb') {
+    ctx.globalAlpha = 0.50;
     ctx.drawImage(stencilCanvas, 0, 0);
     ctx.globalAlpha = 1.0;
   }
