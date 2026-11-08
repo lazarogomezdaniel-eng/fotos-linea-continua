@@ -712,22 +712,24 @@
     .studio-subnav {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 4px;
-      background: rgba(9, 13, 22, 0.85);
+      gap: 5px;
+      background: rgba(10, 15, 26, 0.92);
       padding: 4px;
-      border-radius: 11px;
-      border: 1px solid var(--border);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4), 0 3px 10px rgba(0, 0, 0, 0.25);
       flex-shrink: 0;
+      margin-bottom: 8px;
     }
     .studio-subnav-btn {
-      height: 32px;
+      height: 38px;
       padding: 0 6px;
       font-size: 11.5px;
       font-weight: 600;
-      color: var(--text-dim);
-      background: transparent;
-      border: 1px solid transparent;
-      border-radius: 8px;
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 9px;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -736,15 +738,21 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      transition: all 0.16s ease;
+      transition: all 0.18s var(--ease-spring);
     }
     .studio-subnav-btn:hover {
-      color: #f8fafc;
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+    .studio-subnav-btn:active {
+      transform: scale(0.97);
     }
     .studio-subnav-btn.active {
-      background: rgba(56, 189, 248, 0.15);
-      color: #38bdf8;
-      border-color: rgba(56, 189, 248, 0.35);
+      background: linear-gradient(135deg, rgba(30, 58, 138, 0.70) 0%, rgba(14, 116, 144, 0.65) 100%);
+      color: #ffffff;
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
       font-weight: 700;
     }
 
