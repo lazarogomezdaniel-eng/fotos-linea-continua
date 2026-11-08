@@ -6154,120 +6154,160 @@ function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteM
  * inspiradas en las divisiones regulares del plano de M.C. Escher.
  * Modula pliegues concéntricos continuos según los claroscuros del retrato con 0 cruces de pluma.
  */
-function generateEscherYPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 5.5, TARGET_NODES = 24000, seed = 0, escherSize = 14.0) {
+function generateEscherYPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 5.5, TARGET_NODES = 24000, seed = 0, escherSize = 12.0) {
   const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
   const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
-  const cellR = (escherSize && escherSize >= 5.0)
+  const cellR = (escherSize && escherSize >= 4.0)
     ? escherSize
-    : Math.max(5.0, Math.min(28.0, MIN_R * 4.2 * maxRScale * nodeScale));
+    : Math.max(4.0, Math.min(24.0, MIN_R * 3.4 * maxRScale * nodeScale));
 
-  const rad = Math.PI / 180;
-  const dx = cellR * 1.73205; // sqrt(3)
-  const dy = cellR * 1.50000;
-  const rows = Math.ceil(H / dy) + 1;
-  const cols = Math.ceil(W / dx) + 1;
+  const L = cellR;
+  const sqrt3 = 1.7320508;
+  const v1x = 3.0 * L;
+  const v2x = 1.5 * L;
+  const v2y = 1.5 * sqrt3 * L;
 
-  const offX = (seed % 7) * 0.14 * dx;
-  const offY = ((seed * 3) % 7) * 0.14 * dy;
-
+  const rows = Math.ceil(H / v2y) + 3;
   const outX = [];
   const outY = [];
 
-  const lightCut = Math.max(0.04, Math.min(0.20, 0.04 + (MAX_R / 35.0) * 0.12));
-  const maxFolds = Math.max(2, Math.min(6, Math.round(5.8 - MIN_R * 0.5)));
+  const lightCut = Math.max(0.03, Math.min(0.16, 0.03 + (MAX_R / 45.0) * 0.10));
+  const maxFolds = Math.max(2, Math.min(6, Math.round(6.2 - MIN_R * 0.55)));
 
-  for (let r = 1; r < rows - 1; r++) {
-    const cy = r * dy + offY;
+  function getRotatedPoint(x, y, angleDeg, cx, cy) {
+    const rad = angleDeg * 0.01745329;
+    const c = Math.cos(rad), s = Math.sin(rad);
+    return [cx + x * c - y * s, cy + x * s + y * c];
+  }
+
+  function getChevronFoldPath(F, angleDeg, cx, cy, reverse = false) {
+    const tVals = [];
+    if (F <= 1) {
+      tVals.push(0);
+    } else {
+      for (let i = 0; i < F; i++) {
+        tVals.push(-0.76 + (1.52 * i) / (F - 1));
+      }
+    }
+
+    const rawPts = [];
+    for (let i = 0; i < tVals.length; i++) {
+      const t = tVals[i];
+      const elbow = [-0.5 * L + t * 0.5 * L, 0];
+      const arm1 = [-1.25 * L + t * 0.25 * L, -0.75 * sqrt3 * L - t * 0.25 * sqrt3 * L];
+      const arm2 = [-1.25 * L + t * 0.25 * L, +0.75 * sqrt3 * L + t * 0.25 * sqrt3 * L];
+
+      if (i % 2 === 0) {
+        rawPts.push(arm1, elbow, arm2);
+      } else {
+        rawPts.push(arm2, elbow, arm1);
+      }
+    }
+
+    if (reverse) rawPts.reverse();
+    return rawPts.map(([px, py]) => getRotatedPoint(px, py, angleDeg, cx, cy));
+  }
+
+  function sampleDark(sx, sy) {
+    const x = Math.max(0, Math.min(W - 1, sx | 0));
+    const y = Math.max(0, Math.min(H - 1, sy | 0));
+    const i = y * W + x;
+    const tone = coralToneMap ? coralToneMap[i] : 0.5;
+    const s232 = step232Stencil ? step232Stencil[i] : 1.0;
+    return Math.min(1.0, Math.max(0, 1.0 - tone) * 0.65 + Math.max(0, 1.0 - s232) * 0.95);
+  }
+
+  function computeFolds(d) {
+    return Math.min(maxFolds, Math.max(1, Math.round(1.0 + Math.pow(d, 0.72) * (maxFolds - 0.8))));
+  }
+
+  for (let r = 0; r < rows; r++) {
+    const cy = r * v2y;
+    const l2r = ((r + 1000) % 2 === 0);
+
+    const minC = Math.floor((-50 - r * v2x) / v1x);
+    const maxC = Math.ceil((W + 50 - r * v2x) / v1x);
+
     let firstC = -1, lastC = -1;
-
-    for (let c = 1; c < cols - 1; c++) {
-      const cx = c * dx + ((r & 1) ? dx * 0.5 : 0) + offX;
+    for (let c = minC; c <= maxC; c++) {
+      const cx = c * v1x + r * v2x;
       if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
       const idx = (cy | 0) * W + (cx | 0);
       if (!silhouetteMask[idx]) continue;
-      const dark = Math.max(0, 1.0 - (coralToneMap ? coralToneMap[idx] : 1.0));
-      const lineDark = Math.max(0, 1.0 - (step232Stencil ? step232Stencil[idx] : 1.0));
-      if (Math.min(1.0, dark * 0.65 + lineDark * 0.95) >= 0.05) {
+      const dark = sampleDark(cx, cy);
+      if (dark >= 0.04) {
         if (firstC === -1) firstC = c;
         lastC = c;
       }
     }
     if (firstC === -1) continue;
 
-    const l2r = (r & 1) === 0;
     const startC = l2r ? firstC : lastC;
     const endC = l2r ? lastC : firstC;
     const stepC = l2r ? 1 : -1;
 
     for (let c = startC; l2r ? c <= endC : c >= endC; c += stepC) {
-      const cx = c * dx + ((r & 1) ? dx * 0.5 : 0) + offX;
+      const cx = c * v1x + r * v2x;
       if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
 
       const idx = (cy | 0) * W + (cx | 0);
       if (!silhouetteMask[idx]) continue;
 
-      const tone = coralToneMap ? coralToneMap[idx] : 0.5;
-      const s232 = step232Stencil ? step232Stencil[idx] : 1.0;
-      const dark = Math.max(0, 1.0 - tone);
-      const lineDark = Math.max(0, 1.0 - s232);
-      const effDark = Math.min(1.0, dark * 0.65 + lineDark * 0.95);
+      const dCenter = sampleDark(cx, cy);
+      const d0 = sampleDark(cx - 0.5 * L, cy);
+      const d1 = sampleDark(cx + 0.25 * L, cy - 0.433 * L);
+      const d2 = sampleDark(cx + 0.25 * L, cy + 0.433 * L);
+      const maxD = Math.max(dCenter, d0, d1, d2);
 
       let px = cx, py = cy;
-      if (effDark > 0.08 && idx > W && idx < W * (H - 1) - 1) {
+      if (maxD > 0.08 && idx > W && idx < W * (H - 1) - 1) {
         const gx = (coralToneMap[idx + 1] - coralToneMap[idx - 1]) * 0.5 + (step232Stencil[idx + 1] - step232Stencil[idx - 1]) * 0.5;
         const gy = (coralToneMap[idx + W] - coralToneMap[idx - W]) * 0.5 + (step232Stencil[idx + W] - step232Stencil[idx - W]) * 0.5;
-        const pull = Math.min(1.8, effDark * 1.5);
+        const pull = Math.min(1.8, maxD * 1.4);
         px = Math.max(5, Math.min(W - 5, px - gx * pull));
         py = Math.max(5, Math.min(H - 5, py - gy * pull));
       }
 
-      const enterX = l2r ? px - dx * 0.48 : px + dx * 0.48;
-      const exitX = l2r ? px + dx * 0.48 : px - dx * 0.48;
-
-      if (effDark < lightCut) {
-        outX.push(enterX, px, exitX);
-        outY.push(py, py - dy * 0.28, py);
+      if (maxD < lightCut) {
+        if (l2r) {
+          outX.push(px - L, px, px + 2 * L);
+          outY.push(py, py, py);
+        } else {
+          outX.push(px + 2 * L, px, px - L);
+          outY.push(py, py, py);
+        }
         continue;
       }
 
-      const folds = Math.min(maxFolds, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.2) * (maxFolds - 0.7))));
+      const F0 = computeFolds(d0);
+      const F1 = computeFolds(d1);
+      const F2 = computeFolds(d2);
 
-      outX.push(enterX);
-      outY.push(py);
+      if (l2r) {
+        const pts0 = getChevronFoldPath(F0, 0, px, py, false);
+        for (let i = 0; i < pts0.length; i++) { outX.push(pts0[i][0]); outY.push(pts0[i][1]); }
+        outX.push(px); outY.push(py);
 
-      const armOrder = l2r ? [150, 270, 30] : [30, 270, 150];
+        const pts1 = getChevronFoldPath(F1, 120, px, py, false);
+        for (let i = 0; i < pts1.length; i++) { outX.push(pts1[i][0]); outY.push(pts1[i][1]); }
+        outX.push(px); outY.push(py);
 
-      for (let f = 0; f <= folds; f++) {
-        const u = f / Math.max(1, folds);
-        const s = 0.95 * (1.0 - u * 0.76);
-        const rArm = cellR * s;
-        const wArm = rArm * 0.32;
-        const apexExtra = wArm * 0.58;
+        const pts2 = getChevronFoldPath(F2, 240, px, py, false);
+        for (let i = 0; i < pts2.length; i++) { outX.push(pts2[i][0]); outY.push(pts2[i][1]); }
+        outX.push(px + 2 * L); outY.push(py);
+      } else {
+        const pts2 = getChevronFoldPath(F2, 240, px, py, true);
+        for (let i = 0; i < pts2.length; i++) { outX.push(pts2[i][0]); outY.push(pts2[i][1]); }
+        outX.push(px); outY.push(py);
 
-        for (let i = 0; i < 3; i++) {
-          const ang = armOrder[i] * rad;
-          const ax = Math.cos(ang);
-          const ay = -Math.sin(ang);
-          const nx = -Math.sin(ang);
-          const ny = -Math.cos(ang);
+        const pts1 = getChevronFoldPath(F1, 120, px, py, true);
+        for (let i = 0; i < pts1.length; i++) { outX.push(pts1[i][0]); outY.push(pts1[i][1]); }
+        outX.push(px); outY.push(py);
 
-          // Esquina 1
-          outX.push(px + ax * (rArm * 0.75) - nx * wArm);
-          outY.push(py + ay * (rArm * 0.75) - ny * wArm);
-          // Apex
-          outX.push(px + ax * (rArm + apexExtra));
-          outY.push(py + ay * (rArm + apexExtra));
-          // Esquina 2
-          outX.push(px + ax * (rArm * 0.75) + nx * wArm);
-          outY.push(py + ay * (rArm * 0.75) + ny * wArm);
-          // Centro
-          outX.push(px);
-          outY.push(py);
-        }
+        const pts0 = getChevronFoldPath(F0, 0, px, py, true);
+        for (let i = 0; i < pts0.length; i++) { outX.push(pts0[i][0]); outY.push(pts0[i][1]); }
+        outX.push(px - L); outY.push(py);
       }
-
-      outX.push(exitX);
-      outY.push(py);
     }
   }
 
