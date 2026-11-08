@@ -2289,8 +2289,7 @@
               <option value="tonal_blend">🌡️ Fusión Tonal</option>
               <option value="photo_exact">📸 Color Foto</option>
               <option value="photo_fusion">🖼️ Foto + Mezcla</option>
-              <option value="rainbow">🌈 Hilo Arcoíris</option>
-              <option value="rainbow_bands">🏳️‍🌈 Franjas Arcoíris</option>
+              <option value="rainbow">🌈 Arcoíris</option>
             </select>
 
             <div class="color-carousel" id="colorModeCarousel">
@@ -2325,14 +2324,9 @@
                 <div class="color-mode-badge">Híbrido</div>
               </div>
               <div class="color-mode-card" data-mode="rainbow">
-                <div class="color-mode-preview" style="background: linear-gradient(135deg, #ff0055 0%, #ffcc00 33%, #00ccff 66%, #cc00ff 100%);"></div>
-                <div class="color-mode-title">Hilo Arcoíris</div>
-                <div class="color-mode-badge">Continuo</div>
-              </div>
-              <div class="color-mode-card" data-mode="rainbow_bands">
                 <div class="color-mode-preview" style="background: linear-gradient(90deg, #ff0000 0%, #ff7f00 20%, #ffff00 40%, #00ff00 60%, #0000ff 80%, #8b00ff 100%);"></div>
-                <div class="color-mode-title">Franjas Arcoíris</div>
-                <div class="color-mode-badge">Bandas</div>
+                <div class="color-mode-title">Arcoíris</div>
+                <div class="color-mode-badge">Espectro</div>
               </div>
             </div>
           </div>
@@ -2442,6 +2436,25 @@
                 <div class="palette-title">Análoga (35°)</div>
                 <div class="palette-badge">Teoría</div>
               </div>
+            </div>
+          </div>
+
+          <!-- Selector de Estilo de Arcoíris (Variantes dentro de Arcoíris) -->
+          <div id="boxRainbowPattern" class="studio-group-block is-hidden">
+            <div class="studio-block-header">
+              <span class="studio-block-label">Patrón de Arcoíris</span>
+              <span class="studio-block-value" id="currentRainbowStyleLabel">Hilo Continuo</span>
+            </div>
+
+            <div class="swatch-grid-2" id="rainbowStyleGroup">
+              <button type="button" class="swatch-chip rainbow-style-chip active" data-style="strand" title="Arcoíris continuo a lo largo del trazo">
+                <span class="swatch-dot" style="background: linear-gradient(135deg, #ff0055 0%, #ffcc00 33%, #00ccff 66%, #cc00ff 100%);"></span>
+                <span class="swatch-label">Hilo Continuo</span>
+              </button>
+              <button type="button" class="swatch-chip rainbow-style-chip" data-style="bands" title="Franjas verticales prismáticas">
+                <span class="swatch-dot" style="background: linear-gradient(90deg, #ff0000 0%, #ffff00 33%, #00ff00 66%, #0000ff 100%);"></span>
+                <span class="swatch-label">Franjas Verticales</span>
+              </button>
             </div>
           </div>
 
@@ -2795,6 +2808,7 @@ let COLOR_SCALE = 3.5;
 let COLOR_INTENSITY = 1.0;
 let MONO_INK_THEME = 'black'; // 'black' | 'white' | 'sepia' | 'indigo' | 'sanguine' | 'custom'
 let MONO_CUSTOM_INK = '#0f2b48';
+let RAINBOW_STYLE = 'strand'; // 'strand' | 'bands'
 let BG_THEME = 'white';
 let FUSION_OPACITY = 0; // 0..100 (%)
 let FUSION_SOURCE = 'stencil'; // 'stencil' | 'photo'
@@ -9081,7 +9095,8 @@ function getOrganicLineColor(i, totalLen, x, y) {
     : (i / Math.max(1, totalLen)) * COLOR_SCALE * Math.PI * 2.0;
 
   let phaseVal = 0;
-  if (COLOR_MODE === 'rainbow_bands') {
+  const isBands = (COLOR_MODE === 'rainbow_bands' || (COLOR_MODE === 'rainbow' && RAINBOW_STYLE === 'bands'));
+  if (isBands) {
     // 🏳️‍🌈 Rainbow Franjas Verticales: 6 franjas puras moduladas por colorHue (0..360°) y flujo continuo
     const hueShift = (COLOR_HUE / 360.0) + (isColorFlowing ? colorPhase * 0.12 : 0);
     const wave = isColorFlowing ? Math.sin((y / H) * Math.PI * 2.0 + colorPhase) * 0.045 : 0;
@@ -10314,10 +10329,11 @@ function updateColorPanelVisibility() {
   const isPhotoExact = (mode === 'photo_exact');
   const isPhotoFusion = (mode === 'photo_fusion');
   const isRainbow = (mode === 'rainbow' || mode === 'rainbow_bands');
-  const usesCustomPalette = (!isMono && !isPhotoExact && !isRainbow); // organic_flow, tonal_blend, photo_fusion
+  const usesCustomPalette = (!isMono && !isPhotoExact && !isRainbow); // organic_flow, organic_spatial, tonal_blend, photo_fusion
   const isTheoreticalHarmony = (COLOR_PALETTE === 'triad' || COLOR_PALETTE === 'analogous');
 
   const boxMonoInk = document.getElementById('boxMonoInk');
+  const boxRainbowPattern = document.getElementById('boxRainbowPattern');
   const boxPalette = document.getElementById('boxPalette');
   const boxHue = document.getElementById('boxHue');
   const boxPickers = document.getElementById('boxPickers');
@@ -10327,6 +10343,7 @@ function updateColorPanelVisibility() {
   const boxFlow = document.getElementById('boxFlow');
 
   if (boxMonoInk) boxMonoInk.classList.toggle('is-hidden', !isMono);
+  if (boxRainbowPattern) boxRainbowPattern.classList.toggle('is-hidden', !isRainbow);
   if (boxPalette) boxPalette.classList.toggle('is-hidden', !usesCustomPalette);
   if (boxPickers) boxPickers.classList.toggle('is-hidden', !usesCustomPalette);
   if (boxHue) boxHue.classList.toggle('is-hidden', !(isRainbow || (usesCustomPalette && isTheoreticalHarmony)));
@@ -10398,6 +10415,17 @@ function syncMonoInkChips(theme) {
   const dot = document.getElementById('monoInkCustomDot');
   if (dot && MONO_CUSTOM_INK) {
     dot.style.background = MONO_CUSTOM_INK;
+  }
+}
+
+function syncRainbowStyleChips(style) {
+  const chips = document.querySelectorAll('.rainbow-style-chip');
+  chips.forEach(chip => {
+    chip.classList.toggle('active', chip.getAttribute('data-style') === style);
+  });
+  const label = document.getElementById('currentRainbowStyleLabel');
+  if (label) {
+    label.textContent = (style === 'bands') ? 'Franjas Verticales' : 'Hilo Continuo';
   }
 }
 
@@ -10713,6 +10741,17 @@ document.querySelectorAll('.mono-ink-chip').forEach(chip => {
     }
     MONO_INK_THEME = ink;
     syncMonoInkChips(ink);
+    lineCacheDirty = true;
+    render();
+  });
+});
+
+document.querySelectorAll('.rainbow-style-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const style = chip.getAttribute('data-style');
+    if (!style) return;
+    RAINBOW_STYLE = style;
+    syncRainbowStyleChips(style);
     lineCacheDirty = true;
     render();
   });
@@ -12238,6 +12277,7 @@ syncStyleCards(ENGINE_MODE);
 syncColorModeCards(COLOR_MODE);
 syncPaletteCards(COLOR_PALETTE);
 syncMonoInkChips(MONO_INK_THEME);
+syncRainbowStyleChips(RAINBOW_STYLE);
 syncBgThemeChips(BG_THEME);
 syncAllSlidersProgress();
 initSmartRangeSliders();

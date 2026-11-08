@@ -362,8 +362,14 @@
             <option value="tonal_blend">🌡️ Fusión Tonal (Sombras/Luz)</option>
             <option value="photo_exact">📸 Color Foto (Original)</option>
             <option value="photo_fusion">🖼️ Foto + Mezcla (Híbrido)</option>
-            <option value="rainbow">🌈 Hilo Arcoíris (Continuo)</option>
-            <option value="rainbow_bands">🏳️‍🌈 Franjas Arcoíris (Bandas)</option>
+            <option value="rainbow">🌈 Arcoíris</option>
+          </select>
+        </div>
+        <div id="boxRainbowPattern" style="display:none;">
+          <label>Variante Arcoíris</label>
+          <select id="rainbowStyleSelect">
+            <option value="strand" selected>🌈 Hilo Continuo</option>
+            <option value="bands">🏳️‍🌈 Franjas Verticales</option>
           </select>
         </div>
         <div id="boxMonoInk">
@@ -574,6 +580,7 @@ let COLOR_SCALE = 3.5;
 let COLOR_INTENSITY = 1.0;
 let MONO_INK_THEME = 'black'; // 'black' | 'white' | 'sepia' | 'indigo' | 'sanguine' | 'custom'
 let MONO_CUSTOM_INK = '#0f2b48';
+let RAINBOW_STYLE = 'strand'; // 'strand' | 'bands'
 let BG_THEME = 'white';
 let isCustomPhotoLoaded = false;
 let customColorsRGB = [
@@ -5110,7 +5117,8 @@ function getOrganicLineColor(i, totalLen, x, y) {
   const tone = coralToneMap ? coralToneMap[pIdx] : 0.5;
 
   let phaseVal = 0;
-  if (COLOR_MODE === 'rainbow_bands') {
+  const isBands = (COLOR_MODE === 'rainbow_bands' || (COLOR_MODE === 'rainbow' && RAINBOW_STYLE === 'bands'));
+  if (isBands) {
     // 🏳️‍🌈 Rainbow Franjas Verticales: 6 franjas puras moduladas por colorHue (0..360°)
     const hueShift = (COLOR_HUE / 360.0);
     const wave = isColorFlowing ? Math.sin((y / H) * Math.PI * 2.0 + colorPhase) * 0.035 : 0;
@@ -6090,6 +6098,7 @@ function updateColorPanelVisibility() {
   const isTheoreticalHarmony = (COLOR_PALETTE === 'triad' || COLOR_PALETTE === 'analogous');
 
   const boxMonoInk = document.getElementById('boxMonoInk');
+  const boxRainbowPattern = document.getElementById('boxRainbowPattern');
   const boxPalette = document.getElementById('boxPalette');
   const boxHue = document.getElementById('boxHue');
   const boxPickers = document.getElementById('boxPickers');
@@ -6098,12 +6107,22 @@ function updateColorPanelVisibility() {
   const boxFlow = document.getElementById('boxFlow');
 
   if (boxMonoInk) boxMonoInk.style.display = isMono ? 'block' : 'none';
+  if (boxRainbowPattern) boxRainbowPattern.style.display = isRainbow ? 'block' : 'none';
   if (boxPalette) boxPalette.style.display = usesCustomPalette ? 'block' : 'none';
   if (boxPickers) boxPickers.style.display = usesCustomPalette ? 'flex' : 'none';
   if (boxHue) boxHue.style.display = (isRainbow || (usesCustomPalette && isTheoreticalHarmony)) ? 'block' : 'none';
   if (boxScale) boxScale.style.display = (!isMono && !isPhotoExact) ? 'block' : 'none';
   if (boxIntensity) boxIntensity.style.display = 'block';
   if (boxFlow) boxFlow.style.display = (!isMono && !isPhotoExact) ? 'block' : 'none';
+}
+
+const rainbowStyleSel = document.getElementById('rainbowStyleSelect');
+if (rainbowStyleSel) {
+  rainbowStyleSel.addEventListener('change', (e) => {
+    RAINBOW_STYLE = e.target.value;
+    lineCacheDirty = true;
+    render();
+  });
 }
 
 const monoInkSel = document.getElementById('monoInkSelect');
@@ -6336,6 +6355,9 @@ document.getElementById('btnResetDefaults').onclick = () => {
   document.getElementById('colorPalette').value = 'iris';
   document.getElementById('colorHue').value = 205;
   document.getElementById('vColHue').textContent = '205°';
+  RAINBOW_STYLE = 'strand';
+  const selRainbow = document.getElementById('rainbowStyleSelect');
+  if (selRainbow) selRainbow.value = 'strand';
   document.getElementById('bgTheme').value = 'white';
   const pIris = PALETTE_PRESETS['iris'];
   if (pIris) {
