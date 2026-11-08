@@ -354,38 +354,46 @@
       <div class="panel-title"><span>Teoría del Color & Mezcla</span> <span>🎨</span></div>
       <div class="grid-2col" style="align-items:start;">
         <div>
-          <label>Modo de Color</label>
+          <label>Modo de Tinta</label>
           <select id="colorMode">
-            <option value="mono" selected>⚫ Monocromo</option>
-            <option value="organic_flow">🌊 Flujo Orgánico</option>
-            <option value="rainbow_bands">🏳️‍🌈 Rainbow (Franjas Verticales)</option>
-            <option value="rainbow">🌈 Rainbow (Hilo Continuo)</option>
-            <option value="line_strand">🧵 Tramos de Línea (Hilo Continuo)</option>
-            <option value="photo_exact">📸 Color Exacto de la Foto</option>
-            <option value="organic_spatial">🌀 Ondas 2D</option>
-            <option value="tonal_blend">🌡️ Fusión Tonal</option>
-            <option value="photo_fusion">🖼️ Foto + Mezcla</option>
+            <option value="mono" selected>✒️ Tinta Plana (1 Color)</option>
+            <option value="organic_flow">🌊 Degradado Líquido (3 Colores)</option>
+            <option value="tonal_blend">🌡️ Fusión Tonal (Sombras/Luz)</option>
+            <option value="photo_exact">📸 Color Foto (Original)</option>
+            <option value="photo_fusion">🖼️ Foto + Mezcla (Híbrido)</option>
+            <option value="rainbow">🌈 Arcoíris (Espectro)</option>
           </select>
         </div>
-        <div id="boxPalette">
+        <div id="boxMonoInk">
+          <label>Tinta de Estudio</label>
+          <div style="display:flex; gap:4px; align-items:center;">
+            <select id="monoInkSelect" style="flex:1;">
+              <option value="black" selected>⚫ Negro Carbón</option>
+              <option value="white">⚪ Blanco Puro</option>
+              <option value="sepia">📜 Sepia Grabado</option>
+              <option value="indigo">🖋️ Azul Índigo</option>
+              <option value="sanguine">🩸 Sanguina Leonardo</option>
+              <option value="custom">🎨 Color Libre</option>
+            </select>
+            <input type="color" id="monoInkCustomPicker" value="#0f2b48" style="width:28px; height:24px; border:none; border-radius:4px; background:none; cursor:pointer; display:none;" title="Color Libre de Tinta">
+          </div>
+        </div>
+        <div id="boxPalette" style="display:none;">
           <label>Armonía Cromática</label>
           <select id="colorPalette">
-            <optgroup label="📐 Teoría del Color">
-              <option value="triad">📐 Triádica (120° Balance)</option>
-              <option value="analogous">🌿 Análoga (Adyacentes 35°)</option>
-              <option value="split">🔀 Split-Complementaria</option>
-              <option value="complementary">⚡ Complementaria (180°)</option>
-              <option value="warm_cool">🌡️ Claroscuro Frío-Cálido</option>
-              <option value="monochrome">🌓 Monocromía de Valor</option>
-            </optgroup>
             <optgroup label="🌈 Paletas de Autor">
-              <option value="iris" selected>🌈 Iris Orgánico</option>
-              <option value="cyan_amber">✨ Plata/Cian/Ámbar</option>
-              <option value="sunset">🌅 Atardecer</option>
-              <option value="ocean">🌊 Bioluminiscencia</option>
+              <option value="iris" selected>🌸 Iris Neón</option>
+              <option value="sunset">🌅 Atardecer Cálido</option>
+              <option value="ocean">🌊 Bioluminiscente</option>
               <option value="forest">🍃 Bosque Boreal</option>
+              <option value="cyberpunk">🌆 Cyberpunk Tokio</option>
+              <option value="terracotta">🏺 Terracota & Desierto</option>
+              <option value="cyan_amber">✨ Cian / Ámbar</option>
             </optgroup>
-            <option value="custom">🎛️ Personalizada Manual</option>
+            <optgroup label="📐 Teoría del Color (Rueda 360°)">
+              <option value="triad">📐 Contraste / Tríada (120°)</option>
+              <option value="analogous">🌿 Suave / Análoga (35°)</option>
+            </optgroup>
           </select>
         </div>
       </div>
@@ -562,6 +570,8 @@ let COLOR_PALETTE = 'iris';
 let COLOR_HUE = 205;
 let COLOR_SCALE = 3.5;
 let COLOR_INTENSITY = 1.0;
+let MONO_INK_THEME = 'black'; // 'black' | 'white' | 'sepia' | 'indigo' | 'sanguine' | 'custom'
+let MONO_CUSTOM_INK = '#0f2b48';
 let BG_THEME = 'white';
 let isCustomPhotoLoaded = false;
 let customColorsRGB = [
@@ -645,11 +655,64 @@ const RAINBOW_STOPS = [
 
 const PALETTE_PRESETS = {
   iris:        ['#ff4d6d', '#00d2ff', '#9b5de5'],
-  cyan_amber:  ['#56cfe1', '#e0fbfc', '#f4a261'],
   sunset:      ['#e63946', '#ffb703', '#8338ec'],
   ocean:       ['#00f5d4', '#00bbf9', '#5e60ce'],
-  forest:      ['#2a9d8f', '#e9c46a', '#e76f51']
+  forest:      ['#2a9d8f', '#e9c46a', '#e76f51'],
+  cyberpunk:   ['#f72585', '#7209b7', '#4cc9f0'],
+  terracotta:  ['#bc6c25', '#dda15e', '#606c38'],
+  cyan_amber:  ['#56cfe1', '#e0fbfc', '#f4a261']
 };
+
+const MONO_INK_COLORS = {
+  black:    '#0e1118',
+  white:    '#f8fafc',
+  sepia:    '#52361b',
+  indigo:   '#0f2b48',
+  sanguine: '#8b263e'
+};
+
+function hexToRgbTuple(hex) {
+  if (!hex) return [255, 255, 255];
+  const clean = hex.replace('#', '');
+  const num = parseInt(clean, 16);
+  return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+}
+
+function isBgDark(theme = BG_THEME) {
+  return theme === 'dark' || theme === 'slate';
+}
+
+function getMonoInkHex(theme = MONO_INK_THEME) {
+  if (theme === 'custom') return MONO_CUSTOM_INK || '#0f2b48';
+  return MONO_INK_COLORS[theme] || (isBgDark(BG_THEME) ? '#f8fafc' : '#0e1118');
+}
+
+function getMonoStrokeColor() {
+  const baseHex = getMonoInkHex(MONO_INK_THEME);
+  const rgb = hexToRgbTuple(baseHex);
+  const alpha = Math.min(1.0, Math.max(0.20, 0.22 + 0.78 * Math.min(1.0, COLOR_INTENSITY)));
+  let r = rgb[0], g = rgb[1], b = rgb[2];
+  if (COLOR_INTENSITY > 1.0) {
+    const factor = (COLOR_INTENSITY - 1.0) * 0.4;
+    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+    if (lum > 128) {
+      r = Math.min(255, r + factor * 40);
+      g = Math.min(255, g + factor * 40);
+      b = Math.min(255, b + factor * 40);
+    } else {
+      r = Math.max(0, r - factor * 20);
+      g = Math.max(0, g - factor * 20);
+      b = Math.max(0, b - factor * 20);
+    }
+  } else if (COLOR_INTENSITY < 1.0) {
+    const bgRgb = hexToRgbTuple(BG_COLORS[BG_THEME] || '#ffffff');
+    const t = 1.0 - COLOR_INTENSITY;
+    r = r * (1.0 - t * 0.45) + bgRgb[0] * (t * 0.45);
+    g = g * (1.0 - t * 0.45) + bgRgb[1] * (t * 0.45);
+    b = b * (1.0 - t * 0.45) + bgRgb[2] * (t * 0.45);
+  }
+  return `rgba(${r | 0},${g | 0},${b | 0},${alpha.toFixed(3)})`;
+}
 
 const BG_COLORS = {
   white: '#ffffff',
@@ -698,7 +761,7 @@ const MODE_PRESETS = {
   stencil_clean:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.28, bgClean: 0.000, minR: 1.6, maxR: 8.5, chaikin: 1, lineW: 1.0, colorMode: 'mono' },
   stencil_cross:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.32, bgClean: 0.000, minR: 2.6, maxR: 9.0, chaikin: 1, lineW: 1.0, colorMode: 'mono' },
   live_growth:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.28, bgClean: 0.000, minR: 2.8, maxR: 9.0, chaikin: 1, lineW: 1.0, colorMode: 'mono' },
-  golden:         { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.42, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1, lineW: 1.0, colorMode: 'line_strand', colorPalette: 'cyan_amber' },
+  golden:         { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.42, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1, lineW: 1.0, colorMode: 'organic_flow', colorPalette: 'cyan_amber' },
   fractal:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1, lineW: 1.0, colorMode: 'mono' },
   hex_spiral:     { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.05, hexSpiralSize: 8.5, colorMode: 'mono' },
   iso_diamond:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.0, isoDiamondSize: 11.0, colorMode: 'mono' },
@@ -5009,7 +5072,7 @@ function syncCustomColorsFromPickers() {
  */
 function getOrganicLineColor(i, totalLen, x, y) {
   if (COLOR_MODE === 'mono') {
-    return BG_THEME === 'dark' ? '#e8eef7' : '#0e1118';
+    return getMonoStrokeColor();
   }
 
   if (COLOR_MODE === 'photo_exact') {
@@ -5336,7 +5399,7 @@ function rebuildLineCache() {
   const isCrispPolygon = (ENGINE_MODE === 'honeycomb' || ENGINE_MODE === 'hex_spiral' || ENGINE_MODE === 'iso_diamond');
 
   if (COLOR_MODE === 'mono') {
-    const monoStroke = BG_THEME === 'dark' ? '#e8eef7' : '#0e1118';
+    const monoStroke = getMonoStrokeColor();
     lCtx.strokeStyle = monoStroke;
     const chunkStep = isGoldenSpiral ? 8 : 10;
     for (let start = 1; start < totalLen - 1; start += chunkStep) {
@@ -6019,9 +6082,12 @@ function updateColorPanelVisibility() {
   const mode = COLOR_MODE;
   const isMono = (mode === 'mono');
   const isPhotoExact = (mode === 'photo_exact');
+  const isPhotoFusion = (mode === 'photo_fusion');
   const isRainbow = (mode === 'rainbow' || mode === 'rainbow_bands');
   const usesCustomPalette = (!isMono && !isPhotoExact && !isRainbow);
+  const isTheoreticalHarmony = (COLOR_PALETTE === 'triad' || COLOR_PALETTE === 'analogous');
 
+  const boxMonoInk = document.getElementById('boxMonoInk');
   const boxPalette = document.getElementById('boxPalette');
   const boxHue = document.getElementById('boxHue');
   const boxPickers = document.getElementById('boxPickers');
@@ -6029,12 +6095,37 @@ function updateColorPanelVisibility() {
   const boxIntensity = document.getElementById('boxIntensity');
   const boxFlow = document.getElementById('boxFlow');
 
+  if (boxMonoInk) boxMonoInk.style.display = isMono ? 'block' : 'none';
   if (boxPalette) boxPalette.style.display = usesCustomPalette ? 'block' : 'none';
   if (boxPickers) boxPickers.style.display = usesCustomPalette ? 'flex' : 'none';
-  if (boxHue) boxHue.style.display = (usesCustomPalette || isRainbow) ? 'block' : 'none';
+  if (boxHue) boxHue.style.display = (isRainbow || (usesCustomPalette && isTheoreticalHarmony)) ? 'block' : 'none';
   if (boxScale) boxScale.style.display = (!isMono && !isPhotoExact) ? 'block' : 'none';
-  if (boxIntensity) boxIntensity.style.display = (!isMono) ? 'block' : 'none';
+  if (boxIntensity) boxIntensity.style.display = 'block';
   if (boxFlow) boxFlow.style.display = (!isMono && !isPhotoExact) ? 'block' : 'none';
+}
+
+const monoInkSel = document.getElementById('monoInkSelect');
+const monoInkPicker = document.getElementById('monoInkCustomPicker');
+
+if (monoInkSel) {
+  monoInkSel.addEventListener('change', (e) => {
+    MONO_INK_THEME = e.target.value;
+    if (monoInkPicker) {
+      monoInkPicker.style.display = (MONO_INK_THEME === 'custom') ? 'inline-block' : 'none';
+    }
+    lineCacheDirty = true;
+    render();
+  });
+}
+
+if (monoInkPicker) {
+  monoInkPicker.addEventListener('input', (e) => {
+    MONO_CUSTOM_INK = e.target.value;
+    MONO_INK_THEME = 'custom';
+    if (monoInkSel) monoInkSel.value = 'custom';
+    lineCacheDirty = true;
+    render();
+  });
 }
 
 document.getElementById('colorMode').addEventListener('change', (e) => {
@@ -6064,9 +6155,11 @@ document.getElementById('colorPalette').addEventListener('change', (e) => {
       syncCustomColorsFromPickers();
     }
   }
+  updateColorPanelVisibility();
   if (COLOR_MODE === 'mono') {
     COLOR_MODE = 'organic_flow';
     document.getElementById('colorMode').value = 'organic_flow';
+    updateColorPanelVisibility();
   }
   lineCacheDirty = true;
   render();
@@ -6093,8 +6186,9 @@ document.getElementById('colorHue').addEventListener('input', (e) => {
     syncCustomColorsFromPickers();
   }
   if (COLOR_MODE === 'mono') {
-    COLOR_MODE = 'line_strand';
-    document.getElementById('colorMode').value = 'line_strand';
+    COLOR_MODE = 'organic_flow';
+    document.getElementById('colorMode').value = 'organic_flow';
+    updateColorPanelVisibility();
   }
   lineCacheDirty = true;
   render();
@@ -6110,12 +6204,13 @@ document.getElementById('colorIntensity').addEventListener('input', (e) => {
 
 for (const pickId of ['colPick1', 'colPick2', 'colPick3']) {
   document.getElementById(pickId).addEventListener('input', () => {
-    document.getElementById('colorPalette').value = 'custom';
     COLOR_PALETTE = 'custom';
     syncCustomColorsFromPickers();
+    updateColorPanelVisibility();
     if (COLOR_MODE === 'mono') {
       COLOR_MODE = 'organic_flow';
       document.getElementById('colorMode').value = 'organic_flow';
+      updateColorPanelVisibility();
     }
     lineCacheDirty = true;
     render();
@@ -6131,6 +6226,17 @@ document.getElementById('colorScale').addEventListener('input', (e) => {
 
 document.getElementById('bgTheme').addEventListener('change', (e) => {
   BG_THEME = e.target.value;
+  if (BG_THEME === 'dark') {
+    if (MONO_INK_THEME === 'black') {
+      MONO_INK_THEME = 'white';
+      if (monoInkSel) monoInkSel.value = 'white';
+    }
+  } else if (BG_THEME === 'white' || BG_THEME === 'cream') {
+    if (MONO_INK_THEME === 'white') {
+      MONO_INK_THEME = 'black';
+      if (monoInkSel) monoInkSel.value = 'black';
+    }
+  }
   lineCacheDirty = true;
   render();
 });
