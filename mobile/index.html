@@ -1828,17 +1828,18 @@
       <option value="haring_puzzle">🧩 17. Keith Haring Puzle Humano (Cuadro de Formas Humanas)</option>
       <option value="halftone_dots">⚫ 18. Trama de Puntos (Halftone Pop-Art)</option>
       <option value="honeycomb">🐝 19. Colmena Hexagonal (Panal de Abeja Orgánico)</option>
+      <option value="escher_cube">🎲 20. Celosía Escheriana en Y (Isométrico)</option>
     </select>
 
     <div id="dockContent">
       <!-- =========================================================
-           TAB 1: ESTILOS (19 ESTILOS + AJUSTES ESPECÍFICOS)
+           TAB 1: ESTILOS (20 ESTILOS + AJUSTES ESPECÍFICOS)
            ========================================================= -->
       <div class="tab-pane active" id="paneEstilo">
         <div class="studio-group-block">
           <div class="studio-block-header">
             <span class="studio-block-label">Algoritmo de Trazado</span>
-            <span class="studio-block-value">19 Estilos</span>
+            <span class="studio-block-value">20 Estilos</span>
           </div>
           <div class="style-carousel" id="styleCarousel">
             <div class="style-card active" data-mode="coral">
@@ -1935,6 +1936,11 @@
               <span class="card-emoji">🐝</span>
               <span class="card-title">Modo Colmena</span>
               <span class="card-badge">Panal Hexagonal</span>
+            </div>
+            <div class="style-card" data-mode="escher_cube">
+              <span class="card-emoji">🎲</span>
+              <span class="card-title">Escher</span>
+              <span class="card-badge">Celosía en Y</span>
             </div>
           </div>
         </div>
@@ -2125,6 +2131,19 @@
             </div>
             <div class="studio-slider-track-wrap">
               <input type="range" id="vortexSize" min="4.0" max="22.0" step="0.5" value="8.5">
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTROL DINÁMICO DE CELOSÍA ESCHER EN Y -->
+        <div id="boxEscherControls" class="studio-group-block is-hidden">
+          <div class="studio-slider-card">
+            <div class="studio-slider-header">
+              <span class="studio-slider-title">Tamaño de Celosía Escher</span>
+              <span class="studio-val-badge" id="vEscherSize">14.0px</span>
+            </div>
+            <div class="studio-slider-track-wrap">
+              <input type="range" id="escherSize" min="6.0" max="28.0" step="0.5" value="14.0">
             </div>
           </div>
         </div>
@@ -3010,6 +3029,7 @@ let ISO_DIAMOND_SIZE = 11.0;
 let PANOT_SIZE = 14.0;
 let FLOR_BCN_SIZE = 15.0;
 let VORTEX_SIZE = 8.5;
+let ESCHER_SIZE = 14.0;
 
 const MODE_DESCRIPTIONS = {
   coral: '🧠 Coral Cerebral Dendrítico: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros redondeados en U sin dejar huecos vacíos.',
@@ -3030,7 +3050,8 @@ const MODE_DESCRIPTIONS = {
   haring_croc:    '🐊 Keith Haring Cocodrilos (Bestiario Pop-Art): Esculpe el retrato con los icónicos cocodrilos de Keith Haring (cocodrilos de perfil con cresta dorsal en sierra y grandes fauces dentadas, el famoso Hombre-Cocodrilo con brazos en alto y caimanes en S) tejidos en una sola línea continua.',
   haring_puzzle:  '🧩 Keith Haring Puzle Humano (Cuadro de Formas Humanas): Rellena el retrato de extremo a extremo con decenas de figuras humanas de Keith Haring en múltiples escalas y ángulos que se abrazan y encajan unas con otras como un puzle viviente en línea continua.',
   halftone_dots:  '⚫ Trama de Puntos (Halftone Pop-Art): Retícula angular serigráfica a 45° con puntos de área proporcional a la densidad tonal y ganancia de punto en sombras profundas.',
-  honeycomb:      '🐝 Colmena Hexagonal (Panal de Abeja Orgánico): Mosaico continuo de celdas hexagonales 100% encajadas que esculpen los rasgos y volúmenes del retrato mediante cámaras y anillos concéntricos adaptativos.'
+  honeycomb:      '🐝 Colmena Hexagonal (Panal de Abeja Orgánico): Mosaico continuo de celdas hexagonales 100% encajadas que esculpen los rasgos y volúmenes del retrato mediante cámaras y anillos concéntricos adaptativos.',
+  escher_cube:    '🎲 Celosía Escheriana en Y (Isométrico): Mosaico hexagonal continuo con celdas de brazos a 120° y puntas de flecha entrelazadas en Y (estilo Escher / Kumiko) que modulan pliegues concéntricos según la densidad tonal.'
 };
 
 const MODE_PRESETS = {
@@ -3052,7 +3073,8 @@ const MODE_PRESETS = {
   haring_croc:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3, fusionOpacity: 20, colorMode: 'organic_flow', colorPalette: 'forest' },
   haring_puzzle:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3, fusionOpacity: 25, colorMode: 'organic_flow', colorPalette: 'sunset' },
   halftone_dots:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.52, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' },
-  honeycomb:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 6.0, chaikin: 0, lineW: 1.0, honeycombSize: 14.0, fusionOpacity: 50, colorMode: 'mono' }
+  honeycomb:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 6.0, chaikin: 0, lineW: 1.0, honeycombSize: 14.0, fusionOpacity: 50, colorMode: 'mono' },
+  escher_cube:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.0, escherSize: 14.0, fusionOpacity: 0, colorMode: 'mono' }
 };
 
 function syncSliderProgress(el) {
@@ -3161,6 +3183,7 @@ function syncSlidersFromState() {
   setSlider('panotSize', 'vPanotSize', PANOT_SIZE, 1, 'px');
   setSlider('florBcnSize', 'vFlorBcnSize', FLOR_BCN_SIZE, 1, 'px');
   setSlider('vortexSize', 'vVortexSize', VORTEX_SIZE, 1, 'px');
+  setSlider('escherSize', 'vEscherSize', ESCHER_SIZE, 1, 'px');
   setFusionOpacity(FUSION_OPACITY);
   syncPresetPills('maxN', TARGET_NODES, 500);
   syncViewLayerCards(VIEW_MODE);
@@ -6126,6 +6149,134 @@ function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteM
 }
 
 /**
+ * MODO 20: CELOSÍA ESCHERIANA EN Y (MOSAICO ISOMÉTRICO 3-EJES / KUMIKO BISHAMON):
+ * Mosaico hexagonal continuo con celdas de 3 brazos a 120° y cheurones/puntas de flecha entrelazadas en Y
+ * inspiradas en las divisiones regulares del plano de M.C. Escher.
+ * Modula pliegues concéntricos continuos según los claroscuros del retrato con 0 cruces de pluma.
+ */
+function generateEscherYPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 5.5, TARGET_NODES = 24000, seed = 0, escherSize = 14.0) {
+  const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
+  const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
+  const cellR = (escherSize && escherSize >= 5.0)
+    ? escherSize
+    : Math.max(5.0, Math.min(28.0, MIN_R * 4.2 * maxRScale * nodeScale));
+
+  const rad = Math.PI / 180;
+  const dx = cellR * 1.73205; // sqrt(3)
+  const dy = cellR * 1.50000;
+  const rows = Math.ceil(H / dy) + 1;
+  const cols = Math.ceil(W / dx) + 1;
+
+  const offX = (seed % 7) * 0.14 * dx;
+  const offY = ((seed * 3) % 7) * 0.14 * dy;
+
+  const outX = [];
+  const outY = [];
+
+  const lightCut = Math.max(0.04, Math.min(0.20, 0.04 + (MAX_R / 35.0) * 0.12));
+  const maxFolds = Math.max(2, Math.min(6, Math.round(5.8 - MIN_R * 0.5)));
+
+  for (let r = 1; r < rows - 1; r++) {
+    const cy = r * dy + offY;
+    let firstC = -1, lastC = -1;
+
+    for (let c = 1; c < cols - 1; c++) {
+      const cx = c * dx + ((r & 1) ? dx * 0.5 : 0) + offX;
+      if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+      const dark = Math.max(0, 1.0 - (coralToneMap ? coralToneMap[idx] : 1.0));
+      const lineDark = Math.max(0, 1.0 - (step232Stencil ? step232Stencil[idx] : 1.0));
+      if (Math.min(1.0, dark * 0.65 + lineDark * 0.95) >= 0.05) {
+        if (firstC === -1) firstC = c;
+        lastC = c;
+      }
+    }
+    if (firstC === -1) continue;
+
+    const l2r = (r & 1) === 0;
+    const startC = l2r ? firstC : lastC;
+    const endC = l2r ? lastC : firstC;
+    const stepC = l2r ? 1 : -1;
+
+    for (let c = startC; l2r ? c <= endC : c >= endC; c += stepC) {
+      const cx = c * dx + ((r & 1) ? dx * 0.5 : 0) + offX;
+      if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
+
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+
+      const tone = coralToneMap ? coralToneMap[idx] : 0.5;
+      const s232 = step232Stencil ? step232Stencil[idx] : 1.0;
+      const dark = Math.max(0, 1.0 - tone);
+      const lineDark = Math.max(0, 1.0 - s232);
+      const effDark = Math.min(1.0, dark * 0.65 + lineDark * 0.95);
+
+      let px = cx, py = cy;
+      if (effDark > 0.08 && idx > W && idx < W * (H - 1) - 1) {
+        const gx = (coralToneMap[idx + 1] - coralToneMap[idx - 1]) * 0.5 + (step232Stencil[idx + 1] - step232Stencil[idx - 1]) * 0.5;
+        const gy = (coralToneMap[idx + W] - coralToneMap[idx - W]) * 0.5 + (step232Stencil[idx + W] - step232Stencil[idx - W]) * 0.5;
+        const pull = Math.min(1.8, effDark * 1.5);
+        px = Math.max(5, Math.min(W - 5, px - gx * pull));
+        py = Math.max(5, Math.min(H - 5, py - gy * pull));
+      }
+
+      const enterX = l2r ? px - dx * 0.48 : px + dx * 0.48;
+      const exitX = l2r ? px + dx * 0.48 : px - dx * 0.48;
+
+      if (effDark < lightCut) {
+        outX.push(enterX, px, exitX);
+        outY.push(py, py - dy * 0.28, py);
+        continue;
+      }
+
+      const folds = Math.min(maxFolds, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.2) * (maxFolds - 0.7))));
+
+      outX.push(enterX);
+      outY.push(py);
+
+      const armOrder = l2r ? [150, 270, 30] : [30, 270, 150];
+
+      for (let f = 0; f <= folds; f++) {
+        const u = f / Math.max(1, folds);
+        const s = 0.95 * (1.0 - u * 0.76);
+        const rArm = cellR * s;
+        const wArm = rArm * 0.32;
+        const apexExtra = wArm * 0.58;
+
+        for (let i = 0; i < 3; i++) {
+          const ang = armOrder[i] * rad;
+          const ax = Math.cos(ang);
+          const ay = -Math.sin(ang);
+          const nx = -Math.sin(ang);
+          const ny = -Math.cos(ang);
+
+          // Esquina 1
+          outX.push(px + ax * (rArm * 0.75) - nx * wArm);
+          outY.push(py + ay * (rArm * 0.75) - ny * wArm);
+          // Apex
+          outX.push(px + ax * (rArm + apexExtra));
+          outY.push(py + ay * (rArm + apexExtra));
+          // Esquina 2
+          outX.push(px + ax * (rArm * 0.75) + nx * wArm);
+          outY.push(py + ay * (rArm * 0.75) + ny * wArm);
+          // Centro
+          outX.push(px);
+          outY.push(py);
+        }
+      }
+
+      outX.push(exitX);
+      outY.push(py);
+    }
+  }
+
+  return {
+    ptsX: new Float32Array(outX),
+    ptsY: new Float32Array(outY)
+  };
+}
+
 /**
  * MODO 11: PANOTS DE BARCELONA (BALDOSA HIDRÁULICA CON MARCO):
  * Teje una red continua de baldosas completas con marco perimetral biselado y la icónica Flor de Barcelona
@@ -8697,7 +8848,7 @@ self.onmessage = function(e) {
     customFocalX, customFocalY, haringIconCount = 95, haringIconSize = 100,
     halftoneSpacing = 6.5, halftoneScale = 115, halftoneAngle = 45, halftoneType = 'dots', bgClean = 0.000,
     honeycombSize = 14.0, honeycombWalls = 3, honeycombSubdiv = true,
-    hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 14.0, florBcnSize = 15.0, vortexSize = 8.5
+    hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 14.0, florBcnSize = 15.0, vortexSize = 8.5, escherSize = 14.0
   } = e.data;
 
   const tStart = performance.now();
@@ -8800,6 +8951,17 @@ self.onmessage = function(e) {
 
   if (engineMode === 'pursuit_vortex') {
     let { ptsX, ptsY } = generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed, vortexSize);
+    if (CHAIKIN_PASSES > 0) {
+      ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+    }
+    const outX = new Float32Array(ptsX);
+    const outY = new Float32Array(ptsY);
+    self.postMessage({ jobId, ptsX: outX, ptsY: outY, pass: 1, totalPasses: 1, done: true }, [outX.buffer, outY.buffer]);
+    return;
+  }
+
+  if (engineMode === 'escher_cube') {
+    let { ptsX, ptsY } = generateEscherYPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed, escherSize);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -9037,6 +9199,7 @@ function rebuildPortrait(needsStencilRebuild = true) {
     panotSize: PANOT_SIZE,
     florBcnSize: FLOR_BCN_SIZE,
     vortexSize: VORTEX_SIZE,
+    escherSize: ESCHER_SIZE,
     bgClean: BG_CLEAN
   }, [s232Copy.buffer, coralCopy.buffer, silCopy.buffer, smSilCopy.buffer]);
 }
@@ -9480,7 +9643,7 @@ function rebuildLineCache() {
   }
 
   const isGoldenSpiral = (ENGINE_MODE === 'golden_spiral');
-  const isCrispPolygon = (ENGINE_MODE === 'honeycomb' || ENGINE_MODE === 'hex_spiral' || ENGINE_MODE === 'iso_diamond');
+  const isCrispPolygon = (ENGINE_MODE === 'honeycomb' || ENGINE_MODE === 'hex_spiral' || ENGINE_MODE === 'iso_diamond' || ENGINE_MODE === 'escher_cube');
 
   if (COLOR_MODE === 'mono') {
     const monoStroke = getMonoStrokeColor();
@@ -9782,7 +9945,7 @@ function startAnimation() {
       drawStencilCleanRange(aCtx, startIdx, nextLimit, totalLen, chunkStep);
     } else {
       const isGoldenSpiral = (ENGINE_MODE === 'golden_spiral');
-      const isCrispPolygon = (ENGINE_MODE === 'honeycomb' || ENGINE_MODE === 'hex_spiral' || ENGINE_MODE === 'iso_diamond');
+      const isCrispPolygon = (ENGINE_MODE === 'honeycomb' || ENGINE_MODE === 'hex_spiral' || ENGINE_MODE === 'iso_diamond' || ENGINE_MODE === 'escher_cube');
       for (let s = startIdx; s < nextLimit; s += chunkStep) {
         const e = Math.min(nextLimit, s + chunkStep);
         if (isGoldenSpiral && isChunkOffViewport(s, e, totalLen)) continue;
@@ -10268,6 +10431,13 @@ function applyModePreset(mode) {
     if (el) { el.value = String(p.vortexSize); syncSliderProgress(el); }
     const lbl = document.getElementById('vVortexSize');
     if (lbl) lbl.textContent = `${p.vortexSize.toFixed(1)}px`;
+  }
+  if (p.escherSize !== undefined) {
+    ESCHER_SIZE = p.escherSize;
+    const el = document.getElementById('escherSize');
+    if (el) { el.value = String(p.escherSize); syncSliderProgress(el); }
+    const lbl = document.getElementById('vEscherSize');
+    if (lbl) lbl.textContent = `${p.escherSize.toFixed(1)}px`;
   }
 
   if (!isCustomPhotoLoaded) {
@@ -11097,6 +11267,7 @@ bindParam('isoDiamondSize', 'vIsoDiamondSize', v => { ISO_DIAMOND_SIZE = v; }, f
 bindParam('panotSize', 'vPanotSize', v => { PANOT_SIZE = v; }, false, 1, 'px');
 bindParam('florBcnSize', 'vFlorBcnSize', v => { FLOR_BCN_SIZE = v; }, false, 1, 'px');
 bindParam('vortexSize', 'vVortexSize', v => { VORTEX_SIZE = v; }, false, 1, 'px');
+bindParam('escherSize', 'vEscherSize', v => { ESCHER_SIZE = v; }, false, 1, 'px');
 
 const btnHcSubdivOn = document.getElementById('btnHoneycombSubdivOn');
 const btnHcSubdivOff = document.getElementById('btnHoneycombSubdivOff');
@@ -11796,6 +11967,7 @@ function updateFocalMarker() {
   const boxPanot = document.getElementById('boxPanotControls');
   const boxFlorBcn = document.getElementById('boxFlorBcnControls');
   const boxVortex = document.getElementById('boxVortexControls');
+  const boxEscher = document.getElementById('boxEscherControls');
   const modeDesc = document.getElementById('modeDesc');
   const txt = document.getElementById('focalCoordsText');
   const statusPill = document.getElementById('statusPill');
@@ -11809,6 +11981,7 @@ function updateFocalMarker() {
   const isPanot = (ENGINE_MODE === 'panot_bcn');
   const isFlorBcn = (ENGINE_MODE === 'flor_bcn');
   const isVortex = (ENGINE_MODE === 'pursuit_vortex');
+  const isEscher = (ENGINE_MODE === 'escher_cube');
 
   if (boxHaring) boxHaring.classList.toggle('is-hidden', !isHaring);
   if (boxHalftone) boxHalftone.classList.toggle('is-hidden', !isHalftone);
@@ -11818,9 +11991,10 @@ function updateFocalMarker() {
   if (boxPanot) boxPanot.classList.toggle('is-hidden', !isPanot);
   if (boxFlorBcn) boxFlorBcn.classList.toggle('is-hidden', !isFlorBcn);
   if (boxVortex) boxVortex.classList.toggle('is-hidden', !isVortex);
+  if (boxEscher) boxEscher.classList.toggle('is-hidden', !isEscher);
   if (box) box.classList.toggle('is-hidden', !isSpiral);
   if (modeDesc) {
-    const hasCustomControls = isHaring || isHalftone || isHoneycomb || isHexSpiral || isIsoDiamond || isPanot || isFlorBcn || isVortex;
+    const hasCustomControls = isHaring || isHalftone || isHoneycomb || isHexSpiral || isIsoDiamond || isPanot || isFlorBcn || isVortex || isEscher;
     modeDesc.classList.toggle('is-hidden', hasCustomControls);
   }
 
@@ -11866,6 +12040,8 @@ function updateActiveFunctionPill() {
       statusPill.textContent = '⚫ Trama de Puntos';
     } else if (ENGINE_MODE === 'honeycomb') {
       statusPill.textContent = '🐝 Panal Hexagonal';
+    } else if (ENGINE_MODE === 'escher_cube') {
+      statusPill.textContent = '🎲 Celosía Escher';
     } else {
       const activeSubtab = document.querySelector('#paneTrazo .studio-subnav-btn.active');
       const subId = activeSubtab ? activeSubtab.getAttribute('data-subtab') : '';

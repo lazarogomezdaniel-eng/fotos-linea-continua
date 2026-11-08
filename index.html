@@ -274,7 +274,7 @@
 
     <!-- Selector de Algoritmo / Estilo de Línea Continua (TODOS LOS MODOS CONSERVADOS + NUEVOS) -->
     <div class="panel-section">
-      <div class="panel-title"><span>Modo / Algoritmo de Línea (15 Modos)</span> <span>⚡</span></div>
+      <div class="panel-title"><span>Modo / Algoritmo de Línea (Estilos)</span> <span>⚡</span></div>
       <select id="engineMode">
         <option value="coral">🧠 1. Coral Cerebral Dendrítico (100% Relleno de Silueta)</option>
         <option value="coral_tsp">🌊 2. Coral Orgánico TSP (Stippling + 2-Opt + Chaikin)</option>
@@ -291,6 +291,7 @@
         <option value="flor_fractal">🌸 13. Flor Fractal de Barcelona (Formato Fractal 7 · Abierta Sin Cruces)</option>
         <option value="golden_spiral">🐚 14. Espiral Áurea Proporcional (Caracol Fibonacci φ = 1.618)</option>
         <option value="honeycomb">🐝 19. Colmena Hexagonal (Panal de Abeja Orgánico)</option>
+        <option value="escher_cube">🎲 20. Celosía Escheriana en Y (Isométrico)</option>
       </select>
       <div id="modeDesc" class="mode-badge">
         🧠 Coral: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros en U de extremo a extremo.
@@ -764,7 +765,8 @@ const MODE_DESCRIPTIONS = {
   flor_bcn:       '🌺 Flor de Barcelona: Silueta floral continua con relieves concéntricos adaptados a las facciones, sin marco ni cortes.',
   flor_fractal:   '🌸 Flor Fractal de Barcelona (Formato Fractal 7): Curva fractal adaptativa multiescala (Hilbert 2ⁿ) donde cada celda traza la Flor de Barcelona abierta (4 pétalos bulbosos y cintura) sin cruzar nunca por dentro, en una sola línea continua libre de cruces.',
   golden_spiral:  '🐚 Espiral Áurea Proporcional (φ = 1.618): Caracol logarítmico de Fibonacci anclado en la pupila dominante que esculpe el retrato mediante grabado caligráfico al buril de un solo trazo continuo.',
-  honeycomb:      '🐝 Colmena Hexagonal (Panal de Abeja Orgánico): Mosaico continuo de celdas hexagonales 100% encajadas que esculpen los rasgos y volúmenes del retrato mediante cámaras y anillos concéntricos adaptativos.'
+  honeycomb:      '🐝 Colmena Hexagonal (Panal de Abeja Orgánico): Mosaico continuo de celdas hexagonales 100% encajadas que esculpen los rasgos y volúmenes del retrato mediante cámaras y anillos concéntricos adaptativos.',
+  escher_cube:    '🎲 Celosía Escheriana en Y (Isométrico): Mosaico hexagonal continuo con celdas de brazos a 120° y puntas de flecha entrelazadas en Y (estilo Escher / Kumiko) que modulan pliegues concéntricos según la densidad tonal.'
 };
 
 const MODE_PRESETS = {
@@ -782,7 +784,8 @@ const MODE_PRESETS = {
   flor_bcn:       { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.60, bgClean: 0.000, minR: 1.8, maxR: 6.5, chaikin: 1, lineW: 1.0, florBcnSize: 15.0, colorMode: 'mono' },
   flor_fractal:   { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 7.0, chaikin: 1, lineW: 1.0, colorMode: 'mono' },
   golden_spiral:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.70, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.0, colorMode: 'mono', monoInk: 'sanguine' },
-  honeycomb:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 6.0, chaikin: 0, lineW: 1.0, honeycombSize: 14.0, fusionOpacity: 50, colorMode: 'mono' }
+  honeycomb:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 6.0, chaikin: 0, lineW: 1.0, honeycombSize: 14.0, fusionOpacity: 50, colorMode: 'mono' },
+  escher_cube:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.0, escherSize: 14.0, colorMode: 'mono' }
 };
 
 function syncSlidersFromState() {
@@ -3786,6 +3789,134 @@ function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteM
 }
 
 /**
+ * MODO 20: CELOSÍA ESCHERIANA EN Y (MOSAICO ISOMÉTRICO 3-EJES / KUMIKO BISHAMON):
+ * Mosaico hexagonal continuo con celdas de 3 brazos a 120° y cheurones/puntas de flecha entrelazadas en Y
+ * inspiradas en las divisiones regulares del plano de M.C. Escher.
+ * Modula pliegues concéntricos continuos según los claroscuros del retrato con 0 cruces de pluma.
+ */
+function generateEscherYPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 5.5, TARGET_NODES = 24000, seed = 0, escherSize = 14.0) {
+  const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
+  const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
+  const cellR = (escherSize && escherSize >= 5.0)
+    ? escherSize
+    : Math.max(5.0, Math.min(28.0, MIN_R * 4.2 * maxRScale * nodeScale));
+
+  const rad = Math.PI / 180;
+  const dx = cellR * 1.73205; // sqrt(3)
+  const dy = cellR * 1.50000;
+  const rows = Math.ceil(H / dy) + 1;
+  const cols = Math.ceil(W / dx) + 1;
+
+  const offX = (seed % 7) * 0.14 * dx;
+  const offY = ((seed * 3) % 7) * 0.14 * dy;
+
+  const outX = [];
+  const outY = [];
+
+  const lightCut = Math.max(0.04, Math.min(0.20, 0.04 + (MAX_R / 35.0) * 0.12));
+  const maxFolds = Math.max(2, Math.min(6, Math.round(5.8 - MIN_R * 0.5)));
+
+  for (let r = 1; r < rows - 1; r++) {
+    const cy = r * dy + offY;
+    let firstC = -1, lastC = -1;
+
+    for (let c = 1; c < cols - 1; c++) {
+      const cx = c * dx + ((r & 1) ? dx * 0.5 : 0) + offX;
+      if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+      const dark = Math.max(0, 1.0 - (coralToneMap ? coralToneMap[idx] : 1.0));
+      const lineDark = Math.max(0, 1.0 - (step232Stencil ? step232Stencil[idx] : 1.0));
+      if (Math.min(1.0, dark * 0.65 + lineDark * 0.95) >= 0.05) {
+        if (firstC === -1) firstC = c;
+        lastC = c;
+      }
+    }
+    if (firstC === -1) continue;
+
+    const l2r = (r & 1) === 0;
+    const startC = l2r ? firstC : lastC;
+    const endC = l2r ? lastC : firstC;
+    const stepC = l2r ? 1 : -1;
+
+    for (let c = startC; l2r ? c <= endC : c >= endC; c += stepC) {
+      const cx = c * dx + ((r & 1) ? dx * 0.5 : 0) + offX;
+      if (cx < 6 || cx >= W - 6 || cy < 6 || cy >= H - 6) continue;
+
+      const idx = (cy | 0) * W + (cx | 0);
+      if (!silhouetteMask[idx]) continue;
+
+      const tone = coralToneMap ? coralToneMap[idx] : 0.5;
+      const s232 = step232Stencil ? step232Stencil[idx] : 1.0;
+      const dark = Math.max(0, 1.0 - tone);
+      const lineDark = Math.max(0, 1.0 - s232);
+      const effDark = Math.min(1.0, dark * 0.65 + lineDark * 0.95);
+
+      let px = cx, py = cy;
+      if (effDark > 0.08 && idx > W && idx < W * (H - 1) - 1) {
+        const gx = (coralToneMap[idx + 1] - coralToneMap[idx - 1]) * 0.5 + (step232Stencil[idx + 1] - step232Stencil[idx - 1]) * 0.5;
+        const gy = (coralToneMap[idx + W] - coralToneMap[idx - W]) * 0.5 + (step232Stencil[idx + W] - step232Stencil[idx - W]) * 0.5;
+        const pull = Math.min(1.8, effDark * 1.5);
+        px = Math.max(5, Math.min(W - 5, px - gx * pull));
+        py = Math.max(5, Math.min(H - 5, py - gy * pull));
+      }
+
+      const enterX = l2r ? px - dx * 0.48 : px + dx * 0.48;
+      const exitX = l2r ? px + dx * 0.48 : px - dx * 0.48;
+
+      if (effDark < lightCut) {
+        outX.push(enterX, px, exitX);
+        outY.push(py, py - dy * 0.28, py);
+        continue;
+      }
+
+      const folds = Math.min(maxFolds, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.2) * (maxFolds - 0.7))));
+
+      outX.push(enterX);
+      outY.push(py);
+
+      const armOrder = l2r ? [150, 270, 30] : [30, 270, 150];
+
+      for (let f = 0; f <= folds; f++) {
+        const u = f / Math.max(1, folds);
+        const s = 0.95 * (1.0 - u * 0.76);
+        const rArm = cellR * s;
+        const wArm = rArm * 0.32;
+        const apexExtra = wArm * 0.58;
+
+        for (let i = 0; i < 3; i++) {
+          const ang = armOrder[i] * rad;
+          const ax = Math.cos(ang);
+          const ay = -Math.sin(ang);
+          const nx = -Math.sin(ang);
+          const ny = -Math.cos(ang);
+
+          // Esquina 1
+          outX.push(px + ax * (rArm * 0.75) - nx * wArm);
+          outY.push(py + ay * (rArm * 0.75) - ny * wArm);
+          // Apex
+          outX.push(px + ax * (rArm + apexExtra));
+          outY.push(py + ay * (rArm + apexExtra));
+          // Esquina 2
+          outX.push(px + ax * (rArm * 0.75) + nx * wArm);
+          outY.push(py + ay * (rArm * 0.75) + ny * wArm);
+          // Centro
+          outX.push(px);
+          outY.push(py);
+        }
+      }
+
+      outX.push(exitX);
+      outY.push(py);
+    }
+  }
+
+  return {
+    ptsX: new Float32Array(outX),
+    ptsY: new Float32Array(outY)
+  };
+}
+
 /**
  * MODO 11: PANOTS DE BARCELONA (BALDOSA HIDRÁULICA CON MARCO):
  * Teje una red continua de baldosas completas con marco perimetral biselado y la icónica Flor de Barcelona
@@ -4787,7 +4918,7 @@ self.onmessage = function(e) {
     jobId, engineMode, step232Stencil, coralToneMap, silhouetteMask, smoothSilMap,
     W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0, maxTimeMs,
     honeycombSize = 14.0, honeycombWalls = 3, honeycombSubdiv = true,
-    hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 14.0, florBcnSize = 15.0, vortexSize = 8.5
+    hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 14.0, florBcnSize = 15.0, vortexSize = 8.5, escherSize = 14.0
   } = e.data;
 
   const tStart = performance.now();
@@ -4846,6 +4977,17 @@ self.onmessage = function(e) {
 
   if (engineMode === 'pursuit_vortex') {
     let { ptsX, ptsY } = generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed, vortexSize);
+    if (CHAIKIN_PASSES > 0) {
+      ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+    }
+    const outX = new Float32Array(ptsX);
+    const outY = new Float32Array(ptsY);
+    self.postMessage({ jobId, ptsX: outX, ptsY: outY, pass: 1, totalPasses: 1, done: true }, [outX.buffer, outY.buffer]);
+    return;
+  }
+
+  if (engineMode === 'escher_cube') {
+    let { ptsX, ptsY } = generateEscherYPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed, escherSize);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -5061,7 +5203,8 @@ function rebuildPortrait(needsStencilRebuild = true) {
     isoDiamondSize: 11.0,
     panotSize: 14.0,
     florBcnSize: 15.0,
-    vortexSize: 8.5
+    vortexSize: 8.5,
+    escherSize: 14.0
   }, [s232Copy.buffer, coralCopy.buffer, silCopy.buffer, smSilCopy.buffer]);
 }
 
@@ -5412,7 +5555,7 @@ function rebuildLineCache() {
   }
 
   const isGoldenSpiral = (ENGINE_MODE === 'golden_spiral');
-  const isCrispPolygon = (ENGINE_MODE === 'honeycomb' || ENGINE_MODE === 'hex_spiral' || ENGINE_MODE === 'iso_diamond');
+  const isCrispPolygon = (ENGINE_MODE === 'honeycomb' || ENGINE_MODE === 'hex_spiral' || ENGINE_MODE === 'iso_diamond' || ENGINE_MODE === 'escher_cube');
 
   if (COLOR_MODE === 'mono') {
     const monoStroke = getMonoStrokeColor();
