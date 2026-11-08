@@ -693,6 +693,9 @@ function isBgDark(theme = BG_THEME) {
 
 function getMonoInkHex(theme = MONO_INK_THEME) {
   if (theme === 'custom') return MONO_CUSTOM_INK || '#0f2b48';
+  // Guardia estricta de contraste
+  if (theme === 'white' && !isBgDark(BG_THEME)) return '#0e1118';
+  if (theme === 'black' && isBgDark(BG_THEME)) return '#f8fafc';
   return MONO_INK_COLORS[theme] || (isBgDark(BG_THEME) ? '#f8fafc' : '#0e1118');
 }
 
@@ -6140,6 +6143,13 @@ const monoInkPicker = document.getElementById('monoInkCustomPicker');
 if (monoInkSel) {
   monoInkSel.addEventListener('change', (e) => {
     MONO_INK_THEME = e.target.value;
+    if (MONO_INK_THEME === 'white' && !isBgDark(BG_THEME)) {
+      BG_THEME = 'dark';
+      document.getElementById('bgTheme').value = 'dark';
+    } else if (MONO_INK_THEME === 'black' && isBgDark(BG_THEME)) {
+      BG_THEME = 'white';
+      document.getElementById('bgTheme').value = 'white';
+    }
     if (monoInkPicker) {
       monoInkPicker.style.display = (MONO_INK_THEME === 'custom') ? 'inline-block' : 'none';
     }
@@ -6348,7 +6358,14 @@ document.getElementById('btnClear').onclick = () => {
   lineCacheDirty = true;
   ctx.fillStyle = BG_COLORS[BG_THEME] || '#ffffff';
   ctx.fillRect(0, 0, W, H);
-  statusPhase = 'Lienzo limpio (pulsa Reiniciar / Recalcular)';
+  ctx.save();
+  ctx.fillStyle = isBgDark(BG_THEME) ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)';
+  ctx.font = '15px system-ui, -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🧹 Lienzo limpio · Pulsa "Recalcular Trazado" para dibujar', W / 2, H / 2);
+  ctx.restore();
+  statusPhase = 'Lienzo limpio (pulsa Recalcular Trazado)';
   updateStatsText();
 };
 
@@ -6368,6 +6385,9 @@ document.getElementById('btnResetDefaults').onclick = () => {
   const selRainbow = document.getElementById('rainbowStyleSelect');
   if (selRainbow) selRainbow.value = 'strand';
   document.getElementById('bgTheme').value = 'white';
+  const defaultModeInk = (MODE_PRESETS[ENGINE_MODE] && MODE_PRESETS[ENGINE_MODE].monoInk) ? MODE_PRESETS[ENGINE_MODE].monoInk : 'black';
+  MONO_INK_THEME = defaultModeInk;
+  if (monoInkSel) monoInkSel.value = defaultModeInk;
   const pIris = PALETTE_PRESETS['iris'];
   if (pIris) {
     document.getElementById('colPick1').value = pIris[0];
