@@ -5122,7 +5122,7 @@ function getOrganicLineColor(i, totalLen, x, y) {
     // 🏳️‍🌈 Rainbow Franjas Verticales: 6 franjas puras moduladas por colorHue (0..360°)
     const hueShift = (COLOR_HUE / 360.0);
     const wave = isColorFlowing ? Math.sin((y / H) * Math.PI * 2.0 + colorPhase) * 0.035 : 0;
-    const rawPos = (((x / W) + hueShift + wave) % 1.0 + 1.0) % 1.0;
+    const rawPos = ((((x / W) * COLOR_SCALE) + hueShift + wave) % 1.0 + 1.0) % 1.0;
     const pos = rawPos * 6.0;
     const idx0 = (pos | 0) % 6;
     const idx1 = (idx0 + 1) % 6;
