@@ -784,10 +784,16 @@
       gap: 4px;
       width: 100%;
       min-width: 0;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
     }
     .studio-slider-card.hero {
       background: linear-gradient(135deg, rgba(16, 30, 56, 0.88) 0%, rgba(12, 20, 38, 0.92) 100%);
       border-color: rgba(56, 189, 248, 0.30);
+    }
+    .studio-slider-card.is-scrubbing {
+      border-color: rgba(56, 189, 248, 0.75);
+      background: linear-gradient(135deg, rgba(16, 28, 48, 0.96) 0%, rgba(12, 38, 68, 0.96) 100%);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), 0 0 14px rgba(56, 189, 248, 0.28);
     }
 
     .studio-slider-header {
@@ -823,6 +829,14 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+    .studio-slider-card.is-scrubbing .studio-val-badge {
+      background: rgba(56, 189, 248, 0.32);
+      border-color: #38bdf8;
+      color: #ffffff;
+      transform: scale(1.06);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.45);
     }
 
     .studio-slider-track-wrap {
@@ -831,6 +845,10 @@
       width: 100%;
       height: 28px;
       min-width: 0;
+      touch-action: pan-y;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     /* Native Range Input con carril reservado de 28px */
@@ -847,6 +865,7 @@
       outline: none;
       cursor: pointer;
       touch-action: pan-y;
+      pointer-events: none; /* Las interacciones táctiles y arrastres los gestiona el filtro inteligente del track-wrap */
     }
     input[type="range"]:not(.scp-hue-slider)::-webkit-slider-runnable-track {
       height: 6px;
@@ -885,9 +904,10 @@
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.55), 0 0 0 1.5px rgba(56, 189, 248, 0.65);
       transition: transform 0.14s ease, box-shadow 0.14s ease;
     }
+    .studio-slider-card.is-scrubbing input[type="range"]:not(.scp-hue-slider)::-webkit-slider-thumb,
     input[type="range"]:not(.scp-hue-slider)::-webkit-slider-thumb:active {
-      transform: scale(1.16);
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.85), 0 0 0 2px #38bdf8;
+      transform: scale(1.24);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.95), 0 0 0 2.5px #38bdf8;
     }
 
     /* Firefox Range Rules (bloque independiente según especificación estándar) */
@@ -11055,47 +11075,173 @@ if (btnResetAll) {
   });
 }
 
-// Guardia de Scroll Táctil con Bloqueo de Eje (Impide revertir el slider al levantar el dedo en diagonal)
-document.querySelectorAll('input[type="range"]:not(.scp-hue-slider)').forEach(slider => {
-  let startX = 0;
-  let startY = 0;
-  let gestureAxis = null; // null | 'x' | 'y'
-  let initialVal = null;
+// =========================================================
+// GESTOR TÁCTIL INTELIGENTE DE DESLIZADORES (ANTI-SALTOS ACCIDENTALES)
+// =========================================================
+function initSmartRangeSliders() {
+  const thumbRadius = 9;
 
-  slider.addEventListener('touchstart', (e) => {
-    if (e.touches.length !== 1) return;
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    gestureAxis = null;
-    initialVal = slider.value;
-  }, { passive: true });
+  function calcValFromClientX(wrap, input, clientX) {
+    const rect = wrap.getBoundingClientRect();
+    const trackWidth = rect.width;
+    if (trackWidth <= 0) return parseFloat(input.value);
 
-  slider.addEventListener('touchmove', (e) => {
-    if (e.touches.length !== 1 || gestureAxis === 'x') return;
-    const dx = Math.abs(e.touches[0].clientX - startX);
-    const dy = Math.abs(e.touches[0].clientY - startY);
+    const effectiveWidth = Math.max(1, trackWidth - 2 * thumbRadius);
+    let pct = (clientX - (rect.left + thumbRadius)) / effectiveWidth;
+    pct = Math.max(0, Math.min(1, pct));
 
-    if (gestureAxis === null && (dx > 6 || dy > 6)) {
-      gestureAxis = (dx >= dy) ? 'x' : 'y';
-    }
+    const min = parseFloat(input.min) || 0;
+    const max = parseFloat(input.max) || 100;
+    const stepStr = input.step;
+    const rawVal = min + pct * (max - min);
 
-    if (gestureAxis === 'y') {
-      if (initialVal !== null && slider.value !== initialVal) {
-        slider.value = initialVal;
-        syncSliderProgress(slider);
-        slider.dispatchEvent(new Event('input', { bubbles: true }));
+    if (!stepStr || stepStr === 'any') return rawVal;
+    const step = parseFloat(stepStr);
+    if (isNaN(step) || step <= 0) return rawVal;
+
+    const stepped = Math.round((rawVal - min) / step) * step + min;
+    const decimals = (stepStr.split('.')[1] || '').length;
+    const cleanVal = parseFloat(stepped.toFixed(decimals));
+    return Math.max(min, Math.min(max, cleanVal));
+  }
+
+  document.querySelectorAll('.studio-slider-track-wrap').forEach(wrap => {
+    const input = wrap.querySelector('input[type="range"]:not(.scp-hue-slider)');
+    if (!input) return;
+
+    const card = wrap.closest('.studio-slider-card') || wrap;
+
+    let startX = 0;
+    let startY = 0;
+    let startTime = 0;
+    let isDeciding = false;
+    let isDragging = false;
+    let activePointerId = null;
+
+    const onPointerDown = (e) => {
+      // Solo botón primario
+      if (e.button !== undefined && e.button !== 0) return;
+
+      activePointerId = e.pointerId;
+      startX = e.clientX;
+      startY = e.clientY;
+      startTime = performance.now();
+
+      if (e.pointerType === 'mouse') {
+        // En escritorio con ratón, el arrastre es inmediato
+        isDragging = true;
+        isDeciding = false;
+        try { wrap.setPointerCapture(e.pointerId); } catch(err) {}
+        card.classList.add('is-scrubbing');
+        const newVal = calcValFromClientX(wrap, input, e.clientX);
+        if (input.value !== String(newVal)) {
+          input.value = String(newVal);
+          syncSliderProgress(input);
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        return;
       }
-      slider.blur();
-    }
-  }, { passive: true });
 
-  const resetGesture = () => {
-    gestureAxis = null;
-    initialVal = null;
-  };
-  slider.addEventListener('touchend', resetGesture, { passive: true });
-  slider.addEventListener('touchcancel', resetGesture, { passive: true });
-});
+      // En dispositivos táctiles (Touch): iniciamos en modo decisión sin mover la barra
+      isDeciding = true;
+      isDragging = false;
+    };
+
+    const onPointerMove = (e) => {
+      if (activePointerId !== null && e.pointerId !== activePointerId) return;
+
+      if (e.pointerType === 'mouse') {
+        if (isDragging) {
+          const newVal = calcValFromClientX(wrap, input, e.clientX);
+          if (input.value !== String(newVal)) {
+            input.value = String(newVal);
+            syncSliderProgress(input);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }
+        return;
+      }
+
+      const dx = Math.abs(e.clientX - startX);
+      const dy = Math.abs(e.clientY - startY);
+
+      if (isDeciding) {
+        // Si el movimiento es vertical predominante, el usuario está haciendo SCROLL del dock:
+        // cancelamos la decisión y dejamos que el navegador haga scroll nativo a 60fps sin tocar la barra!
+        if (dy > 6 && dy >= dx) {
+          isDeciding = false;
+          return;
+        }
+
+        // Si el movimiento es horizontal deliberado (|dx| > 5 y dx > dy * 1.15):
+        // el usuario quiere ajustar el deslizador conscientemente
+        if (dx > 5 && dx > dy * 1.15) {
+          isDeciding = false;
+          isDragging = true;
+          try { wrap.setPointerCapture(e.pointerId); } catch(err) {}
+          card.classList.add('is-scrubbing');
+          if (typeof haptic === 'function') haptic(8);
+        }
+      }
+
+      if (isDragging) {
+        // En modo arrastre consciente: prevenimos que el panel haga scroll
+        if (e.cancelable) e.preventDefault();
+
+        const newVal = calcValFromClientX(wrap, input, e.clientX);
+        if (input.value !== String(newVal)) {
+          input.value = String(newVal);
+          syncSliderProgress(input);
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }
+    };
+
+    const onPointerUp = (e) => {
+      if (activePointerId !== null && e.pointerId !== activePointerId) return;
+
+      if (isDragging) {
+        isDragging = false;
+        try { wrap.releasePointerCapture(e.pointerId); } catch(err) {}
+        card.classList.remove('is-scrubbing');
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        if (typeof haptic === 'function') haptic(6);
+      } else if (isDeciding) {
+        // Si fue un toque corto estático (< 240ms y movimiento menor de 4px),
+        // se interpreta como un tap intencional en la barra para situar el valor
+        const dt = performance.now() - startTime;
+        const totalDist = Math.hypot(e.clientX - startX, e.clientY - startY);
+        if (dt < 240 && totalDist < 4) {
+          const newVal = calcValFromClientX(wrap, input, e.clientX);
+          input.value = String(newVal);
+          syncSliderProgress(input);
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+          if (typeof haptic === 'function') haptic(10);
+        }
+      }
+
+      isDeciding = false;
+      activePointerId = null;
+    };
+
+    const onPointerCancel = (e) => {
+      if (activePointerId !== null && e.pointerId !== activePointerId) return;
+      if (isDragging) {
+        isDragging = false;
+        try { wrap.releasePointerCapture(e.pointerId); } catch(err) {}
+        card.classList.remove('is-scrubbing');
+      }
+      isDeciding = false;
+      activePointerId = null;
+    };
+
+    wrap.addEventListener('pointerdown', onPointerDown);
+    wrap.addEventListener('pointermove', onPointerMove);
+    wrap.addEventListener('pointerup', onPointerUp);
+    wrap.addEventListener('pointercancel', onPointerCancel);
+  });
+}
 
 // Restablecer parámetros del estilo actual (dentro de paneTrazo)
 const btnResetStyleParams = document.getElementById('btnResetStyleParams');
@@ -11869,6 +12015,7 @@ syncColorModeCards(COLOR_MODE);
 syncPaletteCards(COLOR_PALETTE);
 syncBgThemeChips(BG_THEME);
 syncAllSlidersProgress();
+initSmartRangeSliders();
 updateActiveFunctionPill();
 setTimeout(() => {
   if (typeof checkDockScrollState === 'function') checkDockScrollState();
