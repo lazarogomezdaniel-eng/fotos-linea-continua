@@ -2053,6 +2053,58 @@
           </div>
         </div>
 
+        <!-- CONTROL DINÁMICO DE ESPIRAL HEXAGONAL -->
+        <div id="boxHexSpiralControls" class="studio-group-block is-hidden">
+          <div class="studio-slider-card">
+            <div class="studio-slider-header">
+              <span class="studio-slider-title">Tamaño de Espiral Hexagonal</span>
+              <span class="studio-val-badge" id="vHexSpiralSize">8.5px</span>
+            </div>
+            <div class="studio-slider-track-wrap">
+              <input type="range" id="hexSpiralSize" min="4.0" max="22.0" step="0.5" value="8.5">
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTROL DINÁMICO DE ROMBOS ISOMÉTRICOS 3D -->
+        <div id="boxIsoDiamondControls" class="studio-group-block is-hidden">
+          <div class="studio-slider-card">
+            <div class="studio-slider-header">
+              <span class="studio-slider-title">Tamaño de Rombo Isométrico</span>
+              <span class="studio-val-badge" id="vIsoDiamondSize">11.0px</span>
+            </div>
+            <div class="studio-slider-track-wrap">
+              <input type="range" id="isoDiamondSize" min="5.0" max="24.0" step="0.5" value="11.0">
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTROL DINÁMICO DE PANOTS DE BARCELONA -->
+        <div id="boxPanotControls" class="studio-group-block is-hidden">
+          <div class="studio-slider-card">
+            <div class="studio-slider-header">
+              <span class="studio-slider-title">Tamaño de Panot (Baldosa)</span>
+              <span class="studio-val-badge" id="vPanotSize">14.0px</span>
+            </div>
+            <div class="studio-slider-track-wrap">
+              <input type="range" id="panotSize" min="8.0" max="28.0" step="1.0" value="14.0">
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTROL DINÁMICO DE FLOR DE BARCELONA -->
+        <div id="boxFlorBcnControls" class="studio-group-block is-hidden">
+          <div class="studio-slider-card">
+            <div class="studio-slider-header">
+              <span class="studio-slider-title">Tamaño de Flor de Barcelona</span>
+              <span class="studio-val-badge" id="vFlorBcnSize">15.0px</span>
+            </div>
+            <div class="studio-slider-track-wrap">
+              <input type="range" id="florBcnSize" min="8.0" max="32.0" step="1.0" value="15.0">
+            </div>
+          </div>
+        </div>
+
         <div id="modeDesc" class="mode-desc-bar">
           🧠 Coral: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros en U de extremo a extremo.
         </div>
@@ -2876,6 +2928,12 @@ let HONEYCOMB_SIZE = 14.0;
 let HONEYCOMB_WALLS = 3;
 let HONEYCOMB_SUBDIV = true;
 
+// Parámetros de Escala de Mosaicos Geométricos
+let HEX_SPIRAL_SIZE = 8.5;
+let ISO_DIAMOND_SIZE = 11.0;
+let PANOT_SIZE = 14.0;
+let FLOR_BCN_SIZE = 15.0;
+
 const MODE_DESCRIPTIONS = {
   coral: '🧠 Coral Cerebral Dendrítico: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros redondeados en U sin dejar huecos vacíos.',
   coral_tsp: '🌊 Coral Orgánico TSP: Stippling adaptativo por tono + repulsión + ruta continua 2-Opt libre de cruces + curvas Chaikin.',
@@ -2884,7 +2942,7 @@ const MODE_DESCRIPTIONS = {
   live_growth: '🌱 Crecimiento Diferencial en Vivo CON CRUCES: El trazo nace en el centro del rostro y teje en vivo sobre los rasgos cruzando líneas con alta calidad.',
   golden: '🌻 Proporción Áurea (φ = 1.61803): Distribuye los nodos en espiral de Fermat con el ángulo áureo exacto (137.50776°) y brazos espirales de Fibonacci (55/89).',
   fractal: '❄️ Curva Fractal Adaptativa (Hilbert 2ⁿ): Subdivide recursivamente el retrato en una curva fractal autosemejante más densa en ojos y sombras, con 0 cruces.',
-  hex_spiral: '🌀 Mosaico Hex-Espiral V5: Espirales hexagonales bifilares continuas libres de cruces que modulan la densidad de giros según las luces y sombras del retrato.',
+  hex_spiral: '🌀 Mosaico Hex-Espiral: Espirales hexagonales concéntricas continuas que modulan la densidad de giros según las sombras del retrato.',
   iso_diamond: '💎 Mosaico Rombos Isométricos 3D: Celdas de rombos/cubos 3D con pliegues concéntricos modulados por las luces y sombras del retrato.',
   pursuit_vortex: '🌪️ Vórtice Geométrico en Espiral: Celdas poligonales con giro progresivo (curvas de persecución) que esculpen el volumen facial.',
   panot_bcn:      '🧱 Panots de Barcelona: Teje una red continua de baldosas completas con marco perimetral y la icónica Flor de Barcelona en bajorrelieve.',
@@ -2906,11 +2964,11 @@ const MODE_PRESETS = {
   live_growth:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.28, bgClean: 0.000, minR: 2.8, maxR: 9.0, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' },
   golden:         { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.42, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'line_strand', colorPalette: 'cyan_amber' },
   fractal:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' },
-  hex_spiral:     { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.05, fusionOpacity: 0, colorMode: 'mono' },
-  iso_diamond:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' },
+  hex_spiral:     { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.05, hexSpiralSize: 8.5, fusionOpacity: 0, colorMode: 'mono' },
+  iso_diamond:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.0, isoDiamondSize: 11.0, fusionOpacity: 0, colorMode: 'mono' },
   pursuit_vortex: { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' },
-  panot_bcn:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'organic_flow', colorPalette: 'forest' },
-  flor_bcn:       { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.60, bgClean: 0.000, minR: 1.8, maxR: 6.5, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' },
+  panot_bcn:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1, lineW: 1.0, panotSize: 14.0, fusionOpacity: 0, colorMode: 'organic_flow', colorPalette: 'forest' },
+  flor_bcn:       { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.60, bgClean: 0.000, minR: 1.8, maxR: 6.5, chaikin: 1, lineW: 1.0, florBcnSize: 15.0, fusionOpacity: 0, colorMode: 'mono' },
   flor_fractal:   { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 7.0, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' },
   golden_spiral:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.70, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'organic_flow', colorPalette: 'cyan_amber' },
   keith_haring:   { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.54, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.3, fusionOpacity: 20, colorMode: 'organic_flow', colorPalette: 'iris' },
@@ -3021,6 +3079,10 @@ function syncSlidersFromState() {
   setSlider('halftoneAngle', 'vHalftoneAngle', HALFTONE_ANGLE, null, '°');
   setSlider('honeycombSize', 'vHoneycombSize', HONEYCOMB_SIZE, 1, 'px');
   setSlider('honeycombWalls', 'vHoneycombWalls', HONEYCOMB_WALLS, null, ' Anillos');
+  setSlider('hexSpiralSize', 'vHexSpiralSize', HEX_SPIRAL_SIZE, 1, 'px');
+  setSlider('isoDiamondSize', 'vIsoDiamondSize', ISO_DIAMOND_SIZE, 1, 'px');
+  setSlider('panotSize', 'vPanotSize', PANOT_SIZE, 1, 'px');
+  setSlider('florBcnSize', 'vFlorBcnSize', FLOR_BCN_SIZE, 1, 'px');
   setFusionOpacity(FUSION_OPACITY);
   syncPresetPills('maxN', TARGET_NODES, 500);
   syncViewLayerCards(VIEW_MODE);
@@ -4827,15 +4889,17 @@ function generateDendriticCoralPortrait(toneMap, silhouetteMask, smoothSilMap, W
 }
 
 /**
- * MODO 8: MOSAICO HEX-ESPIRAL BIFILAR NO CRUZADO (V5 DE MÁXIMA CALIDAD)
- * Retícula hexagonal pointy-top con encaje matemático perfecto.
- * En cada celda genera una espiral bifilar de Fermat (brazo entrante + núcleo 180° + brazo saliente desfasado pi rad)
- * 100% libre de auto-intersecciones y con densidad de giros modulada por las luces y sombras del retrato.
+ * MODO 8: MOSAICO HEX-ESPIRAL CONCÉNTRICO (AUTÉNTICA ESPIRAL HEXAGONAL)
+ * Retícula hexagonal continua pointy-top donde cada celda teje una auténtica espiral hexagonal concéntrica.
+ * La densidad de vueltas hacia el núcleo esculpe el volumen tridimensional y las sombras del rostro.
+ * Cuenta con enlace perimetral limpio y directo libre de ondas o distorsiones.
  */
-function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0) {
+function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0, hexSpiralSize = 8.5) {
   const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
   const maxRScale = 0.82 + (MAX_R / 15.0) * 0.38;
-  const cellR = Math.max(3.2, Math.min(13.5, MIN_R * 3.0 * maxRScale * nodeScale));
+  const cellR = (hexSpiralSize && hexSpiralSize >= 3.0)
+    ? hexSpiralSize
+    : Math.max(3.2, Math.min(13.5, MIN_R * 3.0 * maxRScale * nodeScale));
   const dxHex = cellR * Math.sqrt(3);
   const dyHex = cellR * 1.5;
   const offX = ((seed % 11) / 11) * 0.3 * dxHex;
@@ -4893,56 +4957,41 @@ function generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask,
         py = Math.max(5, Math.min(H - 5, py - gy * pull));
       }
 
-      const baseAng = l2r ? Math.PI : 0;
-      const enterAng = baseAng;
-      const exitAng = baseAng + Math.PI;
+      const enterAng = l2r ? Math.PI : 0;
+      const exitAng = l2r ? 0 : Math.PI;
 
       if (effDark < lightCut) {
-        // En luces altas: trazo limpio por el perímetro hexagonal superior o inferior
-        const arcSign = (r & 1) ? 1 : -1;
-        outX.push(px + Math.cos(enterAng) * (cellR * 0.866));
-        outY.push(py + Math.sin(enterAng) * (cellR * 0.866));
-        outX.push(px + Math.cos(enterAng + arcSign * Math.PI / 3) * (cellR * 0.866));
-        outY.push(py + Math.sin(enterAng + arcSign * Math.PI / 3) * (cellR * 0.866));
-        outX.push(px + Math.cos(exitAng) * (cellR * 0.866));
-        outY.push(py + Math.sin(exitAng) * (cellR * 0.866));
+        // En luces altas: trazo directo y limpio por el perímetro hexagonal sin ondas
+        outX.push(px + Math.cos(enterAng) * (cellR * 0.90));
+        outY.push(py + Math.sin(enterAng) * (cellR * 0.90));
+        outX.push(px + Math.cos(exitAng) * (cellR * 0.90));
+        outY.push(py + Math.sin(exitAng) * (cellR * 0.90));
         continue;
       }
 
-      const turns = Math.min(maxTurns, Math.max(1, Math.round(1.0 + Math.pow(effDark, 1.22) * (maxTurns - 0.8))));
-      const totalCorners = turns * 6;
-      const coreR = cellR * 0.20;
+      // Espiral concéntrica hexagonal: termina exactamente alineada con el ángulo de salida
+      const m = Math.min(maxTurns - 1, Math.max(0, Math.round(effDark * (maxTurns - 0.4) - 0.2)));
+      const totalCorners = 3 + 6 * m;
 
-      // Brazo A: Espiral hexagonal hacia el núcleo (inward)
+      outX.push(px + Math.cos(enterAng) * (cellR * 0.92));
+      outY.push(py + Math.sin(enterAng) * (cellR * 0.92));
+
       for (let k = 0; k <= totalCorners; k++) {
         const u = k / totalCorners;
-        const rad = cellR * 0.866 * (1.0 - u * 0.76);
+        const rad = cellR * 0.92 * (1.0 - u * 0.78);
         const ang = enterAng + k * (Math.PI / 3);
         outX.push(px + Math.cos(ang) * rad);
         outY.push(py + Math.sin(ang) * rad);
       }
 
-      // Núcleo hexagonal: giro de 180° a radio constante mínimo para enlazar con el Brazo B
-      const endAng = enterAng + totalCorners * (Math.PI / 3);
-      for (let s = 1; s <= 3; s++) {
-        const ang = endAng + s * (Math.PI / 3);
-        outX.push(px + Math.cos(ang) * coreR);
-        outY.push(py + Math.sin(ang) * coreR);
+      const coreR = cellR * 0.92 * (1.0 - 0.78);
+      const outSteps = Math.max(2, m + 1);
+      for (let s = 1; s <= outSteps; s++) {
+        const u = s / outSteps;
+        const rad = coreR + u * (cellR * 0.92 - coreR);
+        outX.push(px + Math.cos(exitAng) * rad);
+        outY.push(py + Math.sin(exitAng) * rad);
       }
-
-      // Brazo B: Espiral hexagonal hacia el exterior intercalada (outward, desfasada sin cruzar)
-      const outwardStartAng = endAng + Math.PI;
-      for (let k = 1; k <= totalCorners; k++) {
-        const u = k / totalCorners;
-        const rad = coreR + u * (cellR * 0.866 - coreR);
-        const ang = outwardStartAng + k * (Math.PI / 3);
-        outX.push(px + Math.cos(ang) * rad);
-        outY.push(py + Math.sin(ang) * rad);
-      }
-
-      // Conexión directa al punto de enlace de salida con la siguiente celda
-      outX.push(px + Math.cos(exitAng) * (cellR * 0.866));
-      outY.push(py + Math.sin(exitAng) * (cellR * 0.866));
     }
   }
 
@@ -5781,10 +5830,12 @@ function generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TA
  * Red continua de facetas isométricas (rombos 60°/120°) con pliegues concéntricos
  * adaptados a los rasgos y claroscuros del retrato.
  */
-function generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0) {
+function generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0, isoDiamondSize = 11.0) {
   const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
   const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
-  const dW = Math.max(4.2, Math.min(18.0, MIN_R * 4.4 * maxRScale * nodeScale));
+  const dW = (isoDiamondSize && isoDiamondSize >= 4.0)
+    ? isoDiamondSize
+    : Math.max(4.2, Math.min(18.0, MIN_R * 4.4 * maxRScale * nodeScale));
   const dH = dW * 0.57735;
   const offX = (seed % 7) * 0.14 * dW;
   const offY = ((seed * 3) % 7) * 0.14 * dH;
@@ -6000,10 +6051,12 @@ function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteM
  * Teje una red continua de baldosas completas con marco perimetral biselado y la icónica Flor de Barcelona
  * en bajorrelieve (4 pétalos diagonales en esquinas y pistilo central).
  */
-function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0) {
+function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0, panotSize = 14.0) {
   const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
   const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
-  const tileSize = Math.max(7.5, Math.min(26.0, MIN_R * 4.9 * maxRScale * nodeScale));
+  const tileSize = (panotSize && panotSize >= 6.0)
+    ? panotSize
+    : Math.max(7.5, Math.min(26.0, MIN_R * 4.9 * maxRScale * nodeScale));
   const halfS = tileSize * 0.5;
   const offX = (seed % 7) * 0.14 * tileSize;
   const offY = ((seed * 3) % 7) * 0.14 * tileSize;
@@ -6135,10 +6188,12 @@ function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouette
  * Esculpe el rostro exclusivamente con la icónica Flor de Barcelona (4 pétalos modernistas y pistilo central).
  * Sin marco cuadrado ni baldosa: 100% silueta floral continua con relieves concéntricos según el claroscuro.
  */
-function generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 20000, seed = 0) {
+function generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 20000, seed = 0, florBcnSize = 15.0) {
   const nodeScale = Math.sqrt(20000 / Math.max(4000, TARGET_NODES));
   const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
-  const flowerSpacing = Math.max(8.0, Math.min(32.0, MIN_R * 5.0 * maxRScale * nodeScale));
+  const flowerSpacing = (florBcnSize && florBcnSize >= 6.0)
+    ? florBcnSize
+    : Math.max(8.0, Math.min(32.0, MIN_R * 5.0 * maxRScale * nodeScale));
   const halfS = flowerSpacing * 0.5;
   const offX = (seed % 7) * 0.14 * flowerSpacing;
   const offY = ((seed * 3) % 7) * 0.14 * flowerSpacing;
@@ -8561,7 +8616,8 @@ self.onmessage = function(e) {
     W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0, maxTimeMs,
     customFocalX, customFocalY, haringIconCount = 95, haringIconSize = 100,
     halftoneSpacing = 6.5, halftoneScale = 115, halftoneAngle = 45, halftoneType = 'dots', bgClean = 0.000,
-    honeycombSize = 14.0, honeycombWalls = 3, honeycombSubdiv = true
+    honeycombSize = 14.0, honeycombWalls = 3, honeycombSubdiv = true,
+    hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 14.0, florBcnSize = 15.0
   } = e.data;
 
   const tStart = performance.now();
@@ -8630,7 +8686,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'hex_spiral') {
-    let { ptsX, ptsY } = generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
+    let { ptsX, ptsY } = generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed, hexSpiralSize);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -8652,7 +8708,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'iso_diamond') {
-    let { ptsX, ptsY } = generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
+    let { ptsX, ptsY } = generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed, isoDiamondSize);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -8674,7 +8730,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'panot_bcn') {
-    let { ptsX, ptsY } = generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
+    let { ptsX, ptsY } = generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed, panotSize);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -8685,7 +8741,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'flor_bcn') {
-    let { ptsX, ptsY } = generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
+    let { ptsX, ptsY } = generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed, florBcnSize);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -8896,6 +8952,10 @@ function rebuildPortrait(needsStencilRebuild = true) {
     honeycombSize: HONEYCOMB_SIZE,
     honeycombWalls: HONEYCOMB_WALLS,
     honeycombSubdiv: HONEYCOMB_SUBDIV,
+    hexSpiralSize: HEX_SPIRAL_SIZE,
+    isoDiamondSize: ISO_DIAMOND_SIZE,
+    panotSize: PANOT_SIZE,
+    florBcnSize: FLOR_BCN_SIZE,
     bgClean: BG_CLEAN
   }, [s232Copy.buffer, coralCopy.buffer, silCopy.buffer, smSilCopy.buffer]);
 }
@@ -10088,6 +10148,36 @@ function applyModePreset(mode) {
     if (lblHSize) lblHSize.textContent = `${p.honeycombSize.toFixed(1)}px`;
   }
 
+  // Ajustes de escala específicos para Mosaicos Geométricos
+  if (p.hexSpiralSize !== undefined) {
+    HEX_SPIRAL_SIZE = p.hexSpiralSize;
+    const el = document.getElementById('hexSpiralSize');
+    if (el) { el.value = String(p.hexSpiralSize); syncSliderProgress(el); }
+    const lbl = document.getElementById('vHexSpiralSize');
+    if (lbl) lbl.textContent = `${p.hexSpiralSize.toFixed(1)}px`;
+  }
+  if (p.isoDiamondSize !== undefined) {
+    ISO_DIAMOND_SIZE = p.isoDiamondSize;
+    const el = document.getElementById('isoDiamondSize');
+    if (el) { el.value = String(p.isoDiamondSize); syncSliderProgress(el); }
+    const lbl = document.getElementById('vIsoDiamondSize');
+    if (lbl) lbl.textContent = `${p.isoDiamondSize.toFixed(1)}px`;
+  }
+  if (p.panotSize !== undefined) {
+    PANOT_SIZE = p.panotSize;
+    const el = document.getElementById('panotSize');
+    if (el) { el.value = String(p.panotSize); syncSliderProgress(el); }
+    const lbl = document.getElementById('vPanotSize');
+    if (lbl) lbl.textContent = `${p.panotSize.toFixed(1)}px`;
+  }
+  if (p.florBcnSize !== undefined) {
+    FLOR_BCN_SIZE = p.florBcnSize;
+    const el = document.getElementById('florBcnSize');
+    if (el) { el.value = String(p.florBcnSize); syncSliderProgress(el); }
+    const lbl = document.getElementById('vFlorBcnSize');
+    if (lbl) lbl.textContent = `${p.florBcnSize.toFixed(1)}px`;
+  }
+
   if (!isCustomPhotoLoaded) {
     // -------------------------------------------------------------------------
     // MODO ESCAPARATE / ONBOARDING (Foto Demo Inicial):
@@ -10789,6 +10879,10 @@ bindParam('halftoneScale', 'vHalftoneScale', v => { HALFTONE_SCALE = v; }, false
 bindParam('halftoneAngle', 'vHalftoneAngle', v => { HALFTONE_ANGLE = v; }, false, null, '°');
 bindParam('honeycombSize', 'vHoneycombSize', v => { HONEYCOMB_SIZE = v; }, false, 1, 'px');
 bindParam('honeycombWalls', 'vHoneycombWalls', v => { HONEYCOMB_WALLS = v; }, false, null, ' Anillos');
+bindParam('hexSpiralSize', 'vHexSpiralSize', v => { HEX_SPIRAL_SIZE = v; }, false, 1, 'px');
+bindParam('isoDiamondSize', 'vIsoDiamondSize', v => { ISO_DIAMOND_SIZE = v; }, false, 1, 'px');
+bindParam('panotSize', 'vPanotSize', v => { PANOT_SIZE = v; }, false, 1, 'px');
+bindParam('florBcnSize', 'vFlorBcnSize', v => { FLOR_BCN_SIZE = v; }, false, 1, 'px');
 
 const btnHcSubdivOn = document.getElementById('btnHoneycombSubdivOn');
 const btnHcSubdivOff = document.getElementById('btnHoneycombSubdivOff');
@@ -11477,6 +11571,10 @@ function updateFocalMarker() {
   const boxHaring = document.getElementById('boxHaringIconControls');
   const boxHalftone = document.getElementById('boxHalftoneControls');
   const boxHoneycomb = document.getElementById('boxHoneycombControls');
+  const boxHexSpiral = document.getElementById('boxHexSpiralControls');
+  const boxIsoDiamond = document.getElementById('boxIsoDiamondControls');
+  const boxPanot = document.getElementById('boxPanotControls');
+  const boxFlorBcn = document.getElementById('boxFlorBcnControls');
   const modeDesc = document.getElementById('modeDesc');
   const txt = document.getElementById('focalCoordsText');
   const statusPill = document.getElementById('statusPill');
@@ -11485,12 +11583,23 @@ function updateFocalMarker() {
   const isHalftone = (ENGINE_MODE === 'halftone_dots');
   const isHoneycomb = (ENGINE_MODE === 'honeycomb');
   const isSpiral = (ENGINE_MODE === 'golden_spiral');
+  const isHexSpiral = (ENGINE_MODE === 'hex_spiral');
+  const isIsoDiamond = (ENGINE_MODE === 'iso_diamond');
+  const isPanot = (ENGINE_MODE === 'panot_bcn');
+  const isFlorBcn = (ENGINE_MODE === 'flor_bcn');
 
   if (boxHaring) boxHaring.classList.toggle('is-hidden', !isHaring);
   if (boxHalftone) boxHalftone.classList.toggle('is-hidden', !isHalftone);
   if (boxHoneycomb) boxHoneycomb.classList.toggle('is-hidden', !isHoneycomb);
+  if (boxHexSpiral) boxHexSpiral.classList.toggle('is-hidden', !isHexSpiral);
+  if (boxIsoDiamond) boxIsoDiamond.classList.toggle('is-hidden', !isIsoDiamond);
+  if (boxPanot) boxPanot.classList.toggle('is-hidden', !isPanot);
+  if (boxFlorBcn) boxFlorBcn.classList.toggle('is-hidden', !isFlorBcn);
   if (box) box.classList.toggle('is-hidden', !isSpiral);
-  if (modeDesc) modeDesc.classList.toggle('is-hidden', isHaring || isHalftone || isHoneycomb);
+  if (modeDesc) {
+    const hasCustomControls = isHaring || isHalftone || isHoneycomb || isHexSpiral || isIsoDiamond || isPanot || isFlorBcn;
+    modeDesc.classList.toggle('is-hidden', hasCustomControls);
+  }
 
   if (isSpiral) {
     if (customFocalX !== null && customFocalY !== null) {
