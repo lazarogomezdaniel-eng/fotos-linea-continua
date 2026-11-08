@@ -774,7 +774,7 @@ const MODE_PRESETS = {
   fractal:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1, lineW: 1.0, colorMode: 'mono' },
   hex_spiral:     { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.05, hexSpiralSize: 8.5, colorMode: 'mono' },
   iso_diamond:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.0, isoDiamondSize: 11.0, colorMode: 'mono' },
-  pursuit_vortex: { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1, lineW: 1.0, colorMode: 'mono' },
+  pursuit_vortex: { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1, lineW: 1.0, vortexSize: 8.5, colorMode: 'mono' },
   panot_bcn:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1, lineW: 1.0, panotSize: 14.0, colorMode: 'organic_flow', colorPalette: 'forest' },
   flor_bcn:       { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.60, bgClean: 0.000, minR: 1.8, maxR: 6.5, chaikin: 1, lineW: 1.0, florBcnSize: 15.0, colorMode: 'mono' },
   flor_fractal:   { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 7.0, chaikin: 1, lineW: 1.0, colorMode: 'mono' },
@@ -3670,10 +3670,12 @@ function generateIsoDiamondPortrait(coralToneMap, step232Stencil, silhouetteMask
  * Celdas poligonales con curvas de persecución que convergen en vórtices
  * modulados por los rasgos, pupilas y claroscuros del retrato.
  */
-function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0) {
+function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES = 24000, seed = 0, vortexSize = 8.5) {
   const nodeScale = Math.sqrt(24000 / Math.max(5000, TARGET_NODES));
   const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
-  const cellR = Math.max(3.0, Math.min(13.0, MIN_R * 3.4 * maxRScale * nodeScale));
+  const cellR = (vortexSize && vortexSize >= 3.0)
+    ? vortexSize
+    : Math.max(3.0, Math.min(24.0, MIN_R * 3.4 * maxRScale * nodeScale));
   const dx = cellR * 1.62;
   const dy = cellR * 1.38;
   const offX = (seed % 7) * 0.14 * dx;
@@ -4782,7 +4784,7 @@ self.onmessage = function(e) {
     jobId, engineMode, step232Stencil, coralToneMap, silhouetteMask, smoothSilMap,
     W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0, maxTimeMs,
     honeycombSize = 14.0, honeycombWalls = 3, honeycombSubdiv = true,
-    hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 14.0, florBcnSize = 15.0
+    hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 14.0, florBcnSize = 15.0, vortexSize = 8.5
   } = e.data;
 
   const tStart = performance.now();
@@ -4840,7 +4842,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'pursuit_vortex') {
-    let { ptsX, ptsY } = generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
+    let { ptsX, ptsY } = generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed, vortexSize);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -5055,7 +5057,8 @@ function rebuildPortrait(needsStencilRebuild = true) {
     hexSpiralSize: 8.5,
     isoDiamondSize: 11.0,
     panotSize: 14.0,
-    florBcnSize: 15.0
+    florBcnSize: 15.0,
+    vortexSize: 8.5
   }, [s232Copy.buffer, coralCopy.buffer, silCopy.buffer, smSilCopy.buffer]);
 }
 
