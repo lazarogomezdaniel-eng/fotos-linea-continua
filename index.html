@@ -365,6 +365,13 @@
             <option value="rainbow">🌈 Arcoíris</option>
           </select>
         </div>
+        <div id="boxRainbowPattern" style="display:none;">
+          <label>Variante Arcoíris</label>
+          <select id="rainbowStyleSelect">
+            <option value="strand" selected>🌈 Hilo Continuo</option>
+            <option value="bands">🏳️‍🌈 Franjas Verticales</option>
+          </select>
+        </div>
         <div id="boxMonoInk">
           <label>Tinta de Estudio</label>
           <div style="display:flex; gap:4px; align-items:center;">
@@ -394,10 +401,6 @@
             <optgroup label="📐 Teoría del Color (Rueda 360°)">
               <option value="triad">📐 Contraste / Tríada (120°)</option>
               <option value="analogous">🌿 Suave / Análoga (35°)</option>
-            </optgroup>
-            <optgroup label="🌈 Espectro Arcoíris">
-              <option value="rainbow_strand">🌈 Hilo Continuo</option>
-              <option value="rainbow_bands">🏳️‍🌈 Franjas Verticales</option>
             </optgroup>
           </select>
         </div>
@@ -666,9 +669,7 @@ const PALETTE_PRESETS = {
   forest:      ['#2a9d8f', '#e9c46a', '#e76f51'],
   cyberpunk:   ['#f72585', '#7209b7', '#4cc9f0'],
   terracotta:  ['#bc6c25', '#dda15e', '#606c38'],
-  cyan_amber:  ['#56cfe1', '#e0fbfc', '#f4a261'],
-  rainbow_strand: ['#ff0055', '#ffcc00', '#00ccff'],
-  rainbow_bands:  ['#ff0000', '#00ff00', '#0000ff']
+  cyan_amber:  ['#56cfe1', '#e0fbfc', '#f4a261']
 };
 
 const MONO_INK_COLORS = {
@@ -6092,12 +6093,12 @@ function updateColorPanelVisibility() {
   const isMono = (mode === 'mono');
   const isPhotoExact = (mode === 'photo_exact');
   const isPhotoFusion = (mode === 'photo_fusion');
-  const isRainbow = (mode === 'rainbow' || mode === 'rainbow_bands' || COLOR_PALETTE === 'rainbow_strand' || COLOR_PALETTE === 'rainbow_bands');
-  const showPalette = (!isMono && !isPhotoExact);
-  const showPickers = (showPalette && !isRainbow);
+  const isRainbow = (mode === 'rainbow' || mode === 'rainbow_bands');
+  const usesCustomPalette = (!isMono && !isPhotoExact && !isRainbow);
   const isTheoreticalHarmony = (COLOR_PALETTE === 'triad' || COLOR_PALETTE === 'analogous');
 
   const boxMonoInk = document.getElementById('boxMonoInk');
+  const boxRainbowPattern = document.getElementById('boxRainbowPattern');
   const boxPalette = document.getElementById('boxPalette');
   const boxHue = document.getElementById('boxHue');
   const boxPickers = document.getElementById('boxPickers');
@@ -6106,12 +6107,22 @@ function updateColorPanelVisibility() {
   const boxFlow = document.getElementById('boxFlow');
 
   if (boxMonoInk) boxMonoInk.style.display = isMono ? 'block' : 'none';
-  if (boxPalette) boxPalette.style.display = showPalette ? 'block' : 'none';
-  if (boxPickers) boxPickers.style.display = showPickers ? 'flex' : 'none';
-  if (boxHue) boxHue.style.display = (isRainbow || (showPickers && isTheoreticalHarmony)) ? 'block' : 'none';
+  if (boxRainbowPattern) boxRainbowPattern.style.display = isRainbow ? 'block' : 'none';
+  if (boxPalette) boxPalette.style.display = usesCustomPalette ? 'block' : 'none';
+  if (boxPickers) boxPickers.style.display = usesCustomPalette ? 'flex' : 'none';
+  if (boxHue) boxHue.style.display = (isRainbow || (usesCustomPalette && isTheoreticalHarmony)) ? 'block' : 'none';
   if (boxScale) boxScale.style.display = (!isMono && !isPhotoExact) ? 'block' : 'none';
   if (boxIntensity) boxIntensity.style.display = 'block';
   if (boxFlow) boxFlow.style.display = (!isMono && !isPhotoExact) ? 'block' : 'none';
+}
+
+const rainbowStyleSel = document.getElementById('rainbowStyleSelect');
+if (rainbowStyleSel) {
+  rainbowStyleSel.addEventListener('change', (e) => {
+    RAINBOW_STYLE = e.target.value;
+    lineCacheDirty = true;
+    render();
+  });
 }
 
 const monoInkSel = document.getElementById('monoInkSelect');
@@ -6143,26 +6154,6 @@ document.getElementById('colorMode').addEventListener('change', (e) => {
   if (COLOR_MODE === 'mono' && isColorFlowing) {
     stopColorFlow();
   }
-  if (COLOR_MODE === 'rainbow') {
-    if (COLOR_PALETTE !== 'rainbow_strand' && COLOR_PALETTE !== 'rainbow_bands') {
-      COLOR_PALETTE = (RAINBOW_STYLE === 'bands') ? 'rainbow_bands' : 'rainbow_strand';
-      const selPal = document.getElementById('colorPalette');
-      if (selPal) selPal.value = COLOR_PALETTE;
-    }
-  } else if (COLOR_MODE === 'organic_flow' || COLOR_MODE === 'organic_spatial' || COLOR_MODE === 'tonal_blend' || COLOR_MODE === 'photo_fusion') {
-    if (COLOR_PALETTE === 'rainbow_strand' || COLOR_PALETTE === 'rainbow_bands') {
-      COLOR_PALETTE = 'iris';
-      const selPal = document.getElementById('colorPalette');
-      if (selPal) selPal.value = 'iris';
-      const preset = PALETTE_PRESETS['iris'];
-      if (preset) {
-        document.getElementById('colPick1').value = preset[0];
-        document.getElementById('colPick2').value = preset[1];
-        document.getElementById('colPick3').value = preset[2];
-        syncCustomColorsFromPickers();
-      }
-    }
-  }
   updateColorPanelVisibility();
   lineCacheDirty = true;
   render();
@@ -6170,34 +6161,27 @@ document.getElementById('colorMode').addEventListener('change', (e) => {
 
 document.getElementById('colorPalette').addEventListener('change', (e) => {
   COLOR_PALETTE = e.target.value;
-  if (COLOR_PALETTE === 'rainbow_strand' || COLOR_PALETTE === 'rainbow_bands') {
-    COLOR_MODE = 'rainbow';
-    RAINBOW_STYLE = (COLOR_PALETTE === 'rainbow_bands') ? 'bands' : 'strand';
-    const selMode = document.getElementById('colorMode');
-    if (selMode) selMode.value = 'rainbow';
+  const harmony = computeHarmonyColors(COLOR_PALETTE, COLOR_HUE);
+  if (harmony) {
+    document.getElementById('colPick1').value = harmony[0];
+    document.getElementById('colPick2').value = harmony[1];
+    document.getElementById('colPick3').value = harmony[2];
+    syncCustomColorsFromPickers();
   } else {
-    const harmony = computeHarmonyColors(COLOR_PALETTE, COLOR_HUE);
-    if (harmony) {
-      document.getElementById('colPick1').value = harmony[0];
-      document.getElementById('colPick2').value = harmony[1];
-      document.getElementById('colPick3').value = harmony[2];
+    const preset = PALETTE_PRESETS[COLOR_PALETTE];
+    if (preset) {
+      document.getElementById('colPick1').value = preset[0];
+      document.getElementById('colPick2').value = preset[1];
+      document.getElementById('colPick3').value = preset[2];
       syncCustomColorsFromPickers();
-    } else {
-      const preset = PALETTE_PRESETS[COLOR_PALETTE];
-      if (preset) {
-        document.getElementById('colPick1').value = preset[0];
-        document.getElementById('colPick2').value = preset[1];
-        document.getElementById('colPick3').value = preset[2];
-        syncCustomColorsFromPickers();
-      }
-    }
-    if (COLOR_MODE === 'mono' || COLOR_MODE === 'rainbow') {
-      COLOR_MODE = 'organic_flow';
-      const selMode = document.getElementById('colorMode');
-      if (selMode) selMode.value = 'organic_flow';
     }
   }
   updateColorPanelVisibility();
+  if (COLOR_MODE === 'mono') {
+    COLOR_MODE = 'organic_flow';
+    document.getElementById('colorMode').value = 'organic_flow';
+    updateColorPanelVisibility();
+  }
   lineCacheDirty = true;
   render();
 });
@@ -6205,7 +6189,7 @@ document.getElementById('colorPalette').addEventListener('change', (e) => {
 document.getElementById('colorHue').addEventListener('input', (e) => {
   COLOR_HUE = parseInt(e.target.value, 10);
   document.getElementById('vColHue').textContent = `${COLOR_HUE}°`;
-  if (COLOR_MODE === 'rainbow' || COLOR_MODE === 'rainbow_bands' || COLOR_PALETTE === 'rainbow_strand' || COLOR_PALETTE === 'rainbow_bands') {
+  if (COLOR_MODE === 'rainbow' || COLOR_MODE === 'rainbow_bands') {
     lineCacheDirty = true;
     render();
     return;
@@ -6372,6 +6356,8 @@ document.getElementById('btnResetDefaults').onclick = () => {
   document.getElementById('colorHue').value = 205;
   document.getElementById('vColHue').textContent = '205°';
   RAINBOW_STYLE = 'strand';
+  const selRainbow = document.getElementById('rainbowStyleSelect');
+  if (selRainbow) selRainbow.value = 'strand';
   document.getElementById('bgTheme').value = 'white';
   const pIris = PALETTE_PRESETS['iris'];
   if (pIris) {
