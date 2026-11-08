@@ -2283,7 +2283,7 @@
             </div>
 
             <select id="colorMode" style="display:none;">
-              <option value="mono" selected>✒️ Tinta Plana</option>
+              <option value="mono" selected>✒️ Monocromo</option>
               <option value="organic_flow">🌊 Flujo Orgánico</option>
               <option value="organic_spatial">🌀 Ondas 2D</option>
               <option value="tonal_blend">🌡️ Fusión Tonal</option>
@@ -2295,7 +2295,7 @@
             <div class="color-carousel" id="colorModeCarousel">
               <div class="color-mode-card active" data-mode="mono">
                 <div class="color-mode-preview" style="background: linear-gradient(135deg, #0f172a 0%, #334155 50%, #000000 100%);"></div>
-                <div class="color-mode-title">Tinta Plana</div>
+                <div class="color-mode-title">Monocromo</div>
                 <div class="color-mode-badge">1 Color</div>
               </div>
               <div class="color-mode-card" data-mode="organic_flow">
@@ -2331,7 +2331,7 @@
             </div>
           </div>
 
-          <!-- Selector de Tinta Plana (Color Único de Estudio) -->
+          <!-- Selector de Monocromo (Color Único de Estudio) -->
           <div id="boxMonoInk" class="studio-group-block">
             <div class="studio-block-header">
               <span class="studio-block-label">Color de Tinta</span>
@@ -10369,7 +10369,7 @@ function updateColorPanelVisibility() {
 
 function syncColorModeCards(mode) {
   const cards = document.querySelectorAll('.color-mode-card');
-  let selectedTitle = 'Tinta Plana';
+  let selectedTitle = 'Monocromo';
   cards.forEach(card => {
     const isSelected = (card.getAttribute('data-mode') === mode);
     card.classList.toggle('active', isSelected);
