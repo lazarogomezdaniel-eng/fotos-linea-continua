@@ -4952,11 +4952,12 @@ function rebuildPortrait(needsStencilRebuild = true) {
     return;
   }
 
+  ptsX = new Float32Array(0);
+  ptsY = new Float32Array(0);
+  lineCacheDirty = true;
   statusPhase = 'Calculando en 2º plano...';
   updateStatsText();
-  if (VIEW_MODE !== 'line') {
-    render();
-  }
+  render();
 
   const worker = getFreshOrIdleWorker();
   workerBusy = true;
@@ -5942,6 +5943,7 @@ function applyModePreset(mode) {
   MIN_R = p.minR;
   MAX_R = p.maxR;
   CHAIKIN_PASSES = p.chaikin;
+  lineCacheDirty = true;
   syncSlidersFromState();
 }
 
