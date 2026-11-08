@@ -2284,11 +2284,13 @@
 
             <select id="colorMode" style="display:none;">
               <option value="mono" selected>✒️ Tinta Plana</option>
-              <option value="organic_flow">🌊 Degradado Líquido</option>
+              <option value="organic_flow">🌊 Flujo Orgánico</option>
+              <option value="organic_spatial">🌀 Ondas 2D</option>
               <option value="tonal_blend">🌡️ Fusión Tonal</option>
               <option value="photo_exact">📸 Color Foto</option>
               <option value="photo_fusion">🖼️ Foto + Mezcla</option>
-              <option value="rainbow">🌈 Arcoíris</option>
+              <option value="rainbow">🌈 Hilo Arcoíris</option>
+              <option value="rainbow_bands">🏳️‍🌈 Franjas Arcoíris</option>
             </select>
 
             <div class="color-carousel" id="colorModeCarousel">
@@ -2299,8 +2301,13 @@
               </div>
               <div class="color-mode-card" data-mode="organic_flow">
                 <div class="color-mode-preview" style="background: linear-gradient(135deg, #ff007f 0%, #7928ca 50%, #00dfd8 100%);"></div>
-                <div class="color-mode-title">Degradado Líquido</div>
+                <div class="color-mode-title">Flujo Orgánico</div>
                 <div class="color-mode-badge">3 Colores</div>
+              </div>
+              <div class="color-mode-card" data-mode="organic_spatial">
+                <div class="color-mode-preview" style="background: conic-gradient(from 180deg at 50% 50%, #06b6d4 0deg, #3b82f6 120deg, #ec4899 240deg, #06b6d4 360deg);"></div>
+                <div class="color-mode-title">Ondas 2D</div>
+                <div class="color-mode-badge">Espacial</div>
               </div>
               <div class="color-mode-card" data-mode="tonal_blend">
                 <div class="color-mode-preview" style="background: linear-gradient(135deg, #f97316 0%, #a855f7 50%, #06b6d4 100%);"></div>
@@ -2318,9 +2325,14 @@
                 <div class="color-mode-badge">Híbrido</div>
               </div>
               <div class="color-mode-card" data-mode="rainbow">
+                <div class="color-mode-preview" style="background: linear-gradient(135deg, #ff0055 0%, #ffcc00 33%, #00ccff 66%, #cc00ff 100%);"></div>
+                <div class="color-mode-title">Hilo Arcoíris</div>
+                <div class="color-mode-badge">Continuo</div>
+              </div>
+              <div class="color-mode-card" data-mode="rainbow_bands">
                 <div class="color-mode-preview" style="background: linear-gradient(90deg, #ff0000 0%, #ff7f00 20%, #ffff00 40%, #00ff00 60%, #0000ff 80%, #8b00ff 100%);"></div>
-                <div class="color-mode-title">Arcoíris</div>
-                <div class="color-mode-badge">Espectro</div>
+                <div class="color-mode-title">Franjas Arcoíris</div>
+                <div class="color-mode-badge">Bandas</div>
               </div>
             </div>
           </div>
