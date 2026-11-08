@@ -477,6 +477,7 @@
        3. BOTTOM STUDIO DOCK & SYMMETRIC CONTAINER
        ========================================================= */
     #studioDock {
+      position: relative;
       background: var(--bg-dock);
       -webkit-backdrop-filter: blur(30px) saturate(180%);
       backdrop-filter: blur(30px) saturate(180%);
@@ -512,10 +513,17 @@
       height: 242px;
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 6px 14px 14px 14px;
+      padding: 6px 14px 18px 14px;
       overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
       transition: height 0.28s var(--ease-spring), padding 0.28s var(--ease-spring);
+    }
+    #dockContent::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
     }
     #studioDock.collapsed #dockContent {
       height: 0px;
@@ -525,6 +533,117 @@
     }
     #studioDock.expanded #dockContent {
       height: min(52dvh, 430px);
+    }
+
+    /* =========================================================
+       DEGRADADO DINÁMICO INFERIOR (SCROLL FADE CUE)
+       ========================================================= */
+    .dock-scroll-fade {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: calc(54px + var(--safe-bottom));
+      height: 54px;
+      background: linear-gradient(to top, rgba(9, 13, 21, 0.98) 0%, rgba(9, 13, 21, 0.72) 48%, rgba(9, 13, 21, 0) 100%);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 7px;
+      pointer-events: none;
+      z-index: 25;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.26s ease, transform 0.26s ease;
+    }
+    .dock-scroll-fade.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    #studioDock.collapsed .dock-scroll-fade {
+      display: none !important;
+    }
+
+    .dock-scroll-cue {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(20, 27, 41, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--text-dim);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      padding: 3px 10px 3px 8px;
+      border-radius: 999px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      pointer-events: auto;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      animation: dockCueBob 2.2s ease-in-out infinite;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .dock-scroll-cue:active {
+      transform: scale(0.94);
+      background: var(--accent);
+      color: #06080e;
+      border-color: var(--accent);
+    }
+    .dock-scroll-cue svg {
+      color: var(--accent);
+      transition: color 0.2s ease, transform 0.2s ease;
+    }
+    .dock-scroll-cue:active svg {
+      color: #06080e;
+      transform: translateY(1px);
+    }
+    @keyframes dockCueBob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-2.5px); }
+    }
+
+    /* =========================================================
+       DESTELLO DE BARRA DE SCROLL ESTILO iOS
+       ========================================================= */
+    .dock-scroll-track {
+      position: absolute;
+      top: 22px;
+      right: 3px;
+      bottom: calc(56px + var(--safe-bottom));
+      width: 3.5px;
+      border-radius: 999px;
+      pointer-events: none;
+      z-index: 30;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
+    .dock-scroll-thumb {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 32px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.28);
+      transition: background 0.25s ease, box-shadow 0.25s ease, height 0.08s ease-out, top 0.04s linear;
+    }
+    .dock-scroll-track.flashing {
+      opacity: 1;
+    }
+    .dock-scroll-track.flashing .dock-scroll-thumb {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent-glow, rgba(0, 245, 160, 0.7));
+    }
+    .dock-scroll-track.scrolling {
+      opacity: 1;
+    }
+    .dock-scroll-track.scrolling .dock-scroll-thumb {
+      background: rgba(255, 255, 255, 0.45);
+    }
+    #studioDock.collapsed .dock-scroll-track {
+      display: none !important;
     }
 
     .tab-pane {
@@ -1568,6 +1687,8 @@
       .dock-grabber-bar { display: none; }
       #dockContent { height: calc(100vh - 58px) !important; padding: 14px; }
       #dockTabs { height: 58px; }
+      .dock-scroll-fade { bottom: 58px; }
+      .dock-scroll-track { bottom: 62px; top: 10px; }
       canvas { max-height: 82vh !important; margin-top: 44px; }
     }
   </style>
@@ -2445,6 +2566,19 @@
 
         <div class="stats-card" id="stats">Listo | Motor cargado</div>
       </div>
+    </div>
+
+    <!-- DOCK SCROLL OVERLAYS (FADE INFERIOR + INDICADOR DE DESPLAZAMIENTO ESTILO iOS) -->
+    <div id="dockScrollFade" class="dock-scroll-fade" title="Toca o desliza para ver más ajustes">
+      <div class="dock-scroll-cue">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+        <span>Más ajustes</span>
+      </div>
+    </div>
+    <div id="dockScrollTrack" class="dock-scroll-track" aria-hidden="true">
+      <div id="dockScrollThumb" class="dock-scroll-thumb"></div>
     </div>
 
     <!-- DOCK TABS -->
@@ -9917,6 +10051,9 @@ document.getElementById('engineMode').addEventListener('change', (e) => {
   if (typeof syncStyleCards === 'function') syncStyleCards(ENGINE_MODE);
   applyModePreset(ENGINE_MODE);
   rebuildPortrait(true);
+  setTimeout(() => {
+    if (typeof checkDockScrollState === 'function') checkDockScrollState();
+  }, 40);
 });
 
 document.getElementById('viewMode').addEventListener('change', (e) => {
@@ -10691,6 +10828,12 @@ document.querySelectorAll('.studio-subnav-btn[data-subtab]').forEach(btn => {
     if (typeof updateActiveFunctionPill === 'function') {
       updateActiveFunctionPill();
     }
+    if (typeof checkDockScrollState === 'function') {
+      checkDockScrollState();
+    }
+    if (typeof flashDockScrollIndicator === 'function') {
+      flashDockScrollIndicator();
+    }
     haptic(8);
   });
 });
@@ -11221,6 +11364,12 @@ function setDockState(state) {
       studioDock.classList.add('expanded');
     }
   }
+  setTimeout(() => {
+    if (typeof checkDockScrollState === 'function') checkDockScrollState();
+    if (state !== 'collapsed' && typeof flashDockScrollIndicator === 'function') {
+      flashDockScrollIndicator();
+    }
+  }, 290);
   haptic(8);
 }
 
@@ -11276,9 +11425,122 @@ document.querySelectorAll('#dockTabs .tab-btn').forEach(btn => {
     if (typeof updateActiveFunctionPill === 'function') {
       updateActiveFunctionPill();
     }
+    if (typeof checkDockScrollState === 'function') {
+      checkDockScrollState();
+    }
+    if (typeof flashDockScrollIndicator === 'function') {
+      flashDockScrollIndicator();
+    }
     haptic(8);
   });
 });
+
+// =========================================================
+// GESTOR DE OVERLAYS DE SCROLL & INDICADOR ESTILO iOS
+// =========================================================
+const dockContentEl = document.getElementById('dockContent');
+const dockScrollFadeEl = document.getElementById('dockScrollFade');
+const dockScrollTrackEl = document.getElementById('dockScrollTrack');
+const dockScrollThumbEl = document.getElementById('dockScrollThumb');
+
+let flashScrollTimeout = null;
+let scrollHideTimeout = null;
+
+function updateDockScrollThumb() {
+  if (!dockContentEl || !dockScrollTrackEl || !dockScrollThumbEl) return;
+  const scrollH = dockContentEl.scrollHeight;
+  const clientH = dockContentEl.clientHeight;
+  const scrollT = dockContentEl.scrollTop;
+
+  if (scrollH <= clientH + 8 || dockState === 'collapsed') {
+    dockScrollTrackEl.style.display = 'none';
+    return;
+  }
+  dockScrollTrackEl.style.display = 'block';
+
+  const trackH = dockScrollTrackEl.clientHeight || (clientH - 12);
+  const minThumbH = 26;
+  const thumbH = Math.max(minThumbH, Math.min(trackH - 10, (clientH / scrollH) * trackH));
+  const maxScroll = Math.max(1, scrollH - clientH);
+  const maxTop = Math.max(0, trackH - thumbH);
+  const thumbTop = (scrollT / maxScroll) * maxTop;
+
+  dockScrollThumbEl.style.height = `${Math.round(thumbH)}px`;
+  dockScrollThumbEl.style.top = `${Math.round(thumbTop)}px`;
+}
+
+function checkDockScrollState() {
+  if (!dockContentEl) return;
+  const scrollH = dockContentEl.scrollHeight;
+  const clientH = dockContentEl.clientHeight;
+  const scrollT = dockContentEl.scrollTop;
+
+  // Si está colapsado o no hay desbordamiento, ocultar el fade
+  if (dockState === 'collapsed' || scrollH <= clientH + 10) {
+    if (dockScrollFadeEl) dockScrollFadeEl.classList.remove('visible');
+    if (dockScrollTrackEl) dockScrollTrackEl.style.display = 'none';
+    return;
+  }
+
+  // Hay contenido oculto abajo si quedan más de 14px por recorrer
+  const remaining = scrollH - clientH - scrollT;
+  if (dockScrollFadeEl) {
+    if (remaining > 14) {
+      dockScrollFadeEl.classList.add('visible');
+    } else {
+      dockScrollFadeEl.classList.remove('visible');
+    }
+  }
+
+  updateDockScrollThumb();
+}
+
+function flashDockScrollIndicator() {
+  if (!dockContentEl || !dockScrollTrackEl || dockState === 'collapsed') return;
+  if (dockContentEl.scrollHeight <= dockContentEl.clientHeight + 8) {
+    dockScrollTrackEl.classList.remove('flashing', 'scrolling');
+    return;
+  }
+
+  updateDockScrollThumb();
+  dockScrollTrackEl.classList.remove('scrolling');
+  dockScrollTrackEl.classList.add('flashing');
+
+  if (flashScrollTimeout) clearTimeout(flashScrollTimeout);
+  flashScrollTimeout = setTimeout(() => {
+    dockScrollTrackEl.classList.remove('flashing');
+  }, 1100);
+}
+
+if (dockContentEl) {
+  dockContentEl.addEventListener('scroll', () => {
+    checkDockScrollState();
+
+    if (dockScrollTrackEl && dockContentEl.scrollHeight > dockContentEl.clientHeight + 8 && dockState !== 'collapsed') {
+      if (!dockScrollTrackEl.classList.contains('flashing')) {
+        dockScrollTrackEl.classList.add('scrolling');
+      }
+      if (scrollHideTimeout) clearTimeout(scrollHideTimeout);
+      scrollHideTimeout = setTimeout(() => {
+        dockScrollTrackEl.classList.remove('scrolling');
+      }, 650);
+    }
+  }, { passive: true });
+}
+
+if (dockScrollFadeEl) {
+  dockScrollFadeEl.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (dockContentEl) {
+      dockContentEl.scrollBy({ top: 160, behavior: 'smooth' });
+      haptic(6);
+    }
+  });
+}
+
+window.addEventListener('resize', () => {
+  checkDockScrollState();
+}, { passive: true });
 
 // Style Cards click
 styleCards.forEach(card => {
@@ -11508,6 +11770,10 @@ syncPaletteCards(COLOR_PALETTE);
 syncBgThemeChips(BG_THEME);
 syncAllSlidersProgress();
 updateActiveFunctionPill();
+setTimeout(() => {
+  if (typeof checkDockScrollState === 'function') checkDockScrollState();
+  if (typeof flashDockScrollIndicator === 'function') flashDockScrollIndicator();
+}, 200);
 
 // =========================================================
 // PWA: Service Worker e Instalación en Pantalla de Inicio
