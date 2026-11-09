@@ -1821,7 +1821,7 @@
       <option value="pursuit_vortex">🌪️ 10. Vórtice Geométrico en Espiral</option>
       <option value="panot_bcn">🧱 11. Panots de Barcelona (Baldosa Hidráulica con Marco)</option>
       <option value="flor_bcn">🌺 12. Flor de Barcelona (Silueta Floral Concéntrica · Sin Marco)</option>
-      <option value="flor_fractal">🌸 13. Flor Fractal de Barcelona (Mosaico Rectangular · Sin Cruces)</option>
+      <option value="flor_fractal">🌸 13. Flor Fractal de Barcelona (Clásico / Toda la Foto · Sin Cruces)</option>
       <option value="golden_spiral">🌻 14. Espiral Áurea Proporcional (Fibonacci Infinito)</option>
       <option value="keith_haring">🕺 15. Keith Haring Pop-Art (Muñecos, Perros y Línea Continua)</option>
       <option value="haring_croc">🐊 16. Keith Haring Cocodrilos (Hombre-Cocodrilo y Fauces Pop-Art)</option>
@@ -2124,6 +2124,17 @@
 
         <!-- CONTROL DINÁMICO DE FLOR FRACTAL -->
         <div id="boxFlorFractalControls" class="studio-group-block is-hidden">
+          <div class="studio-slider-card" style="margin-bottom:8px;">
+            <div class="studio-slider-header">
+              <span class="studio-slider-title">Estilo de Flor Fractal</span>
+              <span class="studio-val-badge" id="vFlorFractalMode">Fractal Clásico</span>
+            </div>
+            <div class="studio-quick-pills">
+              <button type="button" class="studio-pill active" id="btnFlorFractalClassic" data-ffmode="classic">⬛ Fractal Clásico</button>
+              <button type="button" class="studio-pill" id="btnFlorFractalRect" data-ffmode="rect">🖼️ Toda la Foto</button>
+            </div>
+          </div>
+
           <div class="studio-slider-card">
             <div class="studio-slider-header">
               <span class="studio-slider-title">Aumento de Flor Fractal</span>
@@ -3042,6 +3053,7 @@ let ISO_DIAMOND_SIZE = 11.0;
 let PANOT_SIZE = 14.0;
 let FLOR_BCN_SIZE = 15.0;
 let FLOR_FRACTAL_SIZE = 100;
+let FLOR_FRACTAL_MODE = 'classic'; // 'classic' | 'rect'
 let VORTEX_SIZE = 8.5;
 let ESCHER_SIZE = 6.0;
 
@@ -3058,7 +3070,7 @@ const MODE_DESCRIPTIONS = {
   pursuit_vortex: '🌪️ Vórtice Geométrico en Espiral: Celdas poligonales con giro progresivo (curvas de persecución) que esculpen el volumen facial.',
   panot_bcn:      '🧱 Panots de Barcelona: Teje una red continua de baldosas completas con marco perimetral y la icónica Flor de Barcelona en bajorrelieve.',
   flor_bcn:       '🌺 Flor de Barcelona: Silueta floral continua con relieves concéntricos adaptados a las facciones, sin marco ni cortes.',
-  flor_fractal:   '🌸 Flor Fractal de Barcelona: Mosaico fractal rectangular de borde a borde con flores abiertas de 4 pétalos en una sola línea continua orgánica sin cruces.',
+  flor_fractal:   '🌸 Flor Fractal de Barcelona: Alterna entre el Fractal Clásico (cuadrado Hilbert 2ⁿ original) y el Mosaico Rectangular en toda la foto, sin cruces.',
   golden_spiral:  '🌻 Espiral Áurea Proporcional (Nautilus φ = 1.618): Anclada en la pupila dominante, esculpe el retrato en bajorrelieve al buril siguiendo el caracol logarítmico de Fibonacci en un solo trazo continuo.',
   keith_haring:   '🕺 Keith Haring Pop-Art (Mural en Línea Continua): Esculpe el retrato encajando la iconografía inconfundible de Keith Haring (muñecos bailando con brazos en alto, perros ladrando, corazones radiantes, acróbatas y rayas de movimiento cinético) en un único trazo continuo.',
   haring_croc:    '🐊 Keith Haring Cocodrilos (Bestiario Pop-Art): Esculpe el retrato con los icónicos cocodrilos de Keith Haring (cocodrilos de perfil con cresta dorsal en sierra y grandes fauces dentadas, el famoso Hombre-Cocodrilo con brazos en alto y caimanes en S) tejidos en una sola línea continua.',
@@ -3163,6 +3175,16 @@ function syncViewLayerCards(val = VIEW_MODE) {
   updateStencilSoloButtonUI();
 }
 
+function syncFlorFractalModePills(mode = FLOR_FRACTAL_MODE) {
+  const isRect = (mode === 'rect');
+  const btnClassic = document.getElementById('btnFlorFractalClassic');
+  const btnRect = document.getElementById('btnFlorFractalRect');
+  const vMode = document.getElementById('vFlorFractalMode');
+  if (btnClassic) btnClassic.classList.toggle('active', !isRect);
+  if (btnRect) btnRect.classList.toggle('active', isRect);
+  if (vMode) vMode.textContent = isRect ? 'Toda la Foto' : 'Fractal Clásico';
+}
+
 function syncSlidersFromState() {
   const setSlider = (id, labelId, val, decimals = null, suffix = '') => {
     const el = document.getElementById(id);
@@ -3200,6 +3222,7 @@ function syncSlidersFromState() {
   setSlider('vortexSize', 'vVortexSize', VORTEX_SIZE, 1, 'px');
   setSlider('escherSize', 'vEscherSize', ESCHER_SIZE, 1, 'px');
   setFusionOpacity(FUSION_OPACITY);
+  syncFlorFractalModePills(FLOR_FRACTAL_MODE);
   syncPresetPills('maxN', TARGET_NODES, 500);
   syncViewLayerCards(VIEW_MODE);
   syncAllSlidersProgress();
@@ -6616,7 +6639,205 @@ function generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteM
 }
 
 /**
- * MODO 13: FLOR FRACTAL DE BARCELONA (MOSAICO RECTANGULAR COMPLETO DE BORDE A BORDE · 0 CRUCES):
+ * MODO 13A: FLOR FRACTAL CLÁSICA (HILBERT 2ⁿ CUADRADO ORIGINAL · 0 CRUCES):
+ * Conserva exactamente el algoritmo clásico en cuadrado Hilbert 2ⁿ adaptativo
+ * con flor de 4 pétalos bulbosos, puentes Bézier en S y suavizado orgánico base,
+ * modulado por Aumento de Flor Fractal (florFractalScale 50%..260%, 100% = original exacto).
+ */
+function generateFractalOpenFlorClassicPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 7.0, TARGET_NODES = 24000, seed = 0, florFractalScale = 100) {
+  const scaleMod = Math.max(0.45, Math.min(2.8, (florFractalScale || 100) / 100.0));
+  const fineZoom = Math.pow(scaleMod, 0.22);    // 1.0 exacto cuando florFractalScale === 100
+  const depthShift = Math.log2(scaleMod) * 1.25; // 0 exacto cuando florFractalScale === 100
+  const threshScale = Math.pow(scaleMod, 0.85);  // 1.0 exacto cuando florFractalScale === 100
+  const minMaxDepth = scaleMod > 1.05 ? 3 : 4;
+  const minMinDepth = scaleMod > 1.05 ? 1 : 2;
+
+  const baseSide = Math.max(W, H);
+  // Escala continua sensible a MIN_R y MAX_R para que cada cambio del slider modifique la separación
+  const scaleFactor = Math.max(0.68, Math.min(1.45, 0.86 + (MIN_R - 1.4) * 0.085 + (MAX_R - 7.0) * 0.018));
+  const maxSide = baseSide * scaleFactor * fineZoom;
+  const offSeedX = seed > 0 ? ((seed % 5) - 2) * 3.5 : 0;
+  const offSeedY = seed > 0 ? (((seed * 2) % 5) - 2) * 3.5 : 0;
+  const offsetX = (W - maxSide) * 0.5 + offSeedX;
+  const offsetY = (H - maxSide) * 0.5 + offSeedY;
+
+  const nodeBoost = Math.log2(Math.max(4000, TARGET_NODES) / 24000) * 0.45;
+  const maxDepth = Math.max(minMaxDepth, Math.min(8, Math.round(6.6 - (MIN_R - 1.4) * 0.42 + nodeBoost - depthShift)));
+  const minDepth = Math.max(minMinDepth, Math.min(maxDepth - 1, Math.round(3.6 - (MAX_R - 7.0) * 0.22 - depthShift * 0.65)));
+
+  const cells = [];
+
+  function sampleRegion(x0, y0, size) {
+    const x1 = Math.min(W - 1, Math.ceil(x0 + size));
+    const y1 = Math.min(H - 1, Math.ceil(y0 + size));
+    const sx0 = Math.max(0, x0 | 0);
+    const sy0 = Math.max(0, y0 | 0);
+    if (sx0 >= W || sy0 >= H || x1 <= sx0 || y1 <= sy0) return { inside: false, darkness: 0 };
+    const step = Math.max(1, (size / 6) | 0);
+    let sumDark = 0, maxDark = 0, insideCnt = 0;
+    for (let y = sy0; y <= y1; y += step) {
+      const row = y * W;
+      for (let x = sx0; x <= x1; x += step) {
+        if (silhouetteMask[row + x]) {
+          insideCnt++;
+          const tone = coralToneMap ? coralToneMap[row + x] : 0.5;
+          const s232 = step232Stencil ? step232Stencil[row + x] : 1.0;
+          const d = Math.max(0, 1.0 - tone) * 0.65 + Math.max(0, 1.0 - s232) * 0.95;
+          sumDark += d;
+          if (d > maxDark) maxDark = d;
+        }
+      }
+    }
+    if (insideCnt === 0) return { inside: false, darkness: 0 };
+    return { inside: true, darkness: Math.min(1.0, (sumDark / insideCnt) * 0.55 + maxDark * 0.45) };
+  }
+
+  const minRMod = Math.pow(Math.max(0.5, MIN_R / 1.4), 0.65);
+  const maxRMod = Math.pow(Math.max(0.5, MAX_R / 7.0), 0.55);
+  const nodeMod = Math.max(0.65, Math.min(1.45, TARGET_NODES / 24000));
+
+  function hilbertRecurse(x, y, ax, ay, bx, by, depth) {
+    const size = Math.hypot(ax, ay);
+    const cx = x + (ax + bx) * 0.5;
+    const cy = y + (ay + by) * 0.5;
+    const minX = Math.min(x, x + ax, x + bx, x + ax + bx);
+    const minY = Math.min(y, y + ay, y + by, y + ay + by);
+    const info = sampleRegion(minX, minY, size);
+
+    if (!info.inside && depth >= minDepth) return;
+
+    const span = Math.max(1, maxDepth - minDepth);
+    const normDepth = Math.max(0, (depth - minDepth) / span);
+    const depthFactor = Math.pow(normDepth, 1.15 * maxRMod) * (0.78 * minRMod / nodeMod) * threshScale;
+    const neededDarkness = Math.max(0.03, Math.min(0.96, depthFactor));
+
+    if (depth < minDepth || (depth < maxDepth && info.darkness > neededDarkness)) {
+      const ax2 = ax * 0.5, ay2 = ay * 0.5;
+      const bx2 = bx * 0.5, by2 = by * 0.5;
+      hilbertRecurse(x, y, bx2, by2, ax2, ay2, depth + 1);
+      hilbertRecurse(x + bx2, y + by2, ax2, ay2, bx2, by2, depth + 1);
+      hilbertRecurse(x + ax2 + bx2, y + ay2 + by2, ax2, ay2, bx2, by2, depth + 1);
+      hilbertRecurse(x + ax2 + ax2 + bx2, y + ay2 + ay2 + by2, -bx2, -by2, -ax2, -ay2, depth + 1);
+    } else if (info.inside && cx >= 4 && cx < W - 4 && cy >= 4 && cy < H - 4) {
+      let fx = cx, fy = cy;
+      const idx = (cy | 0) * W + (cx | 0);
+      if (info.darkness > 0.08 && idx > W && idx < W * (H - 1) - 1) {
+        const gx = ((coralToneMap ? coralToneMap[idx + 1] - coralToneMap[idx - 1] : 0) +
+                    (step232Stencil ? step232Stencil[idx + 1] - step232Stencil[idx - 1] : 0)) * 0.5;
+        const gy = ((coralToneMap ? coralToneMap[idx + W] - coralToneMap[idx - W] : 0) +
+                    (step232Stencil ? step232Stencil[idx + W] - step232Stencil[idx - W] : 0)) * 0.5;
+        const pull = Math.min(size * 0.22, info.darkness * 1.8);
+        fx = Math.max(4, Math.min(W - 4, fx - gx * pull));
+        fy = Math.max(4, Math.min(H - 4, fy - gy * pull));
+      }
+      // Orientación local de Hilbert para el sentido de giro armónico sin cruces
+      const det = ax * by - ay * bx;
+      const orientAngle = Math.atan2(ay, ax);
+      cells.push({ cx: fx, cy: fy, size, darkness: info.darkness, orientAngle, sign: det >= 0 ? 1 : -1 });
+    }
+  }
+
+  hilbertRecurse(offsetX, offsetY, maxSide, 0, 0, maxSide, 0);
+
+  const outX = [];
+  const outY = [];
+  const nCells = cells.length;
+
+  // Función de radio polar de la Flor de Barcelona: 4 pétalos bulbosos a 45°, 135°, 225°, 315° y 4 cinturas suaves a 0°, 90°, 180°, 270°
+  function evalFlowerPoint(cell, theta) {
+    const rOuter = cell.size * (0.43 + 0.04 * cell.darkness);
+    const rWaist = cell.size * (0.17 - 0.02 * cell.darkness);
+    // 0.5 * (1 - cos(4*theta)) vale 1 en los 4 pétalos (45°+k*90°) y 0 en las 4 cinturas (k*90°)
+    const lobe = Math.pow(0.5 - 0.5 * Math.cos(4.0 * theta), 0.58);
+    // Ensanchamiento redondeado del capullo para darle la silueta modernista exacta del panot
+    const roundCap = Math.sin(Math.PI * lobe) * 0.08;
+    const r = rWaist + (rOuter - rWaist) * Math.min(1.0, lobe + roundCap);
+    return {
+      x: cell.cx + Math.cos(theta) * r,
+      y: cell.cy + Math.sin(theta) * r
+    };
+  }
+
+  let prevExitX = 0, prevExitY = 0, prevTanX = 0, prevTanY = 0;
+
+  for (let i = 0; i < nCells; i++) {
+    const c = cells[i];
+    // Ángulo de la cintura de entrada/salida alineado con la orientación de Hilbert de la celda
+    // En la cintura Sur local (-90° respecto a los ejes de la celda), la flor se abre suavemente
+    const openCenterAngle = c.orientAngle - c.sign * (Math.PI * 0.5);
+    // Dejamos una pequeña apertura angular en la cintura para entrar y salir con curvas limpias
+    const gapHalf = 0.26;
+    const startTheta = openCenterAngle + c.sign * gapHalf;
+    const endTheta = openCenterAngle + c.sign * (Math.PI * 2.0 - gapHalf);
+
+    const pStart = evalFlowerPoint(c, startTheta);
+    const pStart2 = evalFlowerPoint(c, startTheta + c.sign * 0.08);
+    let inTanX = pStart2.x - pStart.x;
+    let inTanY = pStart2.y - pStart.y;
+    const inLen = Math.hypot(inTanX, inTanY) || 1;
+    inTanX /= inLen; inTanY /= inLen;
+
+    // PUENTE CURVO ORGÁNICO EN 'S' (Bézier Cúbica) entre la flor anterior y la flor actual (0 líneas rectas, 0 ángulos rectos)
+    if (i > 0) {
+      const dist = Math.hypot(pStart.x - prevExitX, pStart.y - prevExitY);
+      if (dist > 0.5) {
+        const handle = Math.min(dist * 0.45, Math.max(c.size, cells[i - 1].size) * 0.38);
+        const cp1x = prevExitX + prevTanX * handle;
+        const cp1y = prevExitY + prevTanY * handle;
+        const cp2x = pStart.x - inTanX * handle;
+        const cp2y = pStart.y - inTanY * handle;
+        const bridgeSteps = Math.max(5, Math.min(14, Math.ceil(dist / 2.5)));
+        for (let b = 1; b < bridgeSteps; b++) {
+          const t = b / bridgeSteps;
+          const mt = 1.0 - t;
+          const bx = mt * mt * mt * prevExitX + 3 * mt * mt * t * cp1x + 3 * mt * t * t * cp2x + t * t * t * pStart.x;
+          const by = mt * mt * mt * prevExitY + 3 * mt * mt * t * cp1y + 3 * mt * t * t * cp2y + t * t * t * pStart.y;
+          outX.push(bx);
+          outY.push(by);
+        }
+      }
+    }
+
+    // Trazado curvo continuo de los 4 pétalos de la Flor de Barcelona
+    const flowerSteps = c.size > 18 ? 32 : (c.size > 10 ? 24 : 18);
+    for (let k = 0; k <= flowerSteps; k++) {
+      const u = k / flowerSteps;
+      const theta = startTheta + u * (endTheta - startTheta);
+      const pt = evalFlowerPoint(c, theta);
+      outX.push(pt.x);
+      outY.push(pt.y);
+    }
+
+    const pEndPrev = evalFlowerPoint(c, endTheta - c.sign * 0.08);
+    const pEnd = evalFlowerPoint(c, endTheta);
+    prevExitX = pEnd.x;
+    prevExitY = pEnd.y;
+    prevTanX = pEnd.x - pEndPrev.x;
+    prevTanY = pEnd.y - pEndPrev.y;
+    const outLen = Math.hypot(prevTanX, prevTanY) || 1;
+    prevTanX /= outLen; prevTanY /= outLen;
+  }
+
+  // Suavizado orgánico base para garantizar curvas 100% fluidas incluso con Chaikin = 0
+  const smoothed = chaikinSmoothOpenTour(new Float32Array(outX), new Float32Array(outY), 1);
+  return {
+    ptsX: smoothed.ptsX,
+    ptsY: smoothed.ptsY
+  };
+}
+
+/**
+ * MODO 13: DISPATCHER FLOR FRACTAL DE BARCELONA (Clásico Hilbert 2ⁿ / Toda la Foto)
+ */
+function generateFractalOpenFlorPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 7.0, TARGET_NODES = 24000, seed = 0, florFractalScale = 100, florFractalMode = 'classic') {
+  if (florFractalMode === 'rect') {
+    return generateFractalOpenFlorRectPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed, florFractalScale);
+  }
+  return generateFractalOpenFlorClassicPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed, florFractalScale);
+}
+
+/**
+ * MODO 13B: FLOR FRACTAL DE BARCELONA (MOSAICO RECTANGULAR COMPLETO DE BORDE A BORDE · 0 CRUCES):
  * Cubre el 100% del rectángulo de la foto en cualquier formato (vertical, cuadrado o panorámico):
  * 1. Cuadrícula raíz cuadrada adaptada a W×H con recorrido hamiltoniano Gilbert 2D generalizado + subdivisión fractal simétrica.
  * 2. Modulación sensible a Aumento de Flor Fractal (florFractalScale 50%..260%), MIN_R, MAX_R y TARGET_NODES.
@@ -6624,7 +6845,7 @@ function generateFlorBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteM
  * 4. Puentes curvos Bézier cúbicos con repulsión espacial contra discos florales vecinos para evitar V-spikes y cruces.
  * 5. Retorno pre-Chaikin limpio para que el worker aplique CHAIKIN_PASSES una sola vez.
  */
-function generateFractalOpenFlorPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 7.0, TARGET_NODES = 24000, seed = 0, florFractalScale = 100) {
+function generateFractalOpenFlorRectPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 7.0, TARGET_NODES = 24000, seed = 0, florFractalScale = 100) {
   const scaleFactor = Math.max(0.45, Math.min(2.8, (florFractalScale || 100) / 100.0));
   const minRMod = Math.pow(Math.max(0.5, MIN_R / 1.4), 0.45);
   const maxRMod = Math.pow(Math.max(0.5, MAX_R / 7.0), 0.30);
@@ -9427,7 +9648,7 @@ self.onmessage = function(e) {
     customFocalX, customFocalY, haringIconCount = 95, haringIconSize = 100,
     halftoneSpacing = 6.5, halftoneScale = 115, halftoneAngle = 45, halftoneType = 'dots', bgClean = 0.000,
     honeycombSize = 14.0, honeycombWalls = 3, honeycombSubdiv = true,
-    hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 14.0, florBcnSize = 15.0, florFractalSize = 100, vortexSize = 8.5, escherSize = 6.0,
+    hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 14.0, florBcnSize = 15.0, florFractalSize = 100, florFractalMode = 'classic', vortexSize = 8.5, escherSize = 6.0,
     lineW = 1.0
   } = e.data;
 
@@ -9574,7 +9795,7 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'flor_fractal') {
-    let { ptsX, ptsY } = generateFractalOpenFlorPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed, florFractalSize);
+    let { ptsX, ptsY } = generateFractalOpenFlorPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed, florFractalSize, florFractalMode);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
     }
@@ -9786,6 +10007,7 @@ function rebuildPortrait(needsStencilRebuild = true) {
     panotSize: PANOT_SIZE,
     florBcnSize: FLOR_BCN_SIZE,
     florFractalSize: FLOR_FRACTAL_SIZE,
+    florFractalMode: FLOR_FRACTAL_MODE,
     vortexSize: VORTEX_SIZE,
     escherSize: ESCHER_SIZE,
     bgClean: BG_CLEAN,
@@ -11937,6 +12159,27 @@ if (btnHtDots && btnHtLine) {
   });
 }
 
+const btnFfClassic = document.getElementById('btnFlorFractalClassic');
+const btnFfRect = document.getElementById('btnFlorFractalRect');
+if (btnFfClassic && btnFfRect) {
+  btnFfClassic.addEventListener('click', () => {
+    if (FLOR_FRACTAL_MODE === 'classic') return;
+    FLOR_FRACTAL_MODE = 'classic';
+    syncFlorFractalModePills('classic');
+    lineCacheDirty = true;
+    rebuildPortrait(false);
+    if (typeof haptic === 'function') haptic(10);
+  });
+  btnFfRect.addEventListener('click', () => {
+    if (FLOR_FRACTAL_MODE === 'rect') return;
+    FLOR_FRACTAL_MODE = 'rect';
+    syncFlorFractalModePills('rect');
+    lineCacheDirty = true;
+    rebuildPortrait(false);
+    if (typeof haptic === 'function') haptic(10);
+  });
+}
+
 document.getElementById('lineW').addEventListener('input', (e) => {
   syncSliderProgress(e.target);
   LINE_W = parseFloat(e.target.value);
@@ -12151,6 +12394,7 @@ function performFactoryReset() {
   HONEYCOMB_SIZE = 14.0;
   HONEYCOMB_WALLS = 3;
   HONEYCOMB_SUBDIV = true;
+  FLOR_FRACTAL_MODE = 'classic';
   FLOR_FRACTAL_SIZE = 100;
   applyModePreset(ENGINE_MODE);
   syncMaxNPresets(TARGET_NODES);
@@ -12360,6 +12604,7 @@ if (btnResetStyleParams) {
     HALFTONE_SPACING = 6.5;
     HALFTONE_SCALE = 115;
     HALFTONE_ANGLE = 45;
+    FLOR_FRACTAL_MODE = 'classic';
     FLOR_FRACTAL_SIZE = 100;
     applyModePreset(ENGINE_MODE);
     syncMaxNPresets(TARGET_NODES);
