@@ -788,7 +788,7 @@ const MODE_PRESETS = {
   coral:          { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 4.8, chaikin: 2, lineW: 1.0, fusionOpacity: 25, colorMode: 'mono' },
   coral_tsp:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 6.5, chaikin: 2, lineW: 1.0, fusionOpacity: 25, colorMode: 'organic_flow', colorPalette: 'ocean' },
   stencil_clean:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.28, bgClean: 0.000, minR: 1.6, maxR: 8.5, chaikin: 1, lineW: 1.0, fusionOpacity: 25, colorMode: 'mono' },
-  stencil_cross:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.32, bgClean: 0.000, minR: 2.6, maxR: 9.0, chaikin: 1, lineW: 1.0, fusionOpacity: 25, colorMode: 'mono' },
+  stencil_cross:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.32, bgClean: 0.000, minR: 2.0, maxR: 8.5, chaikin: 1, lineW: 1.0, fusionOpacity: 25, colorMode: 'mono' },
   live_growth:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.28, bgClean: 0.000, minR: 2.8, maxR: 9.0, chaikin: 1, lineW: 1.0, fusionOpacity: 25, colorMode: 'mono' },
   golden:         { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 0, lineW: 1.0, fusionOpacity: 25, colorMode: 'mono' },
   fractal:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1, lineW: 1.0, fusionOpacity: 25, colorMode: 'mono' },
@@ -1802,6 +1802,12 @@ function generateCrossedEtchingTour(coralToneMap, step232Stencil, silhouetteMask
   const shadeCut = Math.max(0.06, Math.min(0.45, 0.14 + (MAX_R / 25.0) * 0.22));
   const shadowExp = Math.max(1.2, Math.min(2.8, 1.5 + (MIN_R / 4.0) * 0.7));
 
+  let rng = (Math.imul(seed | 0, 1664525) + 1013904223) >>> 0;
+  const nextRand = () => {
+    rng = (Math.imul(1664525, rng) + 1013904223) >>> 0;
+    return rng / 4294967296;
+  };
+
   for (let i = 0; i < len; i++) {
     if (!silhouetteMask[i]) continue;
     const pDark = Math.max(0, 1.0 - step232Stencil[i]);
@@ -1833,8 +1839,8 @@ function generateCrossedEtchingTour(coralToneMap, step232Stencil, silhouetteMask
       const idx = y * W + x;
       let val = err[idx];
       while (val >= halfUnit && (coralToneMap[idx] < 0.88 || step232Stencil[idx] < 0.90) && count < maxNodes) {
-        rx[count] = x + (Math.random() - 0.5) * 0.3;
-        ry[count] = y + (Math.random() - 0.5) * 0.3;
+        rx[count] = x + (nextRand() - 0.5) * 0.3;
+        ry[count] = y + (nextRand() - 0.5) * 0.3;
         rPencil[count] = Math.max(0, 1.0 - step232Stencil[idx]);
         rTone[count] = Math.max(0, 1.0 - coralToneMap[idx]);
         count++;
@@ -1849,7 +1855,7 @@ function generateCrossedEtchingTour(coralToneMap, step232Stencil, silhouetteMask
     }
   }
 
-  const cellSize = 10;
+  const cellSize = Math.max(4, Math.min(8, Math.ceil(MIN_R * 2.2)));
   const cols = Math.ceil(W / cellSize) + 1;
   const rows = Math.ceil(H / cellSize) + 1;
   const rHead = new Int32Array(cols * rows);
@@ -1880,11 +1886,12 @@ function generateCrossedEtchingTour(coralToneMap, step232Stencil, silhouetteMask
       fy -= gy * pull;
 
       const cx = (px / cellSize) | 0, cy = (py / cellSize) | 0;
-      for (let dy = -1; dy <= 1; dy++) {
+      const rSpan = rTarget > cellSize ? 2 : 1;
+      for (let dy = -rSpan; dy <= rSpan; dy++) {
         const ny = cy + dy;
         if (ny < 0 || ny >= rows) continue;
         const rowOff = ny * cols;
-        for (let dx = -1; dx <= 1; dx++) {
+        for (let dx = -rSpan; dx <= rSpan; dx++) {
           const nx = cx + dx;
           if (nx < 0 || nx >= cols) continue;
           let j = rHead[rowOff + nx];
@@ -1914,10 +1921,9 @@ function generateCrossedEtchingTour(coralToneMap, step232Stencil, silhouetteMask
     const tD = rTone[i];
     if (pD > 0.13) {
       idxA.push(i);
-    } else if (tD >= 0.46) {
-      idxC.push(i);
-    } else if (tD >= 0.16) {
-      idxB.push(i);
+    } else {
+      if (tD >= 0.16) idxB.push(i);
+      if (tD >= 0.46) idxC.push(i);
     }
   }
 
@@ -1962,27 +1968,50 @@ function generateCrossedEtchingTour(coralToneMap, step232Stencil, silhouetteMask
     }
     const outX = new Float32Array(n), outY = new Float32Array(n);
     const vis = new Uint8Array(n);
+    const unvis = new Int32Array(n);
+    const unvisPos = new Int32Array(n);
+    for (let i = 0; i < n; i++) { unvis[i] = i; unvisPos[i] = i; }
+    let rem = n;
+    const markVis = (u) => {
+      vis[u] = 1;
+      rem--;
+      const pos = unvisPos[u];
+      if (pos < rem) {
+        const last = unvis[rem];
+        unvis[pos] = last;
+        unvisPos[last] = pos;
+      }
+    };
+
     let cur = seed % n;
-    vis[cur] = 1; outX[0] = ptsX[cur]; outY[0] = ptsY[cur];
+    markVis(cur);
+    outX[0] = ptsX[cur]; outY[0] = ptsY[cur];
     const hasDir = (dirX !== 0 || dirY !== 0);
     const invL = hasDir ? 1.0 / Math.hypot(dirX, dirY) : 0;
     const uX = dirX * invL, uY = dirY * invL;
     const nX = -uY, nY = uX;
+    const maxRad = Math.min(18, Math.max(cols, rows));
 
     for (let step = 1; step < n; step++) {
       const px = ptsX[cur], py = ptsY[cur];
       const cx = (px / cell) | 0, cy = (py / cell) | 0;
       let best = -1, bestScore = Infinity;
-      for (let rad = 0; rad <= 32; rad++) {
+      for (let rad = 0; rad <= maxRad; rad++) {
         const minDy = Math.max(-cy, -rad), maxDy = Math.min(rows - 1 - cy, rad);
         const minDx = Math.max(-cx, -rad), maxDx = Math.min(cols - 1 - cx, rad);
         for (let dy = minDy; dy <= maxDy; dy++) {
           const rowOff = (cy + dy) * cols;
           for (let dx = minDx; dx <= maxDx; dx++) {
             if (rad > 0 && Math.abs(dx) < rad && Math.abs(dy) < rad) continue;
-            let j = hd[rowOff + (cx + dx)];
+            const cIdx = rowOff + (cx + dx);
+            let prev = -1;
+            let j = hd[cIdx];
             while (j !== -1) {
-              if (!vis[j]) {
+              const nextJ = nxt[j];
+              if (vis[j]) {
+                if (prev === -1) hd[cIdx] = nextJ;
+                else nxt[prev] = nextJ;
+              } else {
                 const ddx = ptsX[j] - px, ddy = ptsY[j] - py;
                 const dSq = ddx * ddx + ddy * ddy;
                 let score = dSq;
@@ -1991,34 +2020,44 @@ function generateCrossedEtchingTour(coralToneMap, step232Stencil, silhouetteMask
                   const dPerp = Math.abs(ddx * nX + ddy * nY);
                   score = dPar * dPar + dPerp * dPerp * 2.8;
                 }
-                if (coralToneMap && dSq > 256) {
+                if (coralToneMap && dSq > 196) {
                   const mx = ((px + ptsX[j]) * 0.5) | 0, my = ((py + ptsY[j]) * 0.5) | 0;
-                  if (mx >= 0 && mx < W && my >= 0 && my < H && coralToneMap[my * W + mx] > 0.94) score *= 16.0;
+                  if (mx >= 0 && mx < W && my >= 0 && my < H && coralToneMap[my * W + mx] > 0.92 && (!step232Stencil || step232Stencil[my * W + mx] > 0.90)) {
+                    score *= 18.0;
+                  }
                 }
                 if (score < bestScore) { bestScore = score; best = j; }
+                prev = j;
               }
-              j = nxt[j];
+              j = nextJ;
             }
           }
         }
-        if (best !== -1 && bestScore <= (rad * cell) * (rad * cell)) break;
+        const ringMinSq = (rad * cell) * (rad * cell);
+        if (best !== -1 && (bestScore <= ringMinSq || (rad >= 6 && bestScore <= ringMinSq * 18.0))) break;
       }
       if (best === -1) {
-        for (let j = 0; j < n; j++) {
-          if (!vis[j]) {
-            const ddx = ptsX[j] - px, ddy = ptsY[j] - py;
-            const dSq = ddx * ddx + ddy * ddy;
-            let score = dSq;
-            if (hasDir) {
-              const dPar = Math.abs(ddx * uX + ddy * uY);
-              const dPerp = Math.abs(ddx * nX + ddy * nY);
-              score = dPar * dPar + dPerp * dPerp * 2.8;
-            }
-            if (score < bestScore) { bestScore = score; best = j; }
+        for (let k = 0; k < rem; k++) {
+          const j = unvis[k];
+          const ddx = ptsX[j] - px, ddy = ptsY[j] - py;
+          const dSq = ddx * ddx + ddy * ddy;
+          let score = dSq;
+          if (hasDir) {
+            const dPar = Math.abs(ddx * uX + ddy * uY);
+            const dPerp = Math.abs(ddx * nX + ddy * nY);
+            score = dPar * dPar + dPerp * dPerp * 2.8;
           }
+          if (coralToneMap && dSq > 196) {
+            const mx = ((px + ptsX[j]) * 0.5) | 0, my = ((py + ptsY[j]) * 0.5) | 0;
+            if (mx >= 0 && mx < W && my >= 0 && my < H && coralToneMap[my * W + mx] > 0.92 && (!step232Stencil || step232Stencil[my * W + mx] > 0.90)) {
+              score *= 18.0;
+            }
+          }
+          if (score < bestScore) { bestScore = score; best = j; }
         }
       }
-      vis[best] = 1; outX[step] = ptsX[best]; outY[step] = ptsY[best]; cur = best;
+      markVis(best);
+      outX[step] = ptsX[best]; outY[step] = ptsY[best]; cur = best;
     }
     return { tX: outX, tY: outY };
   };
@@ -6213,7 +6252,7 @@ function getPenWidth(x, y, baseWidth) {
     const dark = Math.max(0, Math.min(1, Math.max(1.0 - c, (1.0 - s) * 0.85)));
     return baseWidth * (0.30 + 1.18 * Math.pow(dark, 0.74));
   }
-  if (ENGINE_MODE === 'stencil_clean') {
+  if (ENGINE_MODE === 'stencil_clean' || ENGINE_MODE === 'stencil_cross') {
     const c = coralToneMap[idx];
     const s = step232Stencil ? step232Stencil[idx] : c;
     return baseWidth * (1.22 - 0.34 * Math.max(0, Math.min(1, Math.min(s, c))));
@@ -6230,6 +6269,21 @@ function isCleanStencilBridgeSeg(i) {
   const x1 = ptsX[i + 1], y1 = ptsY[i + 1];
   const dx = x1 - x0, dy = y1 - y0;
   const dSq = dx * dx + dy * dy;
+  if (ENGINE_MODE === 'stencil_cross') {
+    if (dSq <= 36.0) return false;
+    if (dSq > 144.0) return true;
+    if (!coralToneMap) return false;
+    for (let k = 1; k <= 3; k++) {
+      const t = k * 0.25;
+      const sx = Math.min(W - 1, Math.max(0, (x0 + dx * t) | 0));
+      const sy = Math.min(H - 1, Math.max(0, (y0 + dy * t) | 0));
+      const idx = sy * W + sx;
+      const c = coralToneMap[idx];
+      const s = step232Stencil ? step232Stencil[idx] : c;
+      if (Math.min(s, c) > 0.78) return true;
+    }
+    return false;
+  }
   if (dSq <= 12.25) return false;
   if (dSq > 30.25) return true;
   if (!coralToneMap) return false;
@@ -6262,11 +6316,13 @@ function isChunkOffViewport(start, end, totalLen) {
 function drawStencilCleanRange(targetCtx, startIdx, endLimit, totalLen, chunkStep) {
   const isMono = (COLOR_MODE === 'mono');
   const monoStroke = BG_THEME === 'dark' ? '#e8eef7' : '#0e1118';
-  const bridgeWidth = Math.max(0.18, LINE_W * 0.16);
+  const isCross = (ENGINE_MODE === 'stencil_cross');
+  const bridgeAlpha = isCross ? 0.24 : 0.36;
+  const bridgeWidth = Math.max(0.18, LINE_W * (isCross ? 0.22 : 0.16));
 
   if (startIdx === 1 && isCleanStencilBridgeSeg(0)) {
     targetCtx.save();
-    targetCtx.globalAlpha = 0.36;
+    targetCtx.globalAlpha = bridgeAlpha;
     targetCtx.lineWidth = bridgeWidth;
     targetCtx.strokeStyle = isMono ? monoStroke : getOrganicLineColor(0, totalLen, (ptsX[0] + ptsX[1]) * 0.5, (ptsY[0] + ptsY[1]) * 0.5);
     targetCtx.beginPath();
@@ -6282,7 +6338,7 @@ function drawStencilCleanRange(targetCtx, startIdx, endLimit, totalLen, chunkSte
       const mx = (ptsX[i] + ptsX[i + 1]) * 0.5;
       const my = (ptsY[i] + ptsY[i + 1]) * 0.5;
       targetCtx.save();
-      targetCtx.globalAlpha = 0.36;
+      targetCtx.globalAlpha = bridgeAlpha;
       targetCtx.lineWidth = bridgeWidth;
       targetCtx.strokeStyle = isMono ? monoStroke : getOrganicLineColor(i, totalLen, mx, my);
       targetCtx.beginPath();
@@ -6339,7 +6395,7 @@ function rebuildLineCache() {
   lCtx.lineCap = 'round';
   lCtx.lineJoin = 'round';
 
-  if (ENGINE_MODE === 'stencil_clean') {
+  if (ENGINE_MODE === 'stencil_clean' || ENGINE_MODE === 'stencil_cross') {
     const cleanStep = isColorFlowing ? 28 : ((COLOR_MODE === 'photo_exact') ? 4 : 16);
     drawStencilCleanRange(lCtx, 1, totalLen - 1, totalLen, cleanStep);
     lineCacheDirty = false;
@@ -6555,7 +6611,7 @@ function startAnimation() {
     aCtx.lineJoin = 'round';
 
     const chunkStep = (COLOR_MODE === 'photo_exact') ? 3 : (ENGINE_MODE === 'golden_spiral' ? 8 : 10);
-    if (ENGINE_MODE === 'stencil_clean') {
+    if (ENGINE_MODE === 'stencil_clean' || ENGINE_MODE === 'stencil_cross') {
       drawStencilCleanRange(aCtx, startIdx, nextLimit, totalLen, chunkStep);
     } else {
       const isGoldenSpiral = (ENGINE_MODE === 'golden_spiral');
@@ -7400,15 +7456,17 @@ document.getElementById('btnSvg').onclick = () => {
   const bgFill = BG_COLORS[BG_THEME] || '#ffffff';
   let pathsMarkup = '';
 
-  if (ENGINE_MODE === 'stencil_clean') {
+  if (ENGINE_MODE === 'stencil_clean' || ENGINE_MODE === 'stencil_cross') {
     const isMono = (COLOR_MODE === 'mono');
     const monoStroke = BG_THEME === 'dark' ? '#e8eef7' : '#0e1118';
-    const bridgeW = Math.max(0.18, LINE_W * 0.16).toFixed(2);
+    const isCross = (ENGINE_MODE === 'stencil_cross');
+    const bridgeAlpha = isCross ? '0.24' : '0.36';
+    const bridgeW = Math.max(0.18, LINE_W * (isCross ? 0.22 : 0.16)).toFixed(2);
     const chunkStep = (COLOR_MODE === 'photo_exact') ? 4 : 18;
     const pathList = [];
     if (isCleanStencilBridgeSeg(0)) {
       const col0 = isMono ? monoStroke : getOrganicLineColor(0, len, (ptsX[0] + ptsX[1]) * 0.5, (ptsY[0] + ptsY[1]) * 0.5);
-      pathList.push(`  <path d="M ${ptsX[0].toFixed(1)} ${ptsY[0].toFixed(1)} L ${ptsX[1].toFixed(1)} ${ptsY[1].toFixed(1)}" fill="none" stroke="${col0}" stroke-width="${bridgeW}" stroke-opacity="0.36" stroke-linecap="round"/>`);
+      pathList.push(`  <path d="M ${ptsX[0].toFixed(1)} ${ptsY[0].toFixed(1)} L ${ptsX[1].toFixed(1)} ${ptsY[1].toFixed(1)}" fill="none" stroke="${col0}" stroke-width="${bridgeW}" stroke-opacity="${bridgeAlpha}" stroke-linecap="round"/>`);
     }
     let idx = 1;
     while (idx < len - 1) {
@@ -7416,7 +7474,7 @@ document.getElementById('btnSvg').onclick = () => {
         const mx = (ptsX[idx] + ptsX[idx + 1]) * 0.5;
         const my = (ptsY[idx] + ptsY[idx + 1]) * 0.5;
         const bCol = isMono ? monoStroke : getOrganicLineColor(idx, len, mx, my);
-        pathList.push(`  <path d="M ${ptsX[idx].toFixed(1)} ${ptsY[idx].toFixed(1)} L ${ptsX[idx + 1].toFixed(1)} ${ptsY[idx + 1].toFixed(1)}" fill="none" stroke="${bCol}" stroke-width="${bridgeW}" stroke-opacity="0.36" stroke-linecap="round"/>`);
+        pathList.push(`  <path d="M ${ptsX[idx].toFixed(1)} ${ptsY[idx].toFixed(1)} L ${ptsX[idx + 1].toFixed(1)} ${ptsY[idx + 1].toFixed(1)}" fill="none" stroke="${bCol}" stroke-width="${bridgeW}" stroke-opacity="${bridgeAlpha}" stroke-linecap="round"/>`);
         idx++;
         continue;
       }
