@@ -1,5 +1,5 @@
 // Service Worker para PWA Estudio de Línea Continua Mobile
-const CACHE_NAME = 'linea-continua-studio-v3';
+const CACHE_NAME = 'linea-continua-studio-v4';
 const STATIC_ASSETS = [
   './',
   './index.html',
