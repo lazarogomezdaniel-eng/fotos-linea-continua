@@ -705,6 +705,46 @@
       border-radius: 999px;
       background: var(--accent);
     }
+    .tab-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -3px;
+      border-radius: 8px;
+    }
+    .tab-btn .tab-lock-dot {
+      display: none;
+      position: absolute;
+      top: 4px;
+      right: calc(50% - 20px);
+      font-size: 8.5px;
+      line-height: 1;
+      padding: 1px 3px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.94);
+      border: 1px solid rgba(251, 191, 36, 0.55);
+      color: #fbbf24;
+      pointer-events: none;
+    }
+    .tab-btn.is-mode-na .tab-lock-dot {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .tab-btn.is-mode-na .t-icon,
+    .tab-btn.is-mode-na > span:not(.tab-lock-dot) {
+      opacity: 0.48;
+      filter: grayscale(0.7);
+    }
+    .tab-btn.active.is-mode-na {
+      color: #fbbf24;
+    }
+    .tab-btn.active.is-mode-na::after {
+      background: #f59e0b;
+    }
+    .tab-btn.active.is-mode-na .t-icon,
+    .tab-btn.active.is-mode-na > span:not(.tab-lock-dot) {
+      opacity: 0.90;
+      filter: grayscale(0.2);
+    }
 
     /* =========================================================
        4. SUB-NAVEGACIÓN UNIFICADA (TRAZO Y COLOR)
@@ -1309,6 +1349,131 @@
     .btn-reset-icon {
       font-size: 13px;
       color: var(--accent);
+    }
+
+    /* Banner contextual y bloqueo visual no-destructivo para Estilo 21 (Pop Geométrico) */
+    .geo-pop-lock-banner {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(15, 23, 42, 0.94) 100%);
+      border: 1px solid rgba(251, 191, 36, 0.36);
+      border-radius: var(--radius-card);
+      padding: 11px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+    }
+    .geo-pop-lock-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fde68a;
+    }
+    .geo-pop-lock-badge {
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: rgba(245, 158, 11, 0.22);
+      border: 1px solid rgba(251, 191, 36, 0.45);
+      color: #fcd34d;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .geo-pop-lock-desc {
+      font-size: 11.5px;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+    .geo-pop-jump-btn {
+      height: 36px;
+      padding: 0 12px;
+      border-radius: var(--radius-chip);
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.24) 0%, rgba(217, 119, 6, 0.28) 100%);
+      border: 1px solid rgba(251, 191, 36, 0.55);
+      color: #fef3c7;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.14s ease, background 0.16s ease, border-color 0.16s ease;
+    }
+    .geo-pop-jump-btn:active {
+      transform: scale(0.97);
+    }
+    .geo-pop-jump-btn:focus-visible,
+    .btn-reset-style:focus-visible,
+    .studio-subnav-btn:focus-visible,
+    .studio-pill:focus-visible,
+    .swatch-chip:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .geo-pop-mode-hint {
+      margin-top: 8px;
+      padding: 7px 10px;
+      border-radius: 9px;
+      background: rgba(245, 158, 11, 0.10);
+      border: 1px solid rgba(251, 191, 36, 0.26);
+      font-size: 11px;
+      color: #fde68a;
+      line-height: 1.35;
+    }
+    .mode-lock-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: opacity 0.2s ease, filter 0.2s ease;
+      touch-action: pan-y;
+    }
+    .mode-lock-wrap[inert],
+    .mode-lock-wrap.is-mode-locked {
+      opacity: 0.42;
+      filter: grayscale(0.75) saturate(0.45);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .mode-lock-wrap.is-mode-locked .studio-subnav,
+    .mode-lock-wrap.is-mode-locked .studio-slider-card,
+    .mode-lock-wrap.is-mode-locked .studio-slider-track-wrap,
+    .mode-lock-wrap.is-mode-locked .studio-pill,
+    .mode-lock-wrap.is-mode-locked .color-carousel,
+    .mode-lock-wrap.is-mode-locked .color-mode-card,
+    .mode-lock-wrap.is-mode-locked .palette-card,
+    .mode-lock-wrap.is-mode-locked .swatch-chip,
+    .mode-lock-wrap.is-mode-locked .fusion-src-btn,
+    .mode-lock-wrap.is-mode-locked .flow-btn {
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+    .mode-lock-wrap.is-mode-locked .studio-slider-card,
+    .mode-lock-wrap.is-mode-locked .swatch-chip,
+    .mode-lock-wrap.is-mode-locked .color-mode-card,
+    .mode-lock-wrap.is-mode-locked .palette-card {
+      border-style: dashed;
+    }
+    #boxGeoPopControls.is-attention .studio-slider-card {
+      border-color: rgba(251, 191, 36, 0.65);
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.24);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .geo-pop-jump-btn,
+      .mode-lock-wrap,
+      .tab-btn,
+      .tab-pane.active,
+      .subtrazo-pane.active,
+      .subcolor-pane.active,
+      #studioDock,
+      canvas {
+        transition: none !important;
+        animation: none !important;
+      }
     }
 
     /* =========================================================
@@ -2215,6 +2380,8 @@
           <div class="studio-quick-pills" style="margin-top:8px;">
             <button type="button" class="studio-pill active" id="btnGeoPopShuffle" style="width:100%;">🎲 Nueva composición</button>
           </div>
+
+          <div class="geo-pop-mode-hint">🎨 Estilo autónomo: utiliza estos 4 controles. Las pestañas <strong>Trazo</strong> y <strong>Color</strong> se pausan conservando tus valores.</div>
         </div>
 
         <div id="modeDesc" class="mode-desc-bar">
@@ -2226,6 +2393,20 @@
            TAB 2: TRAZO & SILUETA (3 SUB-PESTAÑAS LIMPIAS)
            ========================================================= -->
       <div class="tab-pane" id="paneTrazo">
+        <div id="geoPopTrazoNotice" class="geo-pop-lock-banner is-hidden" role="note">
+          <div class="geo-pop-lock-head">
+            <span>🔒 Trazo y Silueta deshabilitados</span>
+            <span class="geo-pop-lock-badge">Estilo 21</span>
+          </div>
+          <p class="geo-pop-lock-desc">
+            <strong>Pop Geométrico</strong> compone formas directamente sobre la foto sin trazo continuo. Tus valores se conservan intactos al volver a cualquier otro estilo.
+          </p>
+          <button type="button" class="geo-pop-jump-btn" data-jump-geopop>
+            <span>↩</span><span>Ir a ajustes Pop Geométrico</span>
+          </button>
+        </div>
+
+        <div id="trazoControlsWrap" class="mode-lock-wrap">
         <div class="studio-subnav" role="tablist" aria-label="Secciones de Trazo">
           <button type="button" class="studio-subnav-btn active" data-subtab="subTrazoLine" role="tab" aria-selected="true">
             ✒️ Pluma & Nodos
@@ -2350,6 +2531,7 @@
             </div>
           </div>
         </div>
+        </div>
 
         <!-- Restablecer valores del estilo actual -->
         <div class="style-reset-box">
@@ -2371,6 +2553,20 @@
            TAB 3: COLOR, LIENZO & DINÁMICA (3 SUB-PESTAÑAS COHERENTES)
            ========================================================= -->
       <div class="tab-pane" id="paneColor">
+        <div id="geoPopColorNotice" class="geo-pop-lock-banner is-hidden" role="note">
+          <div class="geo-pop-lock-head">
+            <span>🔒 Tinta, Lienzo y Dinámica deshabilitados</span>
+            <span class="geo-pop-lock-badge">Estilo 21</span>
+          </div>
+          <p class="geo-pop-lock-desc">
+            <strong>Pop Geométrico</strong> usa su propia paleta editorial y el control <em>Quitar color a la foto</em>. Tu paleta, tintas y fusión anteriores siguen guardados.
+          </p>
+          <button type="button" class="geo-pop-jump-btn" data-jump-geopop>
+            <span>↩</span><span>Ir a ajustes Pop Geométrico</span>
+          </button>
+        </div>
+
+        <div id="colorControlsWrap" class="mode-lock-wrap">
         <div class="studio-subnav" role="tablist" aria-label="Secciones de Color y Lienzo">
           <button type="button" class="studio-subnav-btn active" data-subtab="subColorTinta" role="tab" aria-selected="true">
             🎨 Tinta & Paleta
@@ -2708,6 +2904,7 @@
             </button>
           </div>
         </div>
+        </div>
       </div>
 
       <!-- =========================================================
@@ -2794,19 +2991,21 @@
 
     <!-- DOCK TABS -->
     <nav id="dockTabs">
-      <button class="tab-btn active" data-tab="paneEstilo">
+      <button type="button" class="tab-btn active" data-tab="paneEstilo">
         <span class="t-icon">🎨</span>
         <span>Estilo</span>
       </button>
-      <button class="tab-btn" data-tab="paneTrazo">
+      <button type="button" class="tab-btn" data-tab="paneTrazo">
+        <span class="tab-lock-dot" aria-hidden="true">🔒</span>
         <span class="t-icon">✏️</span>
         <span>Trazo</span>
       </button>
-      <button class="tab-btn" data-tab="paneColor">
+      <button type="button" class="tab-btn" data-tab="paneColor">
+        <span class="tab-lock-dot" aria-hidden="true">🔒</span>
         <span class="t-icon">🌈</span>
         <span>Color</span>
       </button>
-      <button class="tab-btn" data-tab="paneExportar">
+      <button type="button" class="tab-btn" data-tab="paneExportar">
         <span class="t-icon">📤</span>
         <span>Exportar</span>
       </button>
@@ -10966,6 +11165,7 @@ function render() {
 }
 
 function startColorFlow() {
+  if (ENGINE_MODE === 'geo_pop') return;
   if (isColorFlowing) return;
   if (isAnimatingDraw) {
     stopAnimation();
@@ -11616,6 +11816,19 @@ document.getElementById('imgInput').addEventListener('change', (e) => {
 function applyModePreset(mode) {
   const p = MODE_PRESETS[mode];
   if (!p) return;
+  if (mode === 'geo_pop') {
+    if (typeof isColorFlowing !== 'undefined' && isColorFlowing && typeof stopColorFlow === 'function') {
+      stopColorFlow();
+    }
+    const scpModal = document.getElementById('studioColorModal');
+    if (scpModal && scpModal.style.display && scpModal.style.display !== 'none' && typeof closeStudioColorPicker === 'function') {
+      closeStudioColorPicker();
+    }
+    lineCacheDirty = true;
+    syncSlidersFromState();
+    if (typeof syncUiForEngineMode === 'function') syncUiForEngineMode(mode);
+    return;
+  }
   PENCIL_STR = p.pencilStr;
   PENCIL_BLUR = p.pencilBlur;
   SHADE_WEIGHT = p.shadeWeight;
@@ -11777,6 +11990,7 @@ function applyModePreset(mode) {
 
   lineCacheDirty = true;
   syncSlidersFromState();
+  if (typeof syncUiForEngineMode === 'function') syncUiForEngineMode(mode);
 }
 
 document.getElementById('engineMode').addEventListener('change', (e) => {
@@ -12161,10 +12375,11 @@ if (scpModalEl) {
 // Click Listeners para los Carousels y Chips Visuales
 document.querySelectorAll('.color-mode-card').forEach(card => {
   card.addEventListener('click', () => {
+    if (ENGINE_MODE === 'geo_pop' || (card.closest && card.closest('.is-mode-locked'))) return;
     const mode = card.getAttribute('data-mode');
     if (!mode) return;
     const sel = document.getElementById('colorMode');
-    if (sel && sel.value !== mode) {
+    if (sel && !sel.disabled && sel.value !== mode) {
       sel.value = mode;
       sel.dispatchEvent(new Event('change'));
     }
@@ -12173,10 +12388,11 @@ document.querySelectorAll('.color-mode-card').forEach(card => {
 
 document.querySelectorAll('.palette-card').forEach(card => {
   card.addEventListener('click', () => {
+    if (ENGINE_MODE === 'geo_pop' || (card.closest && card.closest('.is-mode-locked'))) return;
     const pal = card.getAttribute('data-palette');
     if (!pal) return;
     const sel = document.getElementById('colorPalette');
-    if (sel && sel.value !== pal) {
+    if (sel && !sel.disabled && sel.value !== pal) {
       sel.value = pal;
       sel.dispatchEvent(new Event('change'));
     }
@@ -12185,6 +12401,7 @@ document.querySelectorAll('.palette-card').forEach(card => {
 
 document.querySelectorAll('.mono-ink-chip').forEach(chip => {
   chip.addEventListener('click', (e) => {
+    if (ENGINE_MODE === 'geo_pop' || chip.disabled || (chip.closest && chip.closest('.is-mode-locked'))) return;
     const ink = chip.getAttribute('data-ink');
     if (!ink) return;
     if (ink === 'custom') {
@@ -12235,6 +12452,7 @@ document.querySelectorAll('.mono-ink-chip').forEach(chip => {
 
 document.querySelectorAll('.rainbow-style-chip').forEach(chip => {
   chip.addEventListener('click', () => {
+    if (ENGINE_MODE === 'geo_pop' || (chip.closest && chip.closest('.is-mode-locked'))) return;
     const style = chip.getAttribute('data-style');
     if (!style) return;
     RAINBOW_STYLE = style;
@@ -12246,6 +12464,7 @@ document.querySelectorAll('.rainbow-style-chip').forEach(chip => {
 
 document.querySelectorAll('.bg-theme-chip').forEach(chip => {
   chip.addEventListener('click', (e) => {
+    if (ENGINE_MODE === 'geo_pop' || chip.disabled || (chip.closest && chip.closest('.is-mode-locked'))) return;
     const theme = chip.getAttribute('data-theme');
     if (!theme) return;
     if (theme === 'custom') {
@@ -12280,7 +12499,7 @@ document.querySelectorAll('.bg-theme-chip').forEach(chip => {
       return;
     }
     const sel = document.getElementById('bgTheme');
-    if (sel && sel.value !== theme) {
+    if (sel && !sel.disabled && sel.value !== theme) {
       sel.value = theme;
       sel.dispatchEvent(new Event('change'));
     }
@@ -12300,6 +12519,7 @@ document.querySelectorAll('.bg-theme-chip').forEach(chip => {
 });
 
 document.getElementById('colorMode').addEventListener('change', (e) => {
+  if (ENGINE_MODE === 'geo_pop' || (e.target && e.target.disabled)) return;
   COLOR_MODE = e.target.value;
   if (COLOR_MODE === 'mono' && isColorFlowing) {
     stopColorFlow();
@@ -12311,6 +12531,7 @@ document.getElementById('colorMode').addEventListener('change', (e) => {
 });
 
 document.getElementById('colorPalette').addEventListener('change', (e) => {
+  if (ENGINE_MODE === 'geo_pop' || (e.target && e.target.disabled)) return;
   COLOR_PALETTE = e.target.value;
   const harmony = computeHarmonyColors(COLOR_PALETTE, COLOR_HUE);
   if (harmony) {
@@ -12340,6 +12561,7 @@ document.getElementById('colorPalette').addEventListener('change', (e) => {
 });
 
 document.getElementById('colorHue').addEventListener('input', (e) => {
+  if (ENGINE_MODE === 'geo_pop' || (e.target && e.target.disabled)) return;
   COLOR_HUE = parseInt(e.target.value, 10);
   document.getElementById('vColHue').textContent = `${COLOR_HUE}°`;
   if (COLOR_MODE === 'rainbow' || COLOR_MODE === 'rainbow_bands') {
@@ -12371,6 +12593,7 @@ document.getElementById('colorHue').addEventListener('input', (e) => {
 });
 
 document.getElementById('colorIntensity').addEventListener('input', (e) => {
+  if (ENGINE_MODE === 'geo_pop' || (e.target && e.target.disabled)) return;
   const v = parseInt(e.target.value, 10);
   COLOR_INTENSITY = v / 100.0;
   document.getElementById('vColIntensity').textContent = `${v}%`;
@@ -12379,7 +12602,8 @@ document.getElementById('colorIntensity').addEventListener('input', (e) => {
 });
 
 for (const pickId of ['colPick1', 'colPick2', 'colPick3']) {
-  document.getElementById(pickId).addEventListener('input', () => {
+  document.getElementById(pickId).addEventListener('input', (e) => {
+    if (ENGINE_MODE === 'geo_pop' || (e && e.target && e.target.disabled)) return;
     COLOR_PALETTE = 'custom';
     syncPaletteCards('custom');
     syncCustomColorsFromPickers();
@@ -12407,6 +12631,7 @@ pickMap.forEach(({ itemId, inputId, title }) => {
   if (!itemEl || !inputEl) return;
 
   const triggerPicker = (e) => {
+    if (ENGINE_MODE === 'geo_pop' || itemEl.disabled || inputEl.disabled || (itemEl.closest && itemEl.closest('.is-mode-locked'))) return;
     e.preventDefault();
     e.stopPropagation();
     const origVal = inputEl.value;
@@ -12448,6 +12673,7 @@ pickMap.forEach(({ itemId, inputId, title }) => {
 });
 
 document.getElementById('colorScale').addEventListener('input', (e) => {
+  if (ENGINE_MODE === 'geo_pop' || (e.target && e.target.disabled)) return;
   COLOR_SCALE = parseFloat(e.target.value);
   document.getElementById('vColScale').textContent = COLOR_SCALE.toFixed(1);
   lineCacheDirty = true;
@@ -12455,6 +12681,7 @@ document.getElementById('colorScale').addEventListener('input', (e) => {
 });
 
 document.getElementById('bgTheme').addEventListener('change', (e) => {
+  if (ENGINE_MODE === 'geo_pop' || (e.target && e.target.disabled)) return;
   BG_THEME = e.target.value;
   syncBgThemeChips(BG_THEME);
   lineCacheDirty = true;
@@ -12462,6 +12689,7 @@ document.getElementById('bgTheme').addEventListener('change', (e) => {
 });
 
 document.getElementById('btnColorFlow').onclick = () => {
+  if (ENGINE_MODE === 'geo_pop') return;
   if (isColorFlowing) {
     stopColorFlow();
     render();
@@ -12476,6 +12704,7 @@ const bindParam = (id, labelId, setter, isStencilParam = false, decimals = null,
   const el = document.getElementById(id);
   if (!el) return;
   el.addEventListener('input', (e) => {
+    if (el.disabled) return;
     syncSliderProgress(el);
     const v = parseFloat(e.target.value);
     const lbl = document.getElementById(labelId);
@@ -12499,6 +12728,7 @@ const bindParam = (id, labelId, setter, isStencilParam = false, decimals = null,
     }, 280);
   });
   el.addEventListener('change', () => {
+    if (el.disabled) return;
     syncSliderProgress(el);
     clearTimeout(paramDebounceTimer);
     rebuildPortrait(isStencilParam);
@@ -12673,6 +12903,7 @@ if (btnFfClassic && btnFfRect) {
 }
 
 document.getElementById('lineW').addEventListener('input', (e) => {
+  if (ENGINE_MODE === 'geo_pop' || (e.target && e.target.disabled)) return;
   syncSliderProgress(e.target);
   LINE_W = parseFloat(e.target.value);
   document.getElementById('vWidth').textContent = LINE_W.toFixed(1);
@@ -12702,15 +12933,22 @@ function setFusionSource(source) {
 }
 
 if (btnFusionStencil) {
-  btnFusionStencil.addEventListener('click', () => setFusionSource('stencil'));
+  btnFusionStencil.addEventListener('click', () => {
+    if (ENGINE_MODE === 'geo_pop' || btnFusionStencil.disabled) return;
+    setFusionSource('stencil');
+  });
 }
 if (btnFusionPhoto) {
-  btnFusionPhoto.addEventListener('click', () => setFusionSource('photo'));
+  btnFusionPhoto.addEventListener('click', () => {
+    if (ENGINE_MODE === 'geo_pop' || btnFusionPhoto.disabled) return;
+    setFusionSource('photo');
+  });
 }
 
 if (elFusion) {
   elFusion.addEventListener('input', (e) => {
-    setFusionOpacity(e.target.value);
+    if (ENGINE_MODE === 'geo_pop' || elFusion.disabled) return;
+    setFusionOpacity(e.target.value, true);
     if (VIEW_MODE !== 'line') {
       VIEW_MODE = 'line';
       const sel = document.getElementById('viewMode');
@@ -12720,7 +12958,8 @@ if (elFusion) {
     render();
   });
   elFusion.addEventListener('change', (e) => {
-    setFusionOpacity(e.target.value);
+    if (ENGINE_MODE === 'geo_pop' || elFusion.disabled) return;
+    setFusionOpacity(e.target.value, true);
     if (VIEW_MODE !== 'line') {
       VIEW_MODE = 'line';
       const sel = document.getElementById('viewMode');
@@ -12739,11 +12978,12 @@ const pillToleranceMap = {
 
 document.querySelectorAll('.studio-pill[data-set-target]').forEach(pill => {
   pill.addEventListener('click', (e) => {
+    if (pill.disabled || (pill.closest && pill.closest('.is-mode-locked'))) return;
     e.preventDefault();
     const targetId = pill.getAttribute('data-set-target');
     const val = parseFloat(pill.getAttribute('data-set-value'));
     const input = document.getElementById(targetId);
-    if (!input || isNaN(val)) return;
+    if (!input || input.disabled || isNaN(val)) return;
 
     input.value = String(val);
     syncSliderProgress(input);
@@ -12758,6 +12998,7 @@ document.querySelectorAll('.studio-pill[data-set-target]').forEach(pill => {
 // Subnavegación Independiente por Panel (Trazo y Color)
 document.querySelectorAll('.studio-subnav-btn[data-subtab]').forEach(btn => {
   btn.addEventListener('click', (e) => {
+    if (btn.disabled || (btn.closest && btn.closest('.is-mode-locked'))) return;
     e.preventDefault();
     const targetSubtab = btn.getAttribute('data-subtab');
     const parentTab = btn.closest('.tab-pane') || document;
@@ -12894,6 +13135,7 @@ function performFactoryReset() {
   geoPopPhotoDesatCache = -1;
   geoPopSeed = -1;
   applyModePreset(ENGINE_MODE);
+  if (typeof syncUiForEngineMode === 'function') syncUiForEngineMode(ENGINE_MODE);
   syncMaxNPresets(TARGET_NODES);
 
   // 6. Efecto visual de giro en el botón Reset
@@ -12955,6 +13197,11 @@ function initSmartRangeSliders() {
     if (!input) return;
 
     const card = wrap.closest('.studio-slider-card') || wrap;
+    const isSliderLocked = () => Boolean(
+      input.disabled ||
+      card.classList.contains('is-mode-locked') ||
+      (wrap.closest && wrap.closest('.is-mode-locked'))
+    );
 
     let startX = 0;
     let startY = 0;
@@ -12966,6 +13213,7 @@ function initSmartRangeSliders() {
     const onPointerDown = (e) => {
       // Solo botón primario
       if (e.button !== undefined && e.button !== 0) return;
+      if (isSliderLocked()) return;
 
       activePointerId = e.pointerId;
       startX = e.clientX;
@@ -12994,6 +13242,16 @@ function initSmartRangeSliders() {
 
     const onPointerMove = (e) => {
       if (activePointerId !== null && e.pointerId !== activePointerId) return;
+      if (isSliderLocked()) {
+        if (isDragging) {
+          isDragging = false;
+          try { wrap.releasePointerCapture(e.pointerId); } catch(err) {}
+          card.classList.remove('is-scrubbing');
+        }
+        isDeciding = false;
+        activePointerId = null;
+        return;
+      }
 
       if (e.pointerType === 'mouse') {
         if (isDragging) {
@@ -13044,6 +13302,16 @@ function initSmartRangeSliders() {
 
     const onPointerUp = (e) => {
       if (activePointerId !== null && e.pointerId !== activePointerId) return;
+      if (isSliderLocked()) {
+        if (isDragging) {
+          isDragging = false;
+          try { wrap.releasePointerCapture(e.pointerId); } catch(err) {}
+          card.classList.remove('is-scrubbing');
+        }
+        isDeciding = false;
+        activePointerId = null;
+        return;
+      }
 
       if (isDragging) {
         isDragging = false;
@@ -13095,6 +13363,19 @@ if (btnResetStyleParams) {
     haptic(12);
     stopColorFlow();
     stopAnimation();
+    if (ENGINE_MODE === 'geo_pop') {
+      GEO_POP_DESAT = 100;
+      GEO_POP_SIZE = 100;
+      GEO_POP_COUNT = 40;
+      geoPopPhotoDesatCache = -1;
+      geoPopSeed = -1;
+      syncSlidersFromState();
+      if (typeof syncUiForEngineMode === 'function') syncUiForEngineMode('geo_pop');
+      rebuildPortrait(true);
+      statusPhase = 'Parámetros Pop Geométrico restaurados';
+      updateStatsText();
+      return;
+    }
     TARGET_NODES = isMobileDevice ? 38000 : 44000;
     HARING_ICON_COUNT = 95;
     HARING_ICON_SIZE = 100;
@@ -13457,6 +13738,122 @@ function updateFocalMarker() {
   }
 }
 
+function setContainerModeLock(containerEl, locked) {
+  if (!containerEl) return;
+  containerEl.classList.toggle('is-mode-locked', locked);
+  if (locked) {
+    if (typeof containerEl.setAttribute === 'function') containerEl.setAttribute('inert', '');
+    try { containerEl.inert = true; } catch (e) {}
+  } else {
+    if (typeof containerEl.removeAttribute === 'function') containerEl.removeAttribute('inert');
+    try { containerEl.inert = false; } catch (e) {}
+  }
+  if (typeof containerEl.querySelectorAll === 'function') {
+    containerEl.querySelectorAll('input, select, button, textarea').forEach(ctrl => {
+      ctrl.disabled = locked;
+      if (locked) {
+        if (typeof ctrl.setAttribute === 'function') ctrl.setAttribute('data-lock-disabled', 'true');
+      } else {
+        if (typeof ctrl.removeAttribute === 'function') ctrl.removeAttribute('data-lock-disabled');
+      }
+    });
+  }
+}
+
+function jumpToGeoPopControls() {
+  const tabEstilo = document.querySelector('#dockTabs .tab-btn[data-tab="paneEstilo"]');
+  document.querySelectorAll('#dockTabs .tab-btn').forEach(b => b.classList.toggle('active', b === tabEstilo));
+  document.querySelectorAll('#dockContent .tab-pane').forEach(p => p.classList.toggle('active', p.id === 'paneEstilo'));
+  if (typeof dockState !== 'undefined' && dockState === 'collapsed' && typeof setDockState === 'function') {
+    setDockState('normal');
+  }
+  if (typeof updateActiveFunctionPill === 'function') updateActiveFunctionPill();
+
+  const scrollAndPulse = () => {
+    const dockContent = document.getElementById('dockContent');
+    const boxGeo = document.getElementById('boxGeoPopControls');
+    const prefersReduced = (typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (dockContent && boxGeo) {
+      const targetTop = Math.max(0, (boxGeo.offsetTop || 0) - 8);
+      if (typeof dockContent.scrollTo === 'function') {
+        dockContent.scrollTo({ top: targetTop, behavior: prefersReduced ? 'auto' : 'smooth' });
+      } else {
+        dockContent.scrollTop = targetTop;
+      }
+    }
+    if (boxGeo) {
+      boxGeo.classList.remove('is-attention');
+      void boxGeo.offsetWidth;
+      boxGeo.classList.add('is-attention');
+      setTimeout(() => {
+        if (boxGeo) boxGeo.classList.remove('is-attention');
+      }, 1500);
+    }
+    if (typeof checkDockScrollState === 'function') checkDockScrollState();
+    if (typeof flashDockScrollIndicator === 'function') flashDockScrollIndicator();
+  };
+
+  if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(scrollAndPulse);
+  } else {
+    scrollAndPulse();
+  }
+  if (typeof haptic === 'function') haptic(10);
+}
+
+function syncUiForEngineMode(mode = ENGINE_MODE) {
+  const isGeoPop = (mode === 'geo_pop');
+
+  const trazoWrap = document.getElementById('trazoControlsWrap');
+  const colorWrap = document.getElementById('colorControlsWrap');
+  const trazoNotice = document.getElementById('geoPopTrazoNotice');
+  const colorNotice = document.getElementById('geoPopColorNotice');
+
+  setContainerModeLock(trazoWrap, isGeoPop);
+  setContainerModeLock(colorWrap, isGeoPop);
+
+  if (trazoNotice) trazoNotice.classList.toggle('is-hidden', !isGeoPop);
+  if (colorNotice) colorNotice.classList.toggle('is-hidden', !isGeoPop);
+
+  const tabTrazo = document.querySelector('#dockTabs .tab-btn[data-tab="paneTrazo"]');
+  const tabColor = document.querySelector('#dockTabs .tab-btn[data-tab="paneColor"]');
+  if (tabTrazo) {
+    tabTrazo.classList.toggle('is-mode-na', isGeoPop);
+    tabTrazo.title = isGeoPop ? 'Pausado en Pop Geométrico (conserva tus valores)' : '';
+  }
+  if (tabColor) {
+    tabColor.classList.toggle('is-mode-na', isGeoPop);
+    tabColor.title = isGeoPop ? 'Pausado en Pop Geométrico (conserva tus valores)' : '';
+  }
+
+  const btnResetStyle = document.getElementById('btnResetStyleParams');
+  if (btnResetStyle) {
+    btnResetStyle.title = isGeoPop
+      ? 'Restaura los ajustes de Pop Geométrico (Desaturar 100%, Tamaño 100%, Formas 40)'
+      : 'Restaura los deslizadores a los valores óptimos por defecto del estilo actual';
+  }
+
+  if (isGeoPop) {
+    if (typeof isColorFlowing !== 'undefined' && isColorFlowing && typeof stopColorFlow === 'function') {
+      stopColorFlow();
+    }
+    const scpModal = document.getElementById('studioColorModal');
+    if (scpModal && scpModal.style.display && scpModal.style.display !== 'none' && typeof closeStudioColorPicker === 'function') {
+      closeStudioColorPicker();
+    }
+  }
+
+  if (typeof updateActiveFunctionPill === 'function') updateActiveFunctionPill();
+  if (typeof checkDockScrollState === 'function') checkDockScrollState();
+}
+
+document.querySelectorAll('[data-jump-geopop]').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    jumpToGeoPopControls();
+  });
+});
+
 function updateActiveFunctionPill() {
   const statusPill = document.getElementById('statusPill');
   if (!statusPill) return;
@@ -13477,14 +13874,14 @@ function updateActiveFunctionPill() {
     const title = activeCard?.querySelector('.card-title')?.textContent || 'Estilo';
     statusPill.textContent = `${emoji} ${title}`;
   } else if (activeTabId === 'paneTrazo') {
-    if (ENGINE_MODE === 'halftone_dots') {
+    if (ENGINE_MODE === 'geo_pop') {
+      statusPill.textContent = '🔒 Trazo no aplica (Pop)';
+    } else if (ENGINE_MODE === 'halftone_dots') {
       statusPill.textContent = '⚫ Trama de Puntos';
     } else if (ENGINE_MODE === 'honeycomb') {
       statusPill.textContent = '🐝 Panal Hexagonal';
     } else if (ENGINE_MODE === 'escher_cube') {
       statusPill.textContent = '🎲 Celosía Escher';
-    } else if (ENGINE_MODE === 'geo_pop') {
-      statusPill.textContent = '🎨 Pop Geométrico';
     } else {
       const activeSubtab = document.querySelector('#paneTrazo .studio-subnav-btn.active');
       const subId = activeSubtab ? activeSubtab.getAttribute('data-subtab') : '';
@@ -13497,14 +13894,18 @@ function updateActiveFunctionPill() {
       }
     }
   } else if (activeTabId === 'paneColor') {
-    const activeSubtab = document.querySelector('#paneColor .studio-subnav-btn.active');
-    const subId = activeSubtab ? activeSubtab.getAttribute('data-subtab') : '';
-    if (subId === 'subColorLienzo') {
-      statusPill.textContent = '🖼️ Lienzo & Fusión';
-    } else if (subId === 'subColorDinamica') {
-      statusPill.textContent = '✨ Dinámica de Color';
+    if (ENGINE_MODE === 'geo_pop') {
+      statusPill.textContent = '🔒 Color no aplica (Pop)';
     } else {
-      statusPill.textContent = '🎨 Tinta & Paleta';
+      const activeSubtab = document.querySelector('#paneColor .studio-subnav-btn.active');
+      const subId = activeSubtab ? activeSubtab.getAttribute('data-subtab') : '';
+      if (subId === 'subColorLienzo') {
+        statusPill.textContent = '🖼️ Lienzo & Fusión';
+      } else if (subId === 'subColorDinamica') {
+        statusPill.textContent = '✨ Dinámica de Color';
+      } else {
+        statusPill.textContent = '🎨 Tinta & Paleta';
+      }
     }
   } else if (activeTabId === 'paneExportar') {
     statusPill.textContent = '📤 Exportar Obra';
@@ -13536,6 +13937,7 @@ function haptic(ms = 6) {
 
 document.querySelectorAll('input[type="range"]').forEach(sl => {
   sl.addEventListener('input', () => {
+    if (sl.disabled) return;
     syncSliderProgress(sl);
     haptic(4);
   });
@@ -13970,6 +14372,7 @@ syncRainbowStyleChips(RAINBOW_STYLE);
 syncBgThemeChips(BG_THEME);
 syncAllSlidersProgress();
 initSmartRangeSliders();
+if (typeof syncUiForEngineMode === 'function') syncUiForEngineMode(ENGINE_MODE);
 updateActiveFunctionPill();
 setTimeout(() => {
   if (typeof checkDockScrollState === 'function') checkDockScrollState();
