@@ -2332,6 +2332,32 @@
           </div>
         </div>
 
+        <!-- CONTROL DINÁMICO DE ÁUREA PENROSE -->
+        <div id="boxGoldenControls" class="studio-group-block is-hidden">
+          <div class="studio-slider-card">
+            <div class="studio-slider-header">
+              <span class="studio-slider-title">Tamaño de Áurea Penrose</span>
+              <span class="studio-val-badge" id="vGoldenSize">100%</span>
+            </div>
+            <div class="studio-slider-track-wrap">
+              <input type="range" id="goldenSize" min="60" max="250" step="5" value="100">
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTROL DINÁMICO DE CURVA FRACTAL -->
+        <div id="boxFractalControls" class="studio-group-block is-hidden">
+          <div class="studio-slider-card">
+            <div class="studio-slider-header">
+              <span class="studio-slider-title">Tamaño de Patrón Fractal</span>
+              <span class="studio-val-badge" id="vFractalSize">100%</span>
+            </div>
+            <div class="studio-slider-track-wrap">
+              <input type="range" id="fractalSize" min="60" max="250" step="5" value="100">
+            </div>
+          </div>
+        </div>
+
         <!-- CONTROL DINÁMICO DE VÓRTICE EN ESPIRAL -->
         <div id="boxVortexControls" class="studio-group-block is-hidden">
           <div class="studio-slider-card">
@@ -3311,6 +3337,8 @@ let HEX_SPIRAL_SIZE = 8.5;
 let ISO_DIAMOND_SIZE = 11.0;
 let PANOT_SIZE = 14.0;
 let FLOR_BCN_SIZE = 15.0;
+let GOLDEN_SIZE = 100;
+let FRACTAL_SIZE = 100;
 let FLOR_FRACTAL_SIZE = 100;
 let FLOR_FRACTAL_MODE = 'classic'; // 'classic' | 'rect'
 let CORAL_TSP_MODE = 'pro'; // 'pro' | 'classic'
@@ -3354,8 +3382,8 @@ const MODE_PRESETS = {
   stencil_clean:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.28, bgClean: 0.000, minR: 1.6, maxR: 8.5, chaikin: 1, lineW: 1.0, fusionOpacity: 25, colorMode: 'mono' },
   stencil_cross:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.32, bgClean: 0.000, minR: 2.0, maxR: 8.5, chaikin: 1, lineW: 1.0, fusionOpacity: 25, colorMode: 'mono' },
   live_growth:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.28, bgClean: 0.000, minR: 2.8, maxR: 9.0, chaikin: 1, lineW: 1.0, fusionOpacity: 25, colorMode: 'mono' },
-  golden:         { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 0, lineW: 1.0, fusionOpacity: 25, colorMode: 'mono' },
-  fractal:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1, lineW: 1.0, fusionOpacity: 25, colorMode: 'mono' },
+  golden:         { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 0, lineW: 1.0, goldenSize: 100, fusionOpacity: 25, colorMode: 'mono' },
+  fractal:        { pencilStr: 8.0, pencilBlur: 2.0, shadeWeight: 0.45, bgClean: 0.000, minR: 1.4, maxR: 8.0, chaikin: 1, lineW: 1.0, fractalSize: 100, fusionOpacity: 25, colorMode: 'mono' },
   hex_spiral:     { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.05, hexSpiralSize: 8.5, fusionOpacity: 25, colorMode: 'mono' },
   iso_diamond:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.0, isoDiamondSize: 11.0, fusionOpacity: 25, colorMode: 'mono' },
   pursuit_vortex: { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1, lineW: 1.0, vortexSize: 8.5, fusionOpacity: 25, colorMode: 'mono' },
@@ -3515,6 +3543,8 @@ function syncSlidersFromState() {
   setSlider('isoDiamondSize', 'vIsoDiamondSize', ISO_DIAMOND_SIZE, 1, 'px');
   setSlider('panotSize', 'vPanotSize', PANOT_SIZE, 1, 'px');
   setSlider('florBcnSize', 'vFlorBcnSize', FLOR_BCN_SIZE, 1, 'px');
+  setSlider('goldenSize', 'vGoldenSize', GOLDEN_SIZE, null, '%');
+  setSlider('fractalSize', 'vFractalSize', FRACTAL_SIZE, null, '%');
   setSlider('florFractalSize', 'vFlorFractalSize', FLOR_FRACTAL_SIZE, null, '%');
   setSlider('vortexSize', 'vVortexSize', VORTEX_SIZE, 1, 'px');
   setSlider('escherSize', 'vEscherSize', ESCHER_SIZE, 1, 'px');
@@ -4255,6 +4285,78 @@ function segmentsIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
     ccw(ax, ay, cx, cy, dx, dy) !== ccw(bx, by, cx, cy, dx, dy) &&
     ccw(ax, ay, bx, by, cx, cy) !== ccw(ax, ay, bx, by, dx, dy)
   );
+}
+
+function uncrossFractalTour(ptsX, ptsY, maxPasses = 16) {
+  const n = ptsX.length;
+  if (n < 4) return;
+  for (let pass = 0; pass < maxPasses; pass++) {
+    const cell = 16, grid = new Map();
+    for (let i = 0; i < n - 1; i++) {
+      const mnx = ptsX[i] < ptsX[i + 1] ? ptsX[i] : ptsX[i + 1];
+      const mxx = ptsX[i] > ptsX[i + 1] ? ptsX[i] : ptsX[i + 1];
+      const mny = ptsY[i] < ptsY[i + 1] ? ptsY[i] : ptsY[i + 1];
+      const mxy = ptsY[i] > ptsY[i + 1] ? ptsY[i] : ptsY[i + 1];
+      const gx0 = Math.floor(mnx / cell), gx1 = Math.floor(mxx / cell);
+      const gy0 = Math.floor(mny / cell), gy1 = Math.floor(mxy / cell);
+      for (let gy = gy0; gy <= gy1; gy++) {
+        const rowOff = (gy + 1024) * 65536;
+        for (let gx = gx0; gx <= gx1; gx++) {
+          const k = rowOff + (gx + 1024);
+          let arr = grid.get(k);
+          if (!arr) { arr = []; grid.set(k, arr); }
+          arr.push(i);
+        }
+      }
+    }
+    let fixed = 0;
+    const revRanges = [];
+    const isTouched = (idx) => {
+      for (let k = 0; k < revRanges.length; k++) {
+        if (idx >= revRanges[k][0] && idx <= revRanges[k][1]) return true;
+      }
+      return false;
+    };
+    for (const arr of grid.values()) {
+      const al = arr.length;
+      if (al < 2) continue;
+      for (let a = 0; a < al; a++) {
+        const i = arr[a];
+        if (revRanges.length && isTouched(i)) continue;
+        for (let b = a + 1; b < al; b++) {
+          const j = arr[b];
+          if (revRanges.length && isTouched(j)) continue;
+          const lo = i < j ? i : j, hi = i < j ? j : i;
+          if (hi <= lo + 1) continue;
+          const sax = ptsX[lo], say = ptsY[lo], sbx = ptsX[lo + 1], sby = ptsY[lo + 1];
+          const cx = ptsX[hi], cy = ptsY[hi], dx = ptsX[hi + 1], dy = ptsY[hi + 1];
+          if ((sax > sbx ? sax : sbx) <= (cx < dx ? cx : dx) ||
+              (cx > dx ? cx : dx) <= (sax < sbx ? sax : sbx) ||
+              (say > sby ? say : sby) <= (cy < dy ? cy : dy) ||
+              (cy > dy ? cy : dy) <= (say < sby ? say : sby)) continue;
+          const d1 = (sbx - sax) * (cy - say) - (sby - say) * (cx - sax);
+          const d2 = (sbx - sax) * (dy - say) - (sby - say) * (dx - sax);
+          const d3 = (dx - cx) * (say - cy) - (dy - cy) * (sax - cx);
+          const d4 = (dx - cx) * (sby - cy) - (dy - cy) * (sbx - cx);
+          if (((d1 > 1e-6 && d2 < -1e-6) || (d1 < -1e-6 && d2 > 1e-6)) &&
+              ((d3 > 1e-6 && d4 < -1e-6) || (d3 < -1e-6 && d4 > 1e-6))) {
+            let l = lo + 1, r = hi;
+            while (l < r) {
+              let t = ptsX[l]; ptsX[l] = ptsX[r]; ptsX[r] = t;
+              t = ptsY[l]; ptsY[l] = ptsY[r]; ptsY[r] = t;
+              l++; r--;
+            }
+            revRanges.push([lo, hi]);
+            fixed++;
+            break;
+          }
+        }
+        if (fixed >= 16) break;
+      }
+      if (fixed >= 16) break;
+    }
+    if (fixed === 0) break;
+  }
 }
 
 function chaikinSmoothOpenTour(inX, inY, passes = 2) {
@@ -7682,20 +7784,30 @@ function generateFractalOpenFlorRectPortrait(coralToneMap, step232Stencil, silho
  * selecciona la componente conexa principal mediante un árbol de expansión guiado por tono y recorre su
  * Circuito de Euler en un único trazo continuo libre de cruces, tejiendo pliegues áureos concéntricos φ^-k.
  */
-function generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES = 24000, MIN_R = 1.4, MAX_R = 8.0, seed = 0, step232Stencil = null) {
+function generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES = 24000, MIN_R = 1.4, MAX_R = 8.0, seed = 0, step232Stencil = null, goldenSize = 100) {
   const PHI = 1.618033988749895;
   const INV_PHI = 1.0 / PHI;
   const N = 10;
   const cx = W * 0.5, cy = H * 0.5;
   const diag = Math.hypot(W, H);
 
-  // Escalado 100% continuo sensible a TARGET_NODES, MIN_R y MAX_R ajustando R0 = baseSide * φ^gensFull
+  // Escalado 100% continuo sensible a TARGET_NODES, MIN_R, MAX_R y goldenSize (100% idéntico por defecto)
+  const rawGScale = (typeof goldenSize === 'number' && Number.isFinite(goldenSize) && goldenSize > 0) ? goldenSize : 100;
+  const isDefaultG = Math.abs(rawGScale - 100) < 1e-4;
+  const gMult = isDefaultG ? 1.0 : Math.max(0.55, Math.min(2.60, rawGScale / 100.0));
+
   const nodeMod = Math.sqrt(24000 / Math.max(4000, TARGET_NODES || 24000));
   const rMod = Math.max(0.55, Math.min(1.90, 0.72 + (MIN_R - 1.4) * 0.14 + (MAX_R - 8.0) * 0.035));
-  const minSideFloor = Math.max(5.5, diag / 96);
-  const baseSide = Math.max(minSideFloor, Math.min(36, Math.min(W, H) * 0.030 * nodeMod * rMod));
+  const baseFloor = Math.max(5.5, diag / 96);
+  const minSideFloor = (isDefaultG || gMult >= 1.0) ? baseFloor : Math.max(3.4, baseFloor * gMult);
+  const maxSideCap = isDefaultG ? 36 : 36 * Math.max(1.0, gMult);
+  const rawSide = isDefaultG
+    ? (Math.min(W, H) * 0.030 * nodeMod * rMod)
+    : (Math.min(W, H) * 0.030 * nodeMod * rMod * gMult);
+  const baseSide = Math.max(minSideFloor, Math.min(maxSideCap, rawSide));
   const minR0 = diag * 1.48;
-  const gensFull = Math.max(4, Math.min(10, Math.ceil(Math.log(minR0 / baseSide) / Math.log(PHI))));
+  const maxGensCap = isDefaultG ? 10 : (gMult < 1.0 ? 12 : 10);
+  const gensFull = Math.max(4, Math.min(maxGensCap, Math.ceil(Math.log(minR0 / baseSide) / Math.log(PHI))));
   const R0_full = baseSide * Math.pow(PHI, gensFull);
 
   // Rotación áurea (137.50776°) al pulsar Regenerar
@@ -8022,7 +8134,11 @@ function generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_
   };
 }
 
-function generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 8.0, TARGET_NODES = 24000, seed = 0) {
+function generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 8.0, TARGET_NODES = 24000, seed = 0, fractalSize = 100) {
+  const rawFScale = (typeof fractalSize === 'number' && Number.isFinite(fractalSize) && fractalSize > 0) ? fractalSize : 100;
+  const isDefaultF = Math.abs(rawFScale - 100) < 1e-4;
+  const fracMult = isDefaultF ? 1.0 : Math.max(0.55, Math.min(2.60, rawFScale / 100.0));
+
   const baseSide = Math.max(W, H);
   // Escala continua sensible a MIN_R (Sombras) y MAX_R (Luces)
   const scaleFactor = Math.max(0.68, Math.min(1.45, 0.88 + (MIN_R - 1.4) * 0.085 + (MAX_R - 8.0) * 0.015));
@@ -8033,8 +8149,13 @@ function generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, MIN_
   const offsetY = (H - maxSide) * 0.5 + offSeedY;
 
   const nodeBoost = Math.log2(Math.max(4000, TARGET_NODES) / 24000) * 0.55;
-  const maxDepth = Math.max(5, Math.min(10, Math.round(8.2 - (MIN_R - 1.4) * 0.48 + nodeBoost)));
-  const minDepth = Math.max(2, Math.min(maxDepth - 1, Math.round(3.8 - (MAX_R - 8.0) * 0.25)));
+  const baseMaxD = Math.max(5, Math.min(10, Math.round(8.2 - (MIN_R - 1.4) * 0.48 + nodeBoost)));
+  const baseMinD = Math.max(2, Math.min(baseMaxD - 1, Math.round(3.8 - (MAX_R - 8.0) * 0.25)));
+  const maxDepth = isDefaultF ? baseMaxD : (fracMult < 0.90 ? Math.min(10, baseMaxD + 1) : baseMaxD);
+  const minDepth = isDefaultF ? baseMinD : (fracMult >= 1.45 ? Math.max(2, baseMinD - 1) : baseMinD);
+
+  const baseLeafSize = maxSide / Math.pow(2, baseMaxD);
+  const minAllowedChild = Math.min(1.35, baseLeafSize * 0.92);
 
   const outX = [];
   const outY = [];
@@ -8074,6 +8195,7 @@ function generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, MIN_
   const minRMod = Math.pow(Math.max(0.5, MIN_R / 1.4), 0.72);
   const maxRMod = Math.pow(Math.max(0.5, MAX_R / 8.0), 0.55);
   const nodeMod = Math.max(0.65, Math.min(1.4, TARGET_NODES / 24000));
+  const baseSpan = Math.max(1, baseMaxD - baseMinD);
 
   function hilbertRecurse(x, y, ax, ay, bx, by, depth) {
     const size = Math.hypot(ax, ay);
@@ -8086,12 +8208,29 @@ function generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, MIN_
 
     if (!info.inside && depth >= minDepth) return;
 
-    const span = Math.max(1, maxDepth - minDepth);
-    const normDepth = Math.max(0, (depth - minDepth) / span);
-    const depthFactor = Math.pow(normDepth, 1.25 * maxRMod) * (0.84 * minRMod / nodeMod);
-    const neededDarkness = Math.max(0.03, Math.min(0.96, depthFactor));
+    let neededDarkness;
+    if (isDefaultF) {
+      const span = Math.max(1, maxDepth - minDepth);
+      const normDepth = Math.max(0, (depth - minDepth) / span);
+      const depthFactor = Math.pow(normDepth, 1.25 * maxRMod) * (0.84 * minRMod / nodeMod);
+      neededDarkness = Math.max(0.03, Math.min(0.96, depthFactor));
+    } else if (fracMult >= 1.0) {
+      const normDepth = Math.max(0, (depth - baseMinD) / baseSpan);
+      const baseFactor = Math.pow(normDepth, 1.25 * maxRMod) * (0.84 * minRMod / nodeMod);
+      neededDarkness = Math.max(0.03, Math.min(1.01, baseFactor * Math.pow(fracMult, 0.58) + Math.log2(fracMult) * 0.34 * (0.20 + 0.80 * normDepth)));
+    } else if (depth >= baseMaxD) {
+      const t = Math.max(0, Math.min(1, (0.90 - fracMult) / 0.30));
+      neededDarkness = 0.96 - t * 0.65;
+    } else {
+      const normDepth = Math.max(0, (depth - baseMinD) / baseSpan);
+      const baseFactor = Math.pow(normDepth, 1.25 * maxRMod) * (0.84 * minRMod / nodeMod);
+      const logF = Math.log2(fracMult);
+      const floor = depth >= baseMinD + 2 ? 0.11 : 0.03;
+      neededDarkness = Math.max(floor, Math.min(0.96, baseFactor * Math.pow(fracMult, 0.95) + logF * 0.12 * normDepth));
+    }
 
-    if (depth < minDepth || (depth < maxDepth && info.darkness > neededDarkness)) {
+    const canSubdivideSize = isDefaultF || (size * 0.5 >= minAllowedChild);
+    if (depth < minDepth || (depth < maxDepth && canSubdivideSize && info.darkness > neededDarkness)) {
       const ax2 = ax * 0.5, ay2 = ay * 0.5;
       const bx2 = bx * 0.5, by2 = by * 0.5;
       hilbertRecurse(x, y, bx2, by2, ax2, ay2, depth + 1);
@@ -8114,6 +8253,7 @@ function generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, MIN_
   }
 
   hilbertRecurse(offsetX, offsetY, maxSide, 0, 0, maxSide, 0);
+  if (!isDefaultF) uncrossFractalTour(outX, outY, 16);
 
   return {
     ptsX: new Float32Array(outX),
@@ -10861,7 +11001,7 @@ self.onmessage = function(e) {
     customFocalX, customFocalY, haringIconCount = 95, haringIconSize = 100,
     halftoneSpacing = 10.0, halftoneScale = 80, halftoneAngle = 45, halftoneType = 'dots', bgClean = 0.000,
     honeycombSize = 14.0, honeycombWalls = 3, honeycombSubdiv = true,
-    hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 14.0, florBcnSize = 15.0, florFractalSize = 100, florFractalMode = 'classic', vortexSize = 8.5, escherSize = 6.0,
+    hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 14.0, florBcnSize = 15.0, goldenSize = 100, fractalSize = 100, florFractalSize = 100, florFractalMode = 'classic', vortexSize = 8.5, escherSize = 6.0,
     lineW = 1.0
   } = e.data;
 
@@ -11019,9 +11159,11 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'fractal') {
-    let { ptsX, ptsY } = generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed);
+    let { ptsX, ptsY } = generateFractalHilbertPortrait(coralToneMap, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed, fractalSize);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+      const rawFScale = (typeof fractalSize === 'number' && Number.isFinite(fractalSize) && fractalSize > 0) ? fractalSize : 100;
+      if (Math.abs(rawFScale - 100) >= 1e-4) uncrossFractalTour(ptsX, ptsY, 8);
     }
     const outX = new Float32Array(ptsX);
     const outY = new Float32Array(ptsY);
@@ -11046,9 +11188,11 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'golden') {
-    let { ptsX, ptsY } = generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES, MIN_R, MAX_R, seed, step232Stencil);
+    let { ptsX, ptsY } = generateGoldenRatioPortrait(coralToneMap, silhouetteMask, W, H, TARGET_NODES, MIN_R, MAX_R, seed, step232Stencil, goldenSize);
     if (CHAIKIN_PASSES > 0) {
       ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+      const rawGScale = (typeof goldenSize === 'number' && Number.isFinite(goldenSize) && goldenSize > 0) ? goldenSize : 100;
+      if (CHAIKIN_PASSES >= 2 && Math.abs(rawGScale - 100) >= 1e-4) uncrossFractalTour(ptsX, ptsY, 8);
     }
     const outX = new Float32Array(ptsX);
     const outY = new Float32Array(ptsY);
@@ -11265,6 +11409,8 @@ function rebuildPortrait(needsStencilRebuild = true) {
     isoDiamondSize: ISO_DIAMOND_SIZE,
     panotSize: PANOT_SIZE,
     florBcnSize: FLOR_BCN_SIZE,
+    goldenSize: GOLDEN_SIZE,
+    fractalSize: FRACTAL_SIZE,
     florFractalSize: FLOR_FRACTAL_SIZE,
     florFractalMode: FLOR_FRACTAL_MODE,
     vortexSize: VORTEX_SIZE,
@@ -12811,6 +12957,20 @@ function applyModePreset(mode) {
     const lbl = document.getElementById('vFlorBcnSize');
     if (lbl) lbl.textContent = `${p.florBcnSize.toFixed(1)}px`;
   }
+  if (p.goldenSize !== undefined) {
+    GOLDEN_SIZE = p.goldenSize;
+    const el = document.getElementById('goldenSize');
+    if (el) { el.value = String(p.goldenSize); syncSliderProgress(el); }
+    const lbl = document.getElementById('vGoldenSize');
+    if (lbl) lbl.textContent = `${p.goldenSize}%`;
+  }
+  if (p.fractalSize !== undefined) {
+    FRACTAL_SIZE = p.fractalSize;
+    const el = document.getElementById('fractalSize');
+    if (el) { el.value = String(p.fractalSize); syncSliderProgress(el); }
+    const lbl = document.getElementById('vFractalSize');
+    if (lbl) lbl.textContent = `${p.fractalSize}%`;
+  }
   if (p.florFractalSize !== undefined) {
     FLOR_FRACTAL_SIZE = p.florFractalSize;
     const el = document.getElementById('florFractalSize');
@@ -13686,6 +13846,8 @@ bindParam('hexSpiralSize', 'vHexSpiralSize', v => { HEX_SPIRAL_SIZE = v; }, fals
 bindParam('isoDiamondSize', 'vIsoDiamondSize', v => { ISO_DIAMOND_SIZE = v; }, false, 1, 'px');
 bindParam('panotSize', 'vPanotSize', v => { PANOT_SIZE = v; }, false, 1, 'px');
 bindParam('florBcnSize', 'vFlorBcnSize', v => { FLOR_BCN_SIZE = v; }, false, 1, 'px');
+bindParam('goldenSize', 'vGoldenSize', v => { GOLDEN_SIZE = v; }, false, null, '%');
+bindParam('fractalSize', 'vFractalSize', v => { FRACTAL_SIZE = v; }, false, null, '%');
 bindParam('florFractalSize', 'vFlorFractalSize', v => { FLOR_FRACTAL_SIZE = v; }, false, null, '%');
 bindParam('vortexSize', 'vVortexSize', v => { VORTEX_SIZE = v; }, false, 1, 'px');
 bindParam('escherSize', 'vEscherSize', v => { ESCHER_SIZE = v; }, false, 1, 'px');
@@ -14080,6 +14242,8 @@ function performFactoryReset() {
   HONEYCOMB_SIZE = 14.0;
   HONEYCOMB_WALLS = 3;
   HONEYCOMB_SUBDIV = true;
+  GOLDEN_SIZE = 100;
+  FRACTAL_SIZE = 100;
   FLOR_FRACTAL_MODE = 'classic';
   FLOR_FRACTAL_SIZE = 100;
   CORAL_TSP_MODE = 'pro';
@@ -14336,6 +14500,8 @@ if (btnResetStyleParams) {
     HALFTONE_SPACING = 10.0;
     HALFTONE_SCALE = 80;
     HALFTONE_ANGLE = 45;
+    GOLDEN_SIZE = 100;
+    FRACTAL_SIZE = 100;
     FLOR_FRACTAL_MODE = 'classic';
     FLOR_FRACTAL_SIZE = 100;
     CORAL_TSP_MODE = 'pro';
@@ -14634,6 +14800,8 @@ function updateFocalMarker() {
   const boxHexSpiral = document.getElementById('boxHexSpiralControls');
   const boxIsoDiamond = document.getElementById('boxIsoDiamondControls');
   const boxPanot = document.getElementById('boxPanotControls');
+  const boxGolden = document.getElementById('boxGoldenControls');
+  const boxFractal = document.getElementById('boxFractalControls');
   const boxFlorBcn = document.getElementById('boxFlorBcnControls');
   const boxFlorFractal = document.getElementById('boxFlorFractalControls');
   const boxVortex = document.getElementById('boxVortexControls');
@@ -14645,6 +14813,8 @@ function updateFocalMarker() {
   const statusPill = document.getElementById('statusPill');
 
   const isCoralTsp = (ENGINE_MODE === 'coral_tsp');
+  const isGolden = (ENGINE_MODE === 'golden');
+  const isFractal = (ENGINE_MODE === 'fractal');
   const isHaring = (ENGINE_MODE === 'keith_haring' || ENGINE_MODE === 'haring_croc' || ENGINE_MODE === 'haring_puzzle');
   const isHalftone = (ENGINE_MODE === 'halftone_dots');
   const isHoneycomb = (ENGINE_MODE === 'honeycomb');
@@ -14659,6 +14829,8 @@ function updateFocalMarker() {
   const isGeoPop = (ENGINE_MODE === 'geo_pop');
 
   if (boxCoralTsp) boxCoralTsp.classList.toggle('is-hidden', !isCoralTsp);
+  if (boxGolden) boxGolden.classList.toggle('is-hidden', !isGolden);
+  if (boxFractal) boxFractal.classList.toggle('is-hidden', !isFractal);
   if (boxHaring) boxHaring.classList.toggle('is-hidden', !isHaring);
   if (boxHalftone) boxHalftone.classList.toggle('is-hidden', !isHalftone);
   if (boxHoneycomb) boxHoneycomb.classList.toggle('is-hidden', !isHoneycomb);
@@ -14672,7 +14844,7 @@ function updateFocalMarker() {
   if (boxGeoPop) boxGeoPop.classList.toggle('is-hidden', !isGeoPop);
   if (box) box.classList.toggle('is-hidden', !isSpiral);
   if (modeDesc) {
-    const hasCustomControls = isCoralTsp || isHaring || isHalftone || isHoneycomb || isHexSpiral || isIsoDiamond || isPanot || isFlorBcn || isFlorFractal || isVortex || isEscher || isGeoPop;
+    const hasCustomControls = isCoralTsp || isGolden || isFractal || isHaring || isHalftone || isHoneycomb || isHexSpiral || isIsoDiamond || isPanot || isFlorBcn || isFlorFractal || isVortex || isEscher || isGeoPop;
     modeDesc.classList.toggle('is-hidden', hasCustomControls);
   }
 
