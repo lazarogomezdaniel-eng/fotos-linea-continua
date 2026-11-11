@@ -932,7 +932,7 @@ const MODE_PRESETS = {
   hex_spiral:     { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.05, hexSpiralSize: 8.5, fusionOpacity: 25, colorMode: 'mono' },
   iso_diamond:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.0, isoDiamondSize: 11.0, fusionOpacity: 25, colorMode: 'mono' },
   pursuit_vortex: { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1, lineW: 1.0, vortexSize: 8.5, fusionOpacity: 25, colorMode: 'mono' },
-  panot_bcn:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1, lineW: 1.0, panotSize: 14.0, fusionOpacity: 25, colorMode: 'organic_flow', colorPalette: 'forest' },
+  panot_bcn:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 1, lineW: 1.0, panotSize: 10.0, fusionOpacity: 25, colorMode: 'organic_flow', colorPalette: 'forest' },
   flor_bcn:       { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.60, bgClean: 0.000, minR: 1.8, maxR: 6.5, chaikin: 1, lineW: 1.0, florBcnSize: 15.0, fusionOpacity: 25, colorMode: 'mono' },
   flor_fractal:   { pencilStr: 8.0, pencilBlur: 1.8, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 7.0, chaikin: 1, lineW: 1.0, florFractalSize: 100, fusionOpacity: 25, colorMode: 'mono' },
   golden_spiral:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.70, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.0, fusionOpacity: 25, colorMode: 'mono', monoInk: 'sanguine' },
@@ -4356,8 +4356,8 @@ function generateEscherYPortrait(coralToneMap, step232Stencil, silhouetteMask, W
  * Teje una red continua de baldosas completas con marco perimetral biselado y la icónica Flor de Barcelona
  * en bajorrelieve (4 pétalos diagonales en esquinas y pistilo central).
  */
-function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 5.5, TARGET_NODES = 38000, seed = 0, panotSize = 14.0) {
-  const baseSize = (panotSize && panotSize >= 6.0) ? panotSize : 14.0;
+function generatePanotBarcelonaPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 5.5, TARGET_NODES = 38000, seed = 0, panotSize = 10.0) {
+  const baseSize = (panotSize && panotSize >= 6.0) ? panotSize : 10.0;
   const nodeScale = Math.sqrt(38000 / Math.max(5000, TARGET_NODES));
   const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
   const tileSize = Math.max(5.0, Math.min(28.0, baseSize * nodeScale * maxRScale));
@@ -6980,7 +6980,7 @@ self.onmessage = function(e) {
     jobId, engineMode, coralTspMode = 'pro', step232Stencil, coralToneMap, silhouetteMask, smoothSilMap,
     W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0, maxTimeMs,
     honeycombSize = 14.0, honeycombWalls = 3, honeycombSubdiv = true,
-    hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 14.0, florBcnSize = 15.0, goldenSize = 100, fractalSize = 100, florFractalSize = 100, florFractalMode = 'classic', vortexSize = 8.5, escherSize = 6.0
+    hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 10.0, florBcnSize = 15.0, goldenSize = 100, fractalSize = 100, florFractalSize = 100, florFractalMode = 'classic', vortexSize = 8.5, escherSize = 6.0
   } = e.data;
 
   const tStart = performance.now();
@@ -7319,7 +7319,7 @@ function rebuildPortrait(needsStencilRebuild = true) {
     honeycombSubdiv: true,
     hexSpiralSize: 8.5,
     isoDiamondSize: 11.0,
-    panotSize: 14.0,
+    panotSize: 10.0,
     florBcnSize: 15.0,
     goldenSize: GOLDEN_SIZE,
     fractalSize: FRACTAL_SIZE,
