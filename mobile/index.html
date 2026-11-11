@@ -1998,20 +1998,20 @@
             <div class="studio-slider-card">
               <div class="studio-slider-header">
                 <span class="studio-slider-title">Paso de Trama</span>
-                <span class="studio-val-badge" id="vHalftoneSpacing">6.5px</span>
+                <span class="studio-val-badge" id="vHalftoneSpacing">10.0px</span>
               </div>
               <div class="studio-slider-track-wrap">
-                <input type="range" id="halftoneSpacing" min="4.0" max="15.0" step="0.5" value="6.5">
+                <input type="range" id="halftoneSpacing" min="4.0" max="15.0" step="0.5" value="10.0">
               </div>
             </div>
 
             <div class="studio-slider-card">
               <div class="studio-slider-header">
                 <span class="studio-slider-title">Ganancia de Punto</span>
-                <span class="studio-val-badge" id="vHalftoneScale">115%</span>
+                <span class="studio-val-badge" id="vHalftoneScale">80%</span>
               </div>
               <div class="studio-slider-track-wrap">
-                <input type="range" id="halftoneScale" min="70" max="160" step="5" value="115">
+                <input type="range" id="halftoneScale" min="40" max="160" step="5" value="80">
               </div>
             </div>
           </div>
@@ -3081,8 +3081,8 @@ let liveNodesY = null;
 let liveNodeCount = 0;
 
 // Parámetros y Estado del Modo Trama de Puntos (Halftone Pop-Art)
-let HALFTONE_SPACING = 6.5;
-let HALFTONE_SCALE = 115;
+let HALFTONE_SPACING = 10.0;
+let HALFTONE_SCALE = 80;
 let HALFTONE_ANGLE = 45;
 let HALFTONE_TYPE = 'dots'; // 'dots' | 'spiral'
 let halftoneCirclesData = null;
@@ -9619,13 +9619,13 @@ function generateKeithHaringHumanPuzzlePortrait(coralToneMap, step232Stencil, si
 // =========================================================
 // 18. MOTOR TRAMA DE PUNTOS POP-ART (HALFTONE RETÍCULA 45°)
 // =========================================================
-function generateHalftonePopArtPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, spacing = 6.5, scalePct = 115, angleDeg = 45, halftoneType = 'dots', bgClean = 0.000, seed = 0, TARGET_NODES = 38000, MIN_R = 1.4, MAX_R = 6.8, lineW = 1.0) {
-  const baseSpacing = (spacing && spacing >= 3.0) ? spacing : 6.5;
+function generateHalftonePopArtPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, spacing = 10.0, scalePct = 80, angleDeg = 45, halftoneType = 'dots', bgClean = 0.000, seed = 0, TARGET_NODES = 38000, MIN_R = 1.4, MAX_R = 6.8, lineW = 1.0) {
+  const baseSpacing = (spacing && spacing >= 3.0) ? spacing : 10.0;
   const nodeScale = Math.sqrt(38000 / Math.max(5000, TARGET_NODES));
   const maxRScale = 0.85 + (MAX_R / 15.0) * 0.35;
   const S = Math.max(2.8, Math.min(24.0, baseSpacing * nodeScale * maxRScale));
   const strokeMult = Math.max(0.5, Math.min(2.2, Math.sqrt(lineW || 1.0)));
-  const dotScale = ((scalePct || 115) / 100.0) * strokeMult;
+  const dotScale = ((scalePct || 80) / 100.0) * strokeMult;
 
   // Desfase armónico según la semilla de recálculo (reubicación controlada de la retícula serigráfica)
   // Para seed === 0 conserva la alineación canónica fija inicial
@@ -9754,7 +9754,7 @@ self.onmessage = function(e) {
     jobId, engineMode, step232Stencil, coralToneMap, silhouetteMask, smoothSilMap,
     W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0, maxTimeMs,
     customFocalX, customFocalY, haringIconCount = 95, haringIconSize = 100,
-    halftoneSpacing = 6.5, halftoneScale = 115, halftoneAngle = 45, halftoneType = 'dots', bgClean = 0.000,
+    halftoneSpacing = 10.0, halftoneScale = 80, halftoneAngle = 45, halftoneType = 'dots', bgClean = 0.000,
     honeycombSize = 14.0, honeycombWalls = 3, honeycombSubdiv = true,
     hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 14.0, florBcnSize = 15.0, florFractalSize = 100, florFractalMode = 'classic', vortexSize = 8.5, escherSize = 6.0,
     lineW = 1.0
@@ -12880,8 +12880,8 @@ function performFactoryReset() {
   TARGET_NODES = isMobileDevice ? 38000 : 44000;
   HARING_ICON_COUNT = 95;
   HARING_ICON_SIZE = 100;
-  HALFTONE_SPACING = 6.5;
-  HALFTONE_SCALE = 115;
+  HALFTONE_SPACING = 10.0;
+  HALFTONE_SCALE = 80;
   HALFTONE_ANGLE = 45;
   HONEYCOMB_SIZE = 14.0;
   HONEYCOMB_WALLS = 3;
@@ -13098,8 +13098,8 @@ if (btnResetStyleParams) {
     TARGET_NODES = isMobileDevice ? 38000 : 44000;
     HARING_ICON_COUNT = 95;
     HARING_ICON_SIZE = 100;
-    HALFTONE_SPACING = 6.5;
-    HALFTONE_SCALE = 115;
+    HALFTONE_SPACING = 10.0;
+    HALFTONE_SCALE = 80;
     HALFTONE_ANGLE = 45;
     FLOR_FRACTAL_MODE = 'classic';
     FLOR_FRACTAL_SIZE = 100;
