@@ -1975,7 +1975,7 @@
 
     <select id="engineMode" style="display:none;">
       <option value="coral" selected>🧠 1. Coral Cerebral Dendrítico (100% Relleno de Silueta)</option>
-      <option value="coral_tsp">🌊 2. Coral Orgánico TSP (Stippling + 2-Opt + Chaikin)</option>
+      <option value="coral_tsp">🌊 2. Coral Orgánico TSP (Alta Definición Pro / Clásico)</option>
       <option value="stencil_clean">✏️ 3. Calco a Lápiz Tatuador Sin Cruces (Paso 232 · 2-Opt)</option>
       <option value="stencil_cross">✍️ 4. Calco a Lápiz CON CRUCES (Boceto de Trazos Cruzados)</option>
       <option value="live_growth">🌱 5. Crecimiento en Vivo CON CRUCES (1ª Versión Original)</option>
@@ -2016,7 +2016,7 @@
             <div class="style-card" data-mode="coral_tsp">
               <span class="card-emoji">🌊</span>
               <span class="card-title">Coral TSP</span>
-              <span class="card-badge">2-Opt + Chaikin</span>
+              <span class="card-badge">Pro · Clásico</span>
             </div>
             <div class="style-card" data-mode="stencil_clean">
               <span class="card-emoji">✏️</span>
@@ -2113,6 +2113,21 @@
               <span class="card-title">Pop Geométrico</span>
               <span class="card-badge">Estilo 21 · Color</span>
             </div>
+          </div>
+        </div>
+
+        <!-- CONTROLES DINÁMICOS DE CORAL ORGÁNICO TSP -->
+        <div id="boxCoralTspControls" class="studio-group-block is-hidden">
+          <div class="studio-slider-card">
+            <div class="studio-slider-header">
+              <span class="studio-slider-title">Motor Coral Orgánico TSP</span>
+              <span class="studio-val-badge" id="vCoralTspMode">Alta Definición</span>
+            </div>
+            <div class="studio-quick-pills">
+              <button type="button" class="studio-pill active" id="btnCoralTspPro" data-coralmode="pro" aria-pressed="true">✨ Alta Definición</button>
+              <button type="button" class="studio-pill" id="btnCoralTspClassic" data-coralmode="classic" aria-pressed="false">🌊 Clásico Original</button>
+            </div>
+            <div id="coralTspHint" style="font-size:11px; color:var(--text-dim); line-height:1.35; margin-top:2px;">✨ Mismo concepto orgánico con nitidez HD en ojos/rasgos, flujo tonal equilibrado y 0 cruces.</div>
           </div>
         </div>
 
@@ -3298,6 +3313,7 @@ let PANOT_SIZE = 14.0;
 let FLOR_BCN_SIZE = 15.0;
 let FLOR_FRACTAL_SIZE = 100;
 let FLOR_FRACTAL_MODE = 'classic'; // 'classic' | 'rect'
+let CORAL_TSP_MODE = 'pro'; // 'pro' | 'classic'
 let VORTEX_SIZE = 8.5;
 let ESCHER_SIZE = 6.0;
 let GEO_POP_DESAT = 100;
@@ -3310,7 +3326,7 @@ let geoPopPhotoDesatCache = -1;
 
 const MODE_DESCRIPTIONS = {
   coral: '🧠 Coral Cerebral Dendrítico: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros redondeados en U sin dejar huecos vacíos.',
-  coral_tsp: '🌊 Coral Orgánico TSP: Stippling adaptativo por tono + repulsión + ruta continua 2-Opt libre de cruces + curvas Chaikin.',
+  coral_tsp: '🌊 Coral Orgánico TSP (Pro / Clásico): Alterna entre Alta Definición Pro (nitidez HD en ojos/rasgos, flujo tonal equilibrado y 0 cruces) y el algoritmo Clásico original.',
   stencil_clean: '✏️ Calco Limpio de Galería (Sin Cruces): Iso-contornos anatómicos vectoriales libres de halos + sombreado curvo de grabado académico en un único trazo continuo 100% libre de cruces.',
   stencil_cross: '✍️ Calco a Lápiz CON CRUCES: Mantiene el calco a lápiz del tatuador pero enlaza los trazos permitiendo cruces y sombreado cruzado rápido.',
   live_growth: '🌱 Crecimiento Diferencial en Vivo CON CRUCES: El trazo nace en el centro del rostro y teje en vivo sobre los rasgos cruzando líneas con alta calidad.',
@@ -3438,6 +3454,28 @@ function syncFlorFractalModePills(mode = FLOR_FRACTAL_MODE) {
   if (vMode) vMode.textContent = isRect ? 'Toda la Foto' : 'Fractal Clásico';
 }
 
+function syncCoralTspModePills(mode = CORAL_TSP_MODE) {
+  const isClassic = (mode === 'classic');
+  const btnPro = document.getElementById('btnCoralTspPro');
+  const btnClassic = document.getElementById('btnCoralTspClassic');
+  const vMode = document.getElementById('vCoralTspMode');
+  const hint = document.getElementById('coralTspHint');
+  if (btnPro) {
+    btnPro.classList.toggle('active', !isClassic);
+    btnPro.setAttribute('aria-pressed', !isClassic ? 'true' : 'false');
+  }
+  if (btnClassic) {
+    btnClassic.classList.toggle('active', isClassic);
+    btnClassic.setAttribute('aria-pressed', isClassic ? 'true' : 'false');
+  }
+  if (vMode) vMode.textContent = isClassic ? 'Clásico' : 'Alta Definición';
+  if (hint) {
+    hint.textContent = isClassic
+      ? '🌊 Versión original (Stippling + 2-Opt clásico + Chaikin) conservada intacta para comparar.'
+      : '✨ Mismo concepto orgánico con nitidez HD en ojos/rasgos, flujo tonal equilibrado y 0 cruces.';
+  }
+}
+
 function formatGeoPopDesat(v) {
   if (v >= 100) return '100% (B/N)';
   if (v <= 0) return '0% (Color)';
@@ -3491,6 +3529,7 @@ function syncSlidersFromState() {
   setSlider('geoPopCount', 'vGeoPopCount', GEO_POP_COUNT);
   setFusionOpacity(FUSION_OPACITY);
   syncFlorFractalModePills(FLOR_FRACTAL_MODE);
+  syncCoralTspModePills(CORAL_TSP_MODE);
   syncPresetPills('maxN', TARGET_NODES, 500);
   syncViewLayerCards(VIEW_MODE);
   syncAllSlidersProgress();
@@ -9948,9 +9987,876 @@ function generateHalftonePopArtPortrait(coralToneMap, step232Stencil, silhouette
   return { ptsX, ptsY, circles };
 }
 
+function generateCoralTspPro(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, TARGET_NODES = 38000, MIN_R = 1.4, MAX_R = 6.5, CHAIKIN_PASSES = 2, seed = 0, maxTimeMs = 1400, progressCb = null) {
+  const t0 = performance.now();
+  const len = W * H;
+
+  let rng = (Math.imul((seed | 0) + 1, 1664525) + 1013904223) >>> 0;
+  if (rng === 0) rng = 0x9E3779B9;
+  const nextRand = () => {
+    rng = (rng + 0x6D2B79F5) >>> 0;
+    let t = Math.imul(rng ^ (rng >>> 15), 1 | rng);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+
+  const hasStencil = Boolean(step232Stencil && step232Stencil.length === len);
+  const rawBudget = TARGET_NODES <= 38000
+    ? Math.max(2500, Math.round(TARGET_NODES * 0.66))
+    : Math.min(40000, Math.round(25080 + (TARGET_NODES - 38000) * 0.36));
+  const nodeScale = Math.sqrt(25000 / Math.max(5000, rawBudget));
+  const effMinR = Math.max(0.85, MIN_R * nodeScale * 0.96);
+  const targetMaxR = (MAX_R <= MIN_R * 4.4)
+    ? MAX_R * 0.92
+    : (MIN_R * 4.4 * 0.92 + (MAX_R - MIN_R * 4.4) * 0.42);
+  const effMaxR = Math.max(effMinR + 1.1, targetMaxR * nodeScale);
+
+  const rMap = new Float32Array(len);
+  const weightMap = new Float32Array(len);
+  const featStrength = new Float32Array(len);
+  let totalWeight = 0;
+  let theoreticalCap = 0;
+  let weightedCx = 0, weightedCy = 0, weightedSum = 0;
+
+  for (let y = 0; y < H; y++) {
+    const row = y * W;
+    for (let x = 0; x < W; x++) {
+      const i = row + x;
+      if (!silhouetteMask[i]) {
+        rMap[i] = effMaxR * 3.0;
+        continue;
+      }
+      const t = coralToneMap[i];
+      const s = hasStencil ? step232Stencil[i] : t;
+      const tDark = t < 1.0 ? 1.0 - t : 0.0;
+      const sDark = s < 1.0 ? 1.0 - s : 0.0;
+
+      if (t > 0.94 && s > 0.89) {
+        rMap[i] = effMaxR * 2.8;
+        continue;
+      }
+
+      const hiFade = t > 0.87 ? Math.max(0.0, 1.0 - (t - 0.87) / 0.07) : 1.0;
+      const combTone = Math.min(t, t * 0.45 + s * 0.55);
+      const u = Math.max(0.0, Math.min(1.0, combTone));
+      const sCurve = u < 0.5
+        ? 0.5 * Math.pow(2.0 * u, 1.85)
+        : 1.0 - 0.5 * Math.pow(2.0 * (1.0 - u), 1.35);
+      const r = effMinR + (effMaxR - effMinR) * sCurve;
+      rMap[i] = r;
+
+      const fStr = sDark > 0.07 ? Math.pow(sDark, 1.15) : 0.0;
+      featStrength[i] = fStr;
+      const vol = Math.pow(tDark, 1.05) * hiFade;
+      const skinFloor = (t < 0.89) ? 0.075 * hiFade : 0.0;
+      const w = (vol + skinFloor + fStr * 1.15) / Math.pow(r, 1.60);
+      weightMap[i] = w;
+      totalWeight += w;
+
+      const areaCap = (0.42 + 0.88 * Math.min(1.0, vol * 1.35 + fStr * 1.25)) / (0.70 * r * r);
+      theoreticalCap += areaCap;
+
+      if (fStr > 0.12 || tDark > 0.35) {
+        const cw = fStr * 2.0 + tDark;
+        weightedCx += x * cw;
+        weightedCy += y * cw;
+        weightedSum += cw;
+      }
+    }
+  }
+
+  if (totalWeight < 1e-3) return { ptsX: new Float32Array(0), ptsY: new Float32Array(0) };
+
+  const desiredNodes = Math.max(400, Math.min(rawBudget, Math.round(theoreticalCap * 1.15)));
+  const maxCap = Math.min(48000, desiredNodes + 2000);
+  const rx = new Float32Array(maxCap);
+  const ry = new Float32Array(maxCap);
+  const rr = new Float32Array(maxCap);
+  const pNext = new Int32Array(maxCap).fill(-1);
+  let count = 0;
+
+  const cellSize = Math.max(3, Math.min(6, Math.round(effMinR * 2.2)));
+  const gCols = Math.ceil(W / cellSize) + 1;
+  const gRows = Math.ceil(H / cellSize) + 1;
+  const pHead = new Int32Array(gCols * gRows).fill(-1);
+
+  const canPlace = (x, y, rReq, sepMult = 0.44) => {
+    const cx = (x / cellSize) | 0;
+    const cy = (y / cellSize) | 0;
+    const rad = Math.ceil((rReq * 1.05 + 1.0) / cellSize);
+    for (let dy = -rad; dy <= rad; dy++) {
+      const ny = cy + dy;
+      if (ny < 0 || ny >= gRows) continue;
+      const rowOff = ny * gCols;
+      for (let dx = -rad; dx <= rad; dx++) {
+        const nx = cx + dx;
+        if (nx < 0 || nx >= gCols) continue;
+        let j = pHead[rowOff + nx];
+        while (j !== -1) {
+          const ddx = x - rx[j], ddy = y - ry[j];
+          const minSep = (rReq + rr[j]) * sepMult;
+          if (ddx * ddx + ddy * ddy < minSep * minSep) return false;
+          j = pNext[j];
+        }
+      }
+    }
+    return true;
+  };
+
+  const addNode = (x, y, rReq) => {
+    if (count >= maxCap) return;
+    const idx = count++;
+    rx[idx] = x; ry[idx] = y; rr[idx] = rReq;
+    const cx = Math.max(0, Math.min(gCols - 1, (x / cellSize) | 0));
+    const cy = Math.max(0, Math.min(gRows - 1, (y / cellSize) | 0));
+    const cIdx = cy * gCols + cx;
+    pNext[idx] = pHead[cIdx];
+    pHead[cIdx] = idx;
+  };
+
+  // Anclajes prioritarios sobre rasgos anatómicos (ojos, cejas, labios, contornos)
+  const ridgeCap = Math.round(desiredNodes * 0.22);
+  if (hasStencil && ridgeCap > 0) {
+    let stride = Math.max(17, (Math.floor(len * 0.6180339887) | 1));
+    const gcd = (a, b) => { while (b) { const t = a % b; a = b; b = t; } return a; };
+    while (gcd(stride, len) !== 1) stride += 2;
+    let pIdx = Math.floor(nextRand() * len);
+    const maxProbes = Math.min(len, ridgeCap * 10);
+    for (let k = 0; k < maxProbes && count < ridgeCap; k++) {
+      pIdx += stride;
+      if (pIdx >= len) pIdx -= len;
+      const fStr = featStrength[pIdx];
+      if (fStr < 0.24) continue;
+      const y = (pIdx / W) | 0;
+      const x = pIdx - y * W;
+      if (x < 4 || x >= W - 4 || y < 4 || y >= H - 4) continue;
+      if (nextRand() > Math.min(1.0, fStr * 1.15)) continue;
+      const rHere = rMap[pIdx];
+      const jx = x + (nextRand() - 0.5) * 0.6;
+      const jy = y + (nextRand() - 0.5) * 0.6;
+      if (canPlace(jx, jy, rHere, 0.45)) addNode(jx, jy, rHere);
+    }
+  }
+
+  // Difusión de error calibrada en serpentina
+  const err = new Float32Array(weightMap);
+  const remBudget1 = Math.max(100, desiredNodes - count);
+  const thresh1 = Math.max(0.015, totalWeight / (remBudget1 * 0.96));
+  const softStopFS = Math.min(maxCap - 10, Math.round(desiredNodes * 0.99));
+
+  for (let y = 4; y < H - 4 && count < softStopFS; y++) {
+    const l2r = (y & 1) === 0;
+    for (let s = 4; s < W - 4 && count < softStopFS; s++) {
+      const x = l2r ? s : (W - 1 - s);
+      const idx = y * W + x;
+      if (weightMap[idx] <= 0) continue;
+
+      let val = err[idx];
+      if (val >= thresh1) {
+        const rHere = rMap[idx];
+        const jx = x + (nextRand() - 0.5) * 0.68;
+        const jy = y + (nextRand() - 0.5) * 0.68;
+        if (canPlace(jx, jy, rHere, 0.44)) {
+          addNode(jx, jy, rHere);
+          val -= thresh1;
+        }
+      }
+      const quantErr = Math.max(-thresh1 * 0.5, Math.min(thresh1 * 1.8, val));
+      const dir = l2r ? 1 : -1;
+      err[idx + dir] += quantErr * 0.4375;
+      err[(y + 1) * W + (x - dir)] += quantErr * 0.1875;
+      err[(y + 1) * W + x] += quantErr * 0.3125;
+      err[(y + 1) * W + (x + dir)] += quantErr * 0.0625;
+    }
+  }
+
+  // Completado estratificado para equilibrar retrato de arriba a abajo
+  if (count < desiredNodes * 0.96) {
+    let stride = Math.max(19, (Math.floor(len * 0.3819660113) | 1));
+    const gcd = (a, b) => { while (b) { const t = a % b; a = b; b = t; } return a; };
+    while (gcd(stride, len) !== 1) stride += 2;
+    let pIdx = Math.floor(nextRand() * len);
+    const maxWeightRef = (totalWeight / Math.max(1, len)) * 4.5;
+    const maxTopUpProbes = Math.min(len, (desiredNodes - count) * 24);
+    for (let k = 0; k < maxTopUpProbes && count < desiredNodes; k++) {
+      pIdx += stride;
+      if (pIdx >= len) pIdx -= len;
+      const w = weightMap[pIdx];
+      if (w <= 0) continue;
+      if (nextRand() > Math.min(1.0, (w / maxWeightRef) * 0.72)) continue;
+      const y = (pIdx / W) | 0;
+      const x = pIdx - y * W;
+      if (x < 4 || x >= W - 4 || y < 4 || y >= H - 4) continue;
+      const rHere = rMap[pIdx];
+      const jx = x + (nextRand() - 0.5) * 0.75;
+      const jy = y + (nextRand() - 0.5) * 0.75;
+      if (canPlace(jx, jy, rHere, 0.415)) addNode(jx, jy, rHere);
+    }
+  }
+
+  // Relajación Blue-Noise ponderada + bloqueo sobre crestas anatómicas
+  const rCell = Math.max(6, Math.ceil(effMaxR * 1.15));
+  const rCols = Math.ceil(W / rCell) + 1;
+  const rRows = Math.ceil(H / rCell) + 1;
+  const rHead = new Int32Array(rCols * rRows);
+  const rNext = new Int32Array(count);
+  const relaxBudget = t0 + Math.min(maxTimeMs * 0.14, 150);
+
+  for (let iter = 0; iter < 3; iter++) {
+    if (iter >= 2 && performance.now() > relaxBudget) break;
+    const alpha = 1.0 - iter / 3.2;
+    const maxStep = (0.82 + 0.90 * alpha) * Math.max(0.85, effMinR);
+    const maxStepSq = maxStep * maxStep;
+
+    rHead.fill(-1);
+    for (let i = 0; i < count; i++) {
+      const cx = Math.max(0, Math.min(rCols - 1, (rx[i] / rCell) | 0));
+      const cy = Math.max(0, Math.min(rRows - 1, (ry[i] / rCell) | 0));
+      const cIdx = cy * rCols + cx;
+      rNext[i] = rHead[cIdx];
+      rHead[cIdx] = i;
+    }
+
+    for (let i = 0; i < count; i++) {
+      const px = rx[i], py = ry[i], ri = rr[i];
+      let fx = 0, fy = 0;
+
+      const ix = Math.min(W - 2, Math.max(1, (px + 0.5) | 0));
+      const iy = Math.min(H - 2, Math.max(1, (py + 0.5) | 0));
+      const sIdx = iy * W + ix;
+      const tGx = (coralToneMap[sIdx + 1] - coralToneMap[sIdx - 1]) * 0.5;
+      const tGy = (coralToneMap[sIdx + W] - coralToneMap[sIdx - W]) * 0.5;
+      const tonePull = (1.0 - coralToneMap[sIdx]) * (1.28 + 0.65 * alpha);
+      fx -= tGx * tonePull;
+      fy -= tGy * tonePull;
+
+      if (hasStencil) {
+        const sGx = (step232Stencil[sIdx + 1] - step232Stencil[sIdx - 1]) * 0.5;
+        const sGy = (step232Stencil[sIdx + W] - step232Stencil[sIdx - W]) * 0.5;
+        const sDarkHere = Math.max(0.0, 1.0 - step232Stencil[sIdx]);
+        const ridgePull = (0.42 + sDarkHere * 2.25) * (0.95 + 0.6 * alpha);
+        fx -= sGx * ridgePull;
+        fy -= sGy * ridgePull;
+      }
+
+      const cx = (px / rCell) | 0, cy = (py / rCell) | 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        const ny = cy + dy;
+        if (ny < 0 || ny >= rRows) continue;
+        const rowOff = ny * rCols;
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = cx + dx;
+          if (nx < 0 || nx >= rCols) continue;
+          let j = rHead[rowOff + nx];
+          while (j !== -1) {
+            if (j !== i) {
+              const ddx = px - rx[j], ddy = py - ry[j];
+              const dSq = ddx * ddx + ddy * ddy;
+              const targetD = (ri + rr[j]) * 0.47;
+              const softR = targetD * 1.18;
+              if (dSq < softR * softR && dSq > 1e-4) {
+                const d = Math.sqrt(dSq);
+                let f = (d < targetD)
+                  ? ((targetD - d) / d) * (0.36 + 0.14 * alpha)
+                  : ((softR - d) / softR) * (0.048 * alpha / d);
+                const weightRatio = (ri * 1.15) / (ri + rr[j] + 1e-4);
+                f *= (0.78 + 0.44 * weightRatio);
+                fx += ddx * f;
+                fy += ddy * f;
+              }
+            }
+            j = rNext[j];
+          }
+        }
+      }
+
+      const fSq = fx * fx + fy * fy;
+      if (fSq > maxStepSq) {
+        const inv = maxStep / Math.sqrt(fSq);
+        fx *= inv; fy *= inv;
+      }
+      const nx = Math.max(4, Math.min(W - 4, px + fx));
+      const ny = Math.max(4, Math.min(H - 4, py + fy));
+      const nIdx = (ny | 0) * W + (nx | 0);
+      if (silhouetteMask[nIdx] && !(coralToneMap[nIdx] > 0.945 && (!hasStencil || step232Stencil[nIdx] > 0.90))) {
+        rx[i] = nx; ry[i] = ny;
+      } else {
+        const hx = Math.max(4, Math.min(W - 4, px + fx * 0.35));
+        const hy = Math.max(4, Math.min(H - 4, py + fy * 0.35));
+        if (silhouetteMask[(hy | 0) * W + (hx | 0)]) { rx[i] = hx; ry[i] = hy; }
+      }
+    }
+  }
+
+  const N = count;
+  if (N < 2) return { ptsX: rx.subarray(0, N), ptsY: ry.subarray(0, N) };
+
+  const chordPenaltyMult = (ax, ay, bx, by, distSq) => {
+    if (distSq <= 81.0) return 1.0;
+    let brightAcc = 0, outCount = 0;
+    for (let s = 1; s <= 4; s++) {
+      const f = s * 0.20;
+      const sx = Math.max(0, Math.min(W - 1, ((ax + (bx - ax) * f) | 0)));
+      const sy = Math.max(0, Math.min(H - 1, ((ay + (by - ay) * f) | 0)));
+      const idx = sy * W + sx;
+      if (!silhouetteMask[idx]) outCount++;
+      else {
+        const t = coralToneMap[idx];
+        const st = hasStencil ? step232Stencil[idx] : 1.0;
+        if (t > 0.87 && st > 0.84) {
+          const ex = (t - 0.87) / 0.13;
+          brightAcc += ex * ex;
+        }
+      }
+    }
+    return 1.0 + brightAcc * 4.5 + outCount * 32.0;
+  };
+
+  // Vecino más cercano jerárquico en 2 niveles
+  const cSize = 10;
+  const cCols = Math.ceil(W / cSize) + 1;
+  const cRows = Math.ceil(H / cSize) + 1;
+  const bDiv = 5;
+  const bSize = cSize * bDiv;
+  const bCols = Math.ceil(cCols / bDiv) + 1;
+  const bRows = Math.ceil(cRows / bDiv) + 1;
+
+  const cellHead = new Int32Array(cCols * cRows).fill(-1);
+  const cellNext = new Int32Array(N).fill(-1);
+  const cellPrev = new Int32Array(N).fill(-1);
+  const cellOf = new Int32Array(N);
+  const blkOf = new Int32Array(N);
+  const blkCount = new Int32Array(bCols * bRows);
+
+  const anchorTargetX = weightedSum > 0 ? (weightedCx / weightedSum) : W * 0.5;
+  const anchorTargetY = weightedSum > 0 ? (weightedCy / weightedSum) : H * 0.42;
+  let startNode = 0, bestAnchorScore = Infinity;
+
+  for (let i = 0; i < N; i++) {
+    const cx = Math.max(0, Math.min(cCols - 1, (rx[i] / cSize) | 0));
+    const cy = Math.max(0, Math.min(cRows - 1, (ry[i] / cSize) | 0));
+    const cIdx = cy * cCols + cx;
+    cellOf[i] = cIdx;
+    const oldHead = cellHead[cIdx];
+    cellNext[i] = oldHead;
+    if (oldHead !== -1) cellPrev[oldHead] = i;
+    cellPrev[i] = -1;
+    cellHead[cIdx] = i;
+
+    const bx = (cx / bDiv) | 0;
+    const by = (cy / bDiv) | 0;
+    const bIdx = by * bCols + bx;
+    blkOf[i] = bIdx;
+    blkCount[bIdx]++;
+
+    const dAnc = (rx[i] - anchorTargetX) ** 2 + (ry[i] - anchorTargetY) ** 2;
+    const sc = dAnc * (0.4 + rr[i]);
+    if (sc < bestAnchorScore) { bestAnchorScore = sc; startNode = i; }
+  }
+
+  const markVisited = (u) => {
+    const c = cellOf[u];
+    const pv = cellPrev[u], nx = cellNext[u];
+    if (pv !== -1) cellNext[pv] = nx; else cellHead[c] = nx;
+    if (nx !== -1) cellPrev[nx] = pv;
+    blkCount[blkOf[u]]--;
+  };
+
+  const nxt = new Int32Array(N).fill(-1);
+  markVisited(startNode);
+  const headNode = startNode;
+  let curr = startNode;
+
+  for (let step = 1; step < N; step++) {
+    const px = rx[curr], py = ry[curr];
+    const cx = Math.max(0, Math.min(cCols - 1, (px / cSize) | 0));
+    const cy = Math.max(0, Math.min(cRows - 1, (py / cSize) | 0));
+    let bestNode = -1, bestScore = Infinity, bestEucSq = Infinity;
+
+    for (let rad = 0; rad <= 2; rad++) {
+      const minDy = Math.max(-cy, -rad), maxDy = Math.min(cRows - 1 - cy, rad);
+      const minDx = Math.max(-cx, -rad), maxDx = Math.min(cCols - 1 - cx, rad);
+      for (let dy = minDy; dy <= maxDy; dy++) {
+        const rowOff = (cy + dy) * cCols;
+        for (let dx = minDx; dx <= maxDx; dx++) {
+          if (rad > 0 && Math.abs(dx) < rad && Math.abs(dy) < rad) continue;
+          let j = cellHead[rowOff + (cx + dx)];
+          while (j !== -1) {
+            const ddx = rx[j] - px, ddy = ry[j] - py;
+            const dSq = ddx * ddx + ddy * ddy;
+            let sc = dSq;
+            if (dSq > 81.0) sc *= chordPenaltyMult(px, py, rx[j], ry[j], dSq);
+            if (sc < bestScore) { bestScore = sc; bestNode = j; bestEucSq = dSq; }
+            j = cellNext[j];
+          }
+        }
+      }
+      if (bestNode !== -1 && rad >= 1) {
+        const safeRadSq = (rad * cSize * 0.96) ** 2;
+        if (bestEucSq <= safeRadSq) break;
+      }
+    }
+
+    if (bestNode === -1) {
+      let minBlkCenterDistSq = Infinity;
+      const bTotal = bCols * bRows;
+      for (let b = 0; b < bTotal; b++) {
+        if (blkCount[b] <= 0) continue;
+        const bby = (b / bCols) | 0;
+        const bbx = b - bby * bCols;
+        const bx0 = bbx * bSize, bx1 = bx0 + bSize;
+        const by0 = bby * bSize, by1 = by0 + bSize;
+        const dxB = px < bx0 ? (bx0 - px) : (px > bx1 ? (px - bx1) : 0);
+        const dyB = py < by0 ? (by0 - py) : (py > by1 ? (py - by1) : 0);
+        const dBlk = dxB * dxB + dyB * dyB;
+        if (dBlk < minBlkCenterDistSq) minBlkCenterDistSq = dBlk;
+      }
+      const cutoffDist = Math.sqrt(minBlkCenterDistSq) + bSize * 2.4;
+      const cutoffSq = cutoffDist * cutoffDist;
+
+      for (let b = 0; b < bTotal; b++) {
+        if (blkCount[b] <= 0) continue;
+        const bby = (b / bCols) | 0;
+        const bbx = b - bby * bCols;
+        const bx0 = bbx * bSize, bx1 = bx0 + bSize;
+        const by0 = bby * bSize, by1 = by0 + bSize;
+        const dxB = px < bx0 ? (bx0 - px) : (px > bx1 ? (px - bx1) : 0);
+        const dyB = py < by0 ? (by0 - py) : (py > by1 ? (py - by1) : 0);
+        if (dxB * dxB + dyB * dyB > cutoffSq) continue;
+
+        const cY0 = bby * bDiv, cY1 = Math.min(cRows - 1, cY0 + bDiv - 1);
+        const cX0 = bbx * bDiv, cX1 = Math.min(cCols - 1, cX0 + bDiv - 1);
+        for (let fcy = cY0; fcy <= cY1; fcy++) {
+          const rOff = fcy * cCols;
+          for (let fcx = cX0; fcx <= cX1; fcx++) {
+            let j = cellHead[rOff + fcx];
+            while (j !== -1) {
+              const ddx = rx[j] - px, ddy = ry[j] - py;
+              const dSq = ddx * ddx + ddy * ddy;
+              let sc = dSq;
+              if (dSq > 100.0) sc *= chordPenaltyMult(px, py, rx[j], ry[j], dSq);
+              if (sc < bestScore) { bestScore = sc; bestNode = j; }
+              j = cellNext[j];
+            }
+          }
+        }
+      }
+    }
+
+    nxt[curr] = bestNode;
+    markVisited(bestNode);
+    curr = bestNode;
+  }
+
+  const vCell = 12;
+  const vCols = Math.ceil(W / vCell) + 1;
+  const vRows = Math.ceil(H / vCell) + 1;
+  const vHead = new Int32Array(vCols * vRows).fill(-1);
+  const vNext = new Int32Array(N).fill(-1);
+  for (let u = 0; u < N; u++) {
+    const cx = Math.max(0, Math.min(vCols - 1, (rx[u] / vCell) | 0));
+    const cy = Math.max(0, Math.min(vRows - 1, (ry[u] / vCell) | 0));
+    const cIdx = cy * vCols + cx;
+    vNext[u] = vHead[cIdx];
+    vHead[cIdx] = u;
+  }
+
+  const tour = new Int32Array(N);
+  const ptsX = new Float32Array(N);
+  const ptsY = new Float32Array(N);
+  const posOfNode = new Int32Array(N);
+  let walk = headNode, wIdx = 0;
+  while (walk !== -1 && wIdx < N) {
+    tour[wIdx] = walk;
+    ptsX[wIdx] = rx[walk]; ptsY[wIdx] = ry[walk];
+    posOfNode[walk] = wIdx;
+    wIdx++;
+    walk = nxt[walk];
+  }
+
+  const segIntersect = (ax, ay, bx, by, cx, cy, dx, dy) => {
+    const d1 = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+    const d2 = (bx - ax) * (dy - ay) - (by - ay) * (dx - ax);
+    if ((d1 >= -1e-7 && d2 >= -1e-7) || (d1 <= -1e-7 && d2 <= -1e-7)) return false;
+    const d3 = (dx - cx) * (ay - cy) - (dy - cy) * (ax - cx);
+    const d4 = (dx - cx) * (by - cy) - (dy - cy) * (bx - cx);
+    return ((d3 > 1e-7 && d4 < -1e-7) || (d3 < -1e-7 && d4 > 1e-7));
+  };
+
+  const evalSegCost = (ax, ay, bx, by, euc) => {
+    if (euc <= 7.5) return euc;
+    let pen = 0;
+    for (let s = 1; s <= 3; s++) {
+      const f = s * 0.25;
+      const sx = Math.max(0, Math.min(W - 1, ((ax + (bx - ax) * f) | 0)));
+      const sy = Math.max(0, Math.min(H - 1, ((ay + (by - ay) * f) | 0)));
+      const idx = sy * W + sx;
+      if (!silhouetteMask[idx]) pen += euc * 3.0;
+      else {
+        const t = coralToneMap[idx];
+        const st = hasStencil ? step232Stencil[idx] : 1.0;
+        if (t > 0.87 && st > 0.84) {
+          const ex = (t - 0.87) / 0.13;
+          pen += euc * ex * 1.1;
+        }
+      }
+    }
+    return euc + pen;
+  };
+
+  const runExactCrossingSweep = (pxArr, pyArr, M, swCell, maxSweeps, deadlineMs, syncTour, minGuaranteePasses = 20) => {
+    if (M < 4) return;
+    const swCols = Math.ceil(W / swCell) + 1;
+    const swRows = Math.ceil(H / swCell) + 1;
+    const swHead = new Int32Array(swCols * swRows);
+    const localBlocked = new Uint8Array(M);
+    const dirty = new Uint8Array(M).fill(1);
+    const nextDirty = new Uint8Array(M);
+    const localMaxRefs = M * 6 + 32768;
+    const rSeg = new Int32Array(localMaxRefs);
+    const rNext = new Int32Array(localMaxRefs);
+
+    const revArrU8 = (arr, l, r) => {
+      while (l < r) {
+        const t = arr[l]; arr[l] = arr[r]; arr[r] = t;
+        l++; r--;
+      }
+    };
+
+    const revSlice = (l, r) => {
+      if (l < r) {
+        revArrU8(dirty, l, r - 1);
+        revArrU8(nextDirty, l, r - 1);
+      }
+      while (l < r) {
+        const tx = pxArr[l], ty = pyArr[l];
+        pxArr[l] = pxArr[r]; pyArr[l] = pyArr[r];
+        pxArr[r] = tx; pyArr[r] = ty;
+        if (syncTour) {
+          const ul = tour[l], ur = tour[r];
+          tour[l] = ur; tour[r] = ul;
+          posOfNode[ur] = l; posOfNode[ul] = r;
+        }
+        l++; r--;
+      }
+    };
+
+    let forceFullPass = true;
+    for (let pass = 0; pass < maxSweeps; pass++) {
+      swHead.fill(-1);
+      let refCount = 0;
+      const pushRef = (cx, cy, segId) => {
+        if (refCount >= localMaxRefs || cx < 0 || cx >= swCols || cy < 0 || cy >= swRows) return;
+        const cIdx = cy * swCols + cx;
+        rSeg[refCount] = segId;
+        rNext[refCount] = swHead[cIdx];
+        swHead[cIdx] = refCount++;
+      };
+
+      for (let i = 0; i < M - 1; i++) {
+        const ax = pxArr[i], ay = pyArr[i], bx = pxArr[i + 1], by = pyArr[i + 1];
+        const minX = ax < bx ? ax : bx, maxX = ax > bx ? ax : bx;
+        const minY = ay < by ? ay : by, maxY = ay > by ? ay : by;
+        const gx0 = Math.max(0, Math.min(swCols - 1, (minX / swCell) | 0));
+        const gx1 = Math.max(0, Math.min(swCols - 1, (maxX / swCell) | 0));
+        const gy0 = Math.max(0, Math.min(swRows - 1, (minY / swCell) | 0));
+        const gy1 = Math.max(0, Math.min(swRows - 1, (maxY / swCell) | 0));
+        if ((gx1 - gx0) <= 2 && (gy1 - gy0) <= 2) {
+          for (let cy = gy0; cy <= gy1; cy++) {
+            for (let cx = gx0; cx <= gx1; cx++) pushRef(cx, cy, i);
+          }
+        } else {
+          const steps = Math.max(Math.abs(gx1 - gx0), Math.abs(gy1 - gy0)) * 2 + 2;
+          let lastCell = -1;
+          for (let s = 0; s <= steps; s++) {
+            const f = s / steps;
+            const sx = ax + (bx - ax) * f, sy = ay + (by - ay) * f;
+            const cx = Math.max(0, Math.min(swCols - 1, (sx / swCell) | 0));
+            const cy = Math.max(0, Math.min(swRows - 1, (sy / swCell) | 0));
+            const key = cy * swCols + cx;
+            if (key !== lastCell) {
+              pushRef(cx, cy, i);
+              if (cx > 0) pushRef(cx - 1, cy, i);
+              if (cx + 1 < swCols) pushRef(cx + 1, cy, i);
+              if (cy > 0) pushRef(cx, cy - 1, i);
+              if (cy + 1 < swRows) pushRef(cx, cy + 1, i);
+              lastCell = key;
+            }
+          }
+        }
+      }
+
+      const isFullPass = forceFullPass;
+      forceFullPass = false;
+      localBlocked.fill(0);
+      nextDirty.fill(0);
+      let swaps = 0;
+      const wideList = [];
+      const localRevIntervals = [];
+
+      for (let i = 0; i < M - 1; i++) {
+        if (!isFullPass && !dirty[i]) continue;
+        if (localBlocked[i] || localBlocked[i + 1]) {
+          nextDirty[i] = 1;
+          continue;
+        }
+        const ax = pxArr[i], ay = pyArr[i], bx = pxArr[i + 1], by = pyArr[i + 1];
+        const minX1 = ax < bx ? ax : bx, maxX1 = ax > bx ? ax : bx;
+        const minY1 = ay < by ? ay : by, maxY1 = ay > by ? ay : by;
+        const gx0 = Math.max(0, Math.min(swCols - 1, (minX1 / swCell) | 0));
+        const gx1 = Math.max(0, Math.min(swCols - 1, (maxX1 / swCell) | 0));
+        const gy0 = Math.max(0, Math.min(swRows - 1, (minY1 / swCell) | 0));
+        const gy1 = Math.max(0, Math.min(swRows - 1, (maxY1 / swCell) | 0));
+
+        let swappedThisSeg = false;
+        const testBucket = (cIdx) => {
+          let rIdx = swHead[cIdx];
+          while (rIdx !== -1) {
+            const j = rSeg[rIdx];
+            const validPair = isFullPass ? (j > i + 1) : (j > i + 1 || j < i - 1);
+            if (validPair) {
+              const cx2 = pxArr[j], cy2 = pyArr[j], dx2 = pxArr[j + 1], dy2 = pyArr[j + 1];
+              if (!(maxX1 <= (cx2 < dx2 ? cx2 : dx2) || (cx2 > dx2 ? cx2 : dx2) <= minX1 ||
+                    maxY1 <= (cy2 < dy2 ? cy2 : dy2) || (cy2 > dy2 ? cy2 : dy2) <= minY1)) {
+                if (segIntersect(ax, ay, bx, by, cx2, cy2, dx2, dy2)) {
+                  if (localBlocked[j] || localBlocked[j + 1]) {
+                    nextDirty[i] = 1;
+                    nextDirty[j] = 1;
+                  } else if (j > i + 1 && (j - i) <= 128) {
+                    revSlice(i + 1, j);
+                    localBlocked.fill(1, i, Math.min(M, j + 2));
+                    localRevIntervals.push(i, j);
+                    nextDirty[i] = 1;
+                    nextDirty[j] = 1;
+                    swaps++;
+                    swappedThisSeg = true;
+                    return;
+                  } else {
+                    const li = i < j ? i : j;
+                    const lj = i < j ? j : i;
+                    wideList.push({ i: li, j: lj, span: lj - li });
+                    localBlocked[li] = 1; localBlocked[li + 1] = 1;
+                    localBlocked[lj] = 1; localBlocked[lj + 1] = 1;
+                    nextDirty[li] = 1;
+                    nextDirty[lj] = 1;
+                    swappedThisSeg = true;
+                    return;
+                  }
+                }
+              }
+            }
+            rIdx = rNext[rIdx];
+          }
+        };
+
+        if ((gx1 - gx0) <= 2 && (gy1 - gy0) <= 2) {
+          for (let cy = gy0; cy <= gy1 && !swappedThisSeg; cy++) {
+            const rowOff = cy * swCols;
+            for (let cx = gx0; cx <= gx1 && !swappedThisSeg; cx++) testBucket(rowOff + cx);
+          }
+        } else {
+          const steps = Math.max(Math.abs(gx1 - gx0), Math.abs(gy1 - gy0)) * 2 + 2;
+          let prevCell = -1;
+          for (let s = 0; s <= steps && !swappedThisSeg; s++) {
+            const f = s / steps;
+            const cx = Math.max(0, Math.min(swCols - 1, ((ax + (bx - ax) * f) / swCell) | 0));
+            const cy = Math.max(0, Math.min(swRows - 1, ((ay + (by - ay) * f) / swCell) | 0));
+            const cellK = cy * swCols + cx;
+            if (cellK !== prevCell) { prevCell = cellK; testBucket(cellK); }
+          }
+        }
+      }
+
+      if (wideList.length > 0) {
+        wideList.sort((a, b) => a.span - b.span);
+        const applied = [];
+        for (let t = 0; t < localRevIntervals.length; t += 2) {
+          applied.push(localRevIntervals[t], localRevIntervals[t + 1] + 1);
+        }
+        for (const w of wideList) {
+          const wl = w.i, wr = w.j + 1;
+          let conflict = false;
+          for (let k = 0; k < applied.length; k += 2) {
+            const al = applied[k], ar = applied[k + 1];
+            if (wr < al || wl > ar) continue;
+            if (wl + 1 < al && ar < wr - 1) continue;
+            conflict = true;
+            break;
+          }
+          if (!conflict && segIntersect(pxArr[w.i], pyArr[w.i], pxArr[w.i + 1], pyArr[w.i + 1], pxArr[w.j], pyArr[w.j], pxArr[w.j + 1], pyArr[w.j + 1])) {
+            revSlice(w.i + 1, w.j);
+            applied.push(wl, wr);
+            nextDirty[w.i] = 1;
+            nextDirty[w.j] = 1;
+            swaps++;
+          } else {
+            nextDirty[w.i] = 1;
+            nextDirty[w.j] = 1;
+          }
+        }
+      }
+
+      let hasNextDirty = false;
+      for (let q = 0; q < M - 1; q++) {
+        dirty[q] = nextDirty[q];
+        if (nextDirty[q]) hasNextDirty = true;
+      }
+
+      if (swaps === 0 && !hasNextDirty) {
+        if (isFullPass) break;
+        forceFullPass = true;
+        dirty.fill(1);
+        continue;
+      }
+      if (pass >= minGuaranteePasses && performance.now() > deadlineMs) break;
+    }
+  };
+
+  runExactCrossingSweep(ptsX, ptsY, N, 14, 3, t0 + maxTimeMs * 0.65, true, 2);
+  const tPreSweep = performance.now();
+
+  const reverseSlice = (l, r) => {
+    while (l < r) {
+      const tx = ptsX[l], ty = ptsY[l];
+      ptsX[l] = ptsX[r]; ptsY[l] = ptsY[r];
+      ptsX[r] = tx; ptsY[r] = ty;
+      const ul = tour[l], ur = tour[r];
+      tour[l] = ur; tour[r] = ul;
+      posOfNode[ur] = l; posOfNode[ul] = r;
+      l++; r--;
+    }
+  };
+
+  const dontLook = new Uint8Array(N);
+  const optDeadline = Math.max(t0 + maxTimeMs * 0.72, tPreSweep + 180);
+
+  for (let pass = 0; pass < 6; pass++) {
+    if (performance.now() > optDeadline) break;
+    let swaps = 0;
+    let timedOut = false;
+
+    for (let i = 0; i < N - 2; i++) {
+      if ((i & 2047) === 2047 && performance.now() > optDeadline) {
+        timedOut = true;
+        break;
+      }
+      const uA = tour[i];
+      if (dontLook[uA]) continue;
+      const uB = tour[i + 1];
+      const ax = ptsX[i], ay = ptsY[i];
+      const bx = ptsX[i + 1], by = ptsY[i + 1];
+      const dAB = Math.hypot(bx - ax, by - ay);
+      const isLongAB = dAB > 7.5;
+      const costAB = isLongAB ? evalSegCost(ax, ay, bx, by, dAB) : dAB;
+
+      const radPx = Math.min(22, Math.max(6.0, dAB * 1.45));
+      const radSq = radPx * radPx;
+      const radCells = Math.ceil(radPx / vCell);
+      let improved = false;
+
+      const gcxA = Math.max(0, Math.min(vCols - 1, (ax / vCell) | 0));
+      const gcyA = Math.max(0, Math.min(vRows - 1, (ay / vCell) | 0));
+      const minCy = Math.max(0, gcyA - radCells), maxCy = Math.min(vRows - 1, gcyA + radCells);
+      const minCx = Math.max(0, gcxA - radCells), maxCx = Math.min(vCols - 1, gcxA + radCells);
+
+      let bestJ = -1, bestGain = 0.025;
+      for (let ny = minCy; ny <= maxCy; ny++) {
+        const rowOff = ny * vCols;
+        for (let nx = minCx; nx <= maxCx; nx++) {
+          let uC = vHead[rowOff + nx];
+          while (uC !== -1) {
+            const j = posOfNode[uC];
+            if ((j > i + 1 || j < i - 1) && j < N - 1) {
+              const cx2 = rx[uC], cy2 = ry[uC];
+              const dACSq = (cx2 - ax) ** 2 + (cy2 - ay) ** 2;
+              if (dACSq < radSq) {
+                const uD = tour[j + 1];
+                const dx2 = rx[uD], dy2 = ry[uD];
+                const dCD = Math.hypot(dx2 - cx2, dy2 - cy2);
+                const dAC = Math.sqrt(dACSq);
+                const dBD = Math.hypot(dx2 - bx, dy2 - by);
+                const eucDiff = (dAB + dCD) - (dAC + dBD);
+                if (eucDiff > 0.025) {
+                  if (!isLongAB && dCD <= 7.5 && dAC <= 7.5 && dBD <= 7.5) {
+                    if (eucDiff > bestGain) { bestGain = eucDiff; bestJ = j; }
+                  } else {
+                    const crosses = segIntersect(ax, ay, bx, by, cx2, cy2, dx2, dy2);
+                    if (crosses) {
+                      if (eucDiff + 0.5 > bestGain || bestJ === -1) { bestGain = Math.max(bestGain, eucDiff + 0.5); bestJ = j; }
+                    } else {
+                      const costOld = costAB + evalSegCost(cx2, cy2, dx2, dy2, dCD);
+                      const costNew = evalSegCost(ax, ay, cx2, cy2, dAC) + evalSegCost(bx, by, dx2, dy2, dBD);
+                      const gain = costOld - costNew;
+                      if (gain > bestGain) { bestGain = gain; bestJ = j; }
+                    }
+                  }
+                }
+              }
+            }
+            uC = vNext[uC];
+          }
+        }
+      }
+
+      if (bestJ !== -1) {
+        const uC = tour[bestJ], uD = tour[bestJ + 1];
+        dontLook[uA] = 0; dontLook[uB] = 0; dontLook[uC] = 0; dontLook[uD] = 0;
+        if (bestJ > i) reverseSlice(i + 1, bestJ);
+        else reverseSlice(bestJ + 1, i);
+        swaps++;
+        improved = true;
+      }
+
+      if (!improved) dontLook[uA] = 1;
+    }
+
+    if (pass === 1 && progressCb) progressCb(ptsX, ptsY, 2, 4);
+    if (timedOut || swaps < 6) break;
+  }
+  const t2Opt = performance.now();
+
+  runExactCrossingSweep(ptsX, ptsY, N, 12, 80, Math.max(t0 + maxTimeMs * 1.15, t2Opt + (N > 28000 ? 500 : 380)), false, 48);
+
+  let outX = ptsX, outY = ptsY;
+  if (CHAIKIN_PASSES > 0 && N >= 3) {
+    const numPasses = CHAIKIN_PASSES >= 2 ? 2 : 1;
+    for (let p = 0; p < numPasses; p++) {
+      const m = outX.length;
+      if (m > 95000 && p > 0) break;
+      const nx = new Float32Array((m - 1) * 2 + 2);
+      const ny = new Float32Array((m - 1) * 2 + 2);
+      let k = 0;
+      nx[k] = outX[0]; ny[k] = outY[0]; k++;
+      const baseCut = (p === 0) ? 0.24 : 0.25;
+      for (let i = 0; i < m - 1; i++) {
+        const x0 = outX[i], y0 = outY[i], x1 = outX[i + 1], y1 = outY[i + 1];
+        let cut = baseCut;
+        if (hasStencil) {
+          const sx = Math.max(0, Math.min(W - 1, ((x0 + x1) * 0.5) | 0));
+          const sy = Math.max(0, Math.min(H - 1, ((y0 + y1) * 0.5) | 0));
+          if (step232Stencil[sy * W + sx] < 0.45) cut = (p === 0) ? 0.19 : 0.22;
+        }
+        const keep = 1.0 - cut;
+        nx[k] = keep * x0 + cut * x1;
+        ny[k] = keep * y0 + cut * y1;
+        k++;
+        nx[k] = cut * x0 + keep * x1;
+        ny[k] = cut * y0 + keep * y1;
+        k++;
+      }
+      nx[k] = outX[m - 1]; ny[k] = outY[m - 1]; k++;
+      outX = nx.subarray(0, k);
+      outY = ny.subarray(0, k);
+    }
+    runExactCrossingSweep(outX, outY, outX.length, 6, 30, performance.now() + 350, false, 15);
+  }
+
+  return { ptsX: outX, ptsY: outY };
+}
+
 self.onmessage = function(e) {
   const {
-    jobId, engineMode, step232Stencil, coralToneMap, silhouetteMask, smoothSilMap,
+    jobId, engineMode, coralTspMode = 'pro', step232Stencil, coralToneMap, silhouetteMask, smoothSilMap,
     W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0, maxTimeMs,
     customFocalX, customFocalY, haringIconCount = 95, haringIconSize = 100,
     halftoneSpacing = 10.0, halftoneScale = 80, halftoneAngle = 45, halftoneType = 'dots', bgClean = 0.000,
@@ -10150,6 +11056,29 @@ self.onmessage = function(e) {
     return;
   }
 
+  if (engineMode === 'coral_tsp' && coralTspMode !== 'classic') {
+    const proRes = generateCoralTspPro(
+      coralToneMap, step232Stencil, silhouetteMask, smoothSilMap,
+      W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed, maxTimeMs,
+      (pX, pY, passNum, totalPasses) => {
+        const copyX = new Float32Array(pX);
+        const copyY = new Float32Array(pY);
+        self.postMessage({
+          jobId,
+          ptsX: copyX,
+          ptsY: copyY,
+          pass: passNum,
+          totalPasses,
+          done: false
+        }, [copyX.buffer, copyY.buffer]);
+      }
+    );
+    const outX = new Float32Array(proRes.ptsX);
+    const outY = new Float32Array(proRes.ptsY);
+    self.postMessage({ jobId, ptsX: outX, ptsY: outY, pass: 4, totalPasses: 4, done: true }, [outX.buffer, outY.buffer]);
+    return;
+  }
+
   let rawX, rawY;
   let useSilPenalty = coralToneMap;
   ({ rawX, rawY } = generateCoralNodes(coralToneMap, silhouetteMask, smoothSilMap, W, H, TARGET_NODES, MIN_R, MAX_R, seed));
@@ -10317,7 +11246,10 @@ function rebuildPortrait(needsStencilRebuild = true) {
     MAX_R,
     CHAIKIN_PASSES,
     seed: REBUILD_SEED,
-    maxTimeMs: isMobileDevice ? (TARGET_NODES > 35000 ? 1500 : 800) : (TARGET_NODES > 35000 ? 2600 : 1400),
+    coralTspMode: CORAL_TSP_MODE,
+    maxTimeMs: (ENGINE_MODE === 'coral_tsp' && CORAL_TSP_MODE !== 'classic')
+      ? (isMobileDevice ? (TARGET_NODES > 45000 ? 2000 : (TARGET_NODES > 35000 ? 1500 : 850)) : (TARGET_NODES > 45000 ? 3000 : (TARGET_NODES > 35000 ? 2600 : 1400)))
+      : (isMobileDevice ? (TARGET_NODES > 35000 ? 1500 : 800) : (TARGET_NODES > 35000 ? 2600 : 1400)),
     customFocalX,
     customFocalY,
     haringIconCount: HARING_ICON_COUNT,
@@ -12902,6 +13834,27 @@ if (btnFfClassic && btnFfRect) {
   });
 }
 
+const btnCoralTspPro = document.getElementById('btnCoralTspPro');
+const btnCoralTspClassic = document.getElementById('btnCoralTspClassic');
+if (btnCoralTspPro && btnCoralTspClassic) {
+  btnCoralTspPro.addEventListener('click', () => {
+    if (CORAL_TSP_MODE === 'pro') return;
+    CORAL_TSP_MODE = 'pro';
+    syncCoralTspModePills('pro');
+    lineCacheDirty = true;
+    rebuildPortrait(false);
+    if (typeof haptic === 'function') haptic(10);
+  });
+  btnCoralTspClassic.addEventListener('click', () => {
+    if (CORAL_TSP_MODE === 'classic') return;
+    CORAL_TSP_MODE = 'classic';
+    syncCoralTspModePills('classic');
+    lineCacheDirty = true;
+    rebuildPortrait(false);
+    if (typeof haptic === 'function') haptic(10);
+  });
+}
+
 document.getElementById('lineW').addEventListener('input', (e) => {
   if (ENGINE_MODE === 'geo_pop' || (e.target && e.target.disabled)) return;
   syncSliderProgress(e.target);
@@ -13129,6 +14082,7 @@ function performFactoryReset() {
   HONEYCOMB_SUBDIV = true;
   FLOR_FRACTAL_MODE = 'classic';
   FLOR_FRACTAL_SIZE = 100;
+  CORAL_TSP_MODE = 'pro';
   GEO_POP_DESAT = 100;
   GEO_POP_SIZE = 100;
   GEO_POP_COUNT = 40;
@@ -13384,6 +14338,7 @@ if (btnResetStyleParams) {
     HALFTONE_ANGLE = 45;
     FLOR_FRACTAL_MODE = 'classic';
     FLOR_FRACTAL_SIZE = 100;
+    CORAL_TSP_MODE = 'pro';
     GEO_POP_DESAT = 100;
     GEO_POP_SIZE = 100;
     GEO_POP_COUNT = 40;
@@ -13683,11 +14638,13 @@ function updateFocalMarker() {
   const boxFlorFractal = document.getElementById('boxFlorFractalControls');
   const boxVortex = document.getElementById('boxVortexControls');
   const boxEscher = document.getElementById('boxEscherControls');
+  const boxCoralTsp = document.getElementById('boxCoralTspControls');
   const boxGeoPop = document.getElementById('boxGeoPopControls');
   const modeDesc = document.getElementById('modeDesc');
   const txt = document.getElementById('focalCoordsText');
   const statusPill = document.getElementById('statusPill');
 
+  const isCoralTsp = (ENGINE_MODE === 'coral_tsp');
   const isHaring = (ENGINE_MODE === 'keith_haring' || ENGINE_MODE === 'haring_croc' || ENGINE_MODE === 'haring_puzzle');
   const isHalftone = (ENGINE_MODE === 'halftone_dots');
   const isHoneycomb = (ENGINE_MODE === 'honeycomb');
@@ -13701,6 +14658,7 @@ function updateFocalMarker() {
   const isEscher = (ENGINE_MODE === 'escher_cube');
   const isGeoPop = (ENGINE_MODE === 'geo_pop');
 
+  if (boxCoralTsp) boxCoralTsp.classList.toggle('is-hidden', !isCoralTsp);
   if (boxHaring) boxHaring.classList.toggle('is-hidden', !isHaring);
   if (boxHalftone) boxHalftone.classList.toggle('is-hidden', !isHalftone);
   if (boxHoneycomb) boxHoneycomb.classList.toggle('is-hidden', !isHoneycomb);
@@ -13714,7 +14672,7 @@ function updateFocalMarker() {
   if (boxGeoPop) boxGeoPop.classList.toggle('is-hidden', !isGeoPop);
   if (box) box.classList.toggle('is-hidden', !isSpiral);
   if (modeDesc) {
-    const hasCustomControls = isHaring || isHalftone || isHoneycomb || isHexSpiral || isIsoDiamond || isPanot || isFlorBcn || isFlorFractal || isVortex || isEscher || isGeoPop;
+    const hasCustomControls = isCoralTsp || isHaring || isHalftone || isHoneycomb || isHexSpiral || isIsoDiamond || isPanot || isFlorBcn || isFlorFractal || isVortex || isEscher || isGeoPop;
     modeDesc.classList.toggle('is-hidden', hasCustomControls);
   }
 
