@@ -1,72 +1,57 @@
-# Proyecto: Nuevo Algoritmo Coral Laminar Armónico (Estilo Franjas Coherentes / Algorigraph)
+# Proyecto: Nuevo Estilo Independiente — Ondas Paralelas Armónicas (Estilo Algorigraph)
 
 > Documento de continuidad para retomar en la próxima sesión sin re-explicar desde cero.
 
 ---
 
-## 1. Objetivo Exacto
-Reemplazar el núcleo interno de **Estilo 1 · Coral → Opción 2: Laminar Armónico** (`CORAL_MODE === 'laminar'`) manteniendo intacta **Opción 1: Clásico (Original)**.
+## 1. Decisión de Producto (Confirmada por el Usuario)
+- **NO modificar ni sustituir Estilo 1 · Coral**:
+  - **Opción 1: Clásico (Original)** se mantiene intacta.
+  - **Opción 2: Laminar Armónico** se mantiene intacta con sus nuevos valores por defecto (`MIN_R = 1.4`, `MAX_R = 3.2`, `44000` nodos en escritorio / `50000` en móvil), porque el resultado gusta mucho tal como quedó.
+- **Crear un NUEVO ESTILO INDEPENDIENTE** en el selector/carrusel de estilos (siguiente número disponible tras Pop Geométrico, p. ej. **22. Ondas Paralelas / Franjas Armónicas**) en [`index.html`](file:///Users/daniellazarogomez/FOTOS%20DE%20LNEA%20CONTINUA/index.html) y [`mobile/index.html`](file:///Users/daniellazarogomez/FOTOS%20DE%20LNEA%20CONTINUA/mobile/index.html).
 
-### Estética buscada (referencia visual comentada por el usuario)
-- **Grandes masas de curvas paralelas con curvatura compartida**: paquetes de 10–30 líneas adyacentes que giran y fluyen juntas como ondas empujadas a la vez (*wavefronts* / *stripe patterns* / reacción-difusión anisótropa), en lugar de codos y giros individuales de líneas sueltas.
-- **Densidad compacta sin parches blancos excesivos**: incluso en luces y medios tonos la separación entre trazos es contenida y armónica; en sombras las franjas se comprimen y bifurcan suavemente con horquillas limpias.
+---
+
+## 2. Estética Buscada para el Nuevo Estilo (Referencia `algorigraph`)
+- **Grandes masas de curvas paralelas con curvatura compartida**: paquetes de 10–30 líneas adyacentes que fluyen y giran juntas en bloque como ondas empujadas a la vez, evitando giros o deditos individuales sueltos.
+- **Densidad compacta y uniforme (sin grandes huecos blancos)**: en luces y medios tonos la separación entre trazos es contenida (`~1.8–3.2 px` efectivos); en sombras se comprime suavemente mediante horquillas limpias de bifurcación.
 - **Trazado final obligatorio**: **1 única polilínea continua cerrada, 0 auto-intersecciones (`0 cruces`)**.
 
 ---
 
-## 2. Estado Actual del Proyecto (ya aplicado como medida temporal)
-Mientras se implementa el motor nuevo, se dejó ajustado el preset por defecto exclusivamente cuando `CORAL_MODE === 'laminar'` (sin alterar Coral Clásico):
-- **Escritorio (`index.html`)**: `MIN_R = 1.4`, `MAX_R = 3.2`, `TARGET_NODES = 44000` (`38000` si móvil).
-- **Estudio Móvil (`mobile/index.html`)**: `MIN_R = 1.4`, `MAX_R = 3.2`, `TARGET_NODES = 50000`.
-- **Service Workers**: `sw.js` (`linea-continua-v10`), `mobile/sw.js` (`linea-continua-studio-v11`).
-
-### Ubicación del código actual a sustituir
-- Función en escritorio: [`index.html`](file:///Users/daniellazarogomez/FOTOS%20DE%20LNEA%20CONTINUA/index.html#L3174) → `generateLaminarCoralPortrait(...)`
-- Función en móvil: [`mobile/index.html`](file:///Users/daniellazarogomez/FOTOS%20DE%20LNEA%20CONTINUA/mobile/index.html#L5635) → `generateLaminarCoralPortrait(...)`
-- Llamada en Web Worker: buscando `coralMode === 'laminar'` en ambos HTML.
+## 3. Aprendizajes Clave de la Referencia (Qué Evitar en el Nuevo Estilo)
+Para no repetir los límites del enfoque basado en árbol (`generateLaminarCoralPortrait` en [`index.html`](file:///Users/daniellazarogomez/FOTOS%20DE%20LNEA%20CONTINUA/index.html#L3174) y [`mobile/index.html`](file:///Users/daniellazarogomez/FOTOS%20DE%20LNEA%20CONTINUA/mobile/index.html#L5635)):
+1. **No construir el patrón con Árbol de Prim sobre Grafo de Gabriel + pared doble Euleriana**, ya que cualquier espuela o punto relleno suelto rompe las masas paralelas en deditos aislados y obliga a giros locales.
+2. **No usar senoides sintéticas de alta frecuencia** para zonas lisas (`waveAng` oscilando cada ~100 px), sino difusión armónica suave del campo de orientación a partir de contornos y anatomía.
+3. **No dejar rango dinámico de separación gigante** en luces (`sepMult = 2.08` con `MAX_R = 4.8`), manteniendo siempre densidad homogénea compacta.
 
 ---
 
-## 3. Diagnóstico Exacto de Por Qué Fallaba la v1 Actual
-1. **Exceso de espacios blancos (`~80%` vacío en zonas claras):**
-   - `sepMult = 2.08` multiplicaba `wMap` hasta `dReq ≈ 9.5–11.5 px` entre ejes con `MAX_R = 4.8`, y la doble pared Euleriana (`0.252 * dReq`) dejaba otro hueco interior y exterior de `~5 px` cada uno.
-2. **Giros individuales / dedos sueltos en vez de masas empujadas a la vez:**
-   - **Penalización de rectitud tras 24 nodos**: `chainLen[u] < 24 ? ... : (0.78 + Math.abs(dot - 0.52) * 0.48)` premiaba girar `~58°` en lugar de continuar paralelo.
-   - **Árbol de Prim sobre Grafo de Gabriel + vértices sueltos**: descartaba el orden de los *streamlines*, conectaba desde una sola raíz con espuelas laterales y rellenaba huecos con puntos aislados (`addVertex`) que el recorrido Euleriano convertía en deditos cortos.
-   - **Campo `waveAng` de alta frecuencia**: senoide sintética independiente de la foto oscilando `±115°` cada ~100 px cuando la coherencia era baja, rompiendo la continuidad anatómica.
-   - **Relajación débil sin acoplamiento**: 16–20 pasos limitados a `0.52 px/iter` no transmitían empuje colectivo entre 15–20 líneas vecinas.
+## 4. Arquitectura Objetivo para el Nuevo Estilo
 
----
-
-## 4. Arquitectura Recomendada para la Nueva Implementación
-
-### Pipeline objetivo (O(W·H) en píxeles + unión topológica limpia)
+### Pipeline (`O(W·H)` en píxeles + unión topológica limpia)
 1. **Campo Director Armónico de Largo Alcance (`flowX, flowY`)**
-   - Calcular tensor de estructura multiescala ponderado por `gradMag` y bordes de silueta (`silDist`), y **difundirlo iterativamente** (suavizado tensorial tipo Laplace/biharmónico sobre decenas de píxeles) para que mejillas, frente, cuello y pelo hereden tangentes suaves compartidas sin frecuencias nerviosas sintéticas.
+   - Tensor de estructura multiescala ponderado por `gradMag` y bordes de silueta (`silDist`), **difundido iterativamente** sobre decenas de píxeles (suavizado armónico/Laplace) para que mejillas, frente, cuello y pelo compartan tangentes coherentes sin cortes bruscos.
 2. **Campo Escalar de Ondas / Franjas Acopladas sobre la Rejilla `W×H`**
-   - Dos opciones limpias (elegir una o prototipar en scratch antes de integrar):
-     - **Opción 1 (Reacción-Difusión Anisótropa tipo Gray-Scott / Turing dirigido por tensor)**: evolución rápida en grilla reducida/completa (`~150–250` pasos con difusividad `D_parallel > D_perp` alineada a `(flowX, flowY)` y tasa modulada por `toneMap + step232Stencil` con rango dinámico compacto para no abrir huecos blancos). Produce de forma natural **masas paralelas empujadas simultáneamente + horquillas orgánicas limpias**.
-     - **Opción 2 (Stripe Patterns / Síntesis periódica armónica de Knöppel-Crane sobre el campo director)**: optimización/difusión de fasores complejos `z = u + i·v` alineados a `flow` con frecuencia local `ω(x,y)` modulada suavemente por el tono, extrayendo `arg(z)` / `cos(φ)` en bloques paralelos coherentes con dislocaciones/bifurcaciones limpias.
-3. **Extracción de Isolíneas + Unión en Una Sola Línea Continua (0 Cruces)**
-   - Extraer contornos cerrados y abiertos de nivel `c` (`Marching Squares` subpíxel).
-   - Conectar componentes mediante puentes mínimos entre pares de aristas/segmentos paralelos cercanos o inversión de tramo (*bridging* planar entre contornos vecinos sin cruzar paredes), asegurando **1 único tour continuo cerrado**.
-   - Rematar con Chaikin moderado + `uncrossContinuousTour(...)` para garantizar **0 cruces** exactos.
-4. **Control de Presupuesto de Tiempo y Móvil**
-   - Mantener tiempo de cálculo típico `<= 1.5–2.5 s` en Web Worker.
-   - Asegurar compatibilidad con todos los modos de tinta/color y fondo (blanco, crema, oscuro).
+   - Prototipar y elegir el más fiel y rápido en navegador:
+     - **Reacción-Difusión Anisótropa (tipo Gray-Scott / Turing dirigido por tensor)**: evolución `~150–250` pasos con difusividad `D_parallel > D_perp` alineada a `(flowX, flowY)` y tasa modulada suavemente por `toneMap + step232Stencil`. Genera de forma natural **masas paralelas empujadas simultáneamente + horquillas limpias**.
+     - **O Stripe Patterns (fasores complejos orientados a `flow`)** con frecuencia local modulada por el tono y dislocaciones armónicas limpias.
+3. **Extracción de Isolíneas + Unión en 1 Sola Línea Continua (0 Cruces)**
+   - Extraer contornos subpíxel (`Marching Squares`).
+   - Unir componentes mediante puentes mínimos entre segmentos paralelos adyacentes sin cruzar paredes para lograr **1 único tour continuo cerrado**.
+   - Rematar con Chaikin moderado + `uncrossContinuousTour(...)` garantizando **0 cruces exactos**.
 
 ---
 
-## 5. Flujo de Trabajo y Verificación para Retomar
-1. Crear script rápido de pruebas en scratch comparando el generador nuevo sobre retrato de muestra y validando:
-   - **0 cruces exactos** en segmentos consecutivos/no-consecutivos.
-   - Tour **100% continuo** (1 solo trazo).
-   - Ausencia de grandes lagunas blancas y presencia clara de paquetes paralelos coherentes.
-2. Integrar `generateLaminarCoralPortrait` idéntico en [`index.html`](file:///Users/daniellazarogomez/FOTOS%20DE%20LNEA%20CONTINUA/index.html) y [`mobile/index.html`](file:///Users/daniellazarogomez/FOTOS%20DE%20LNEA%20CONTINUA/mobile/index.html).
-3. Incrementar versión en [`sw.js`](file:///Users/daniellazarogomez/FOTOS%20DE%20LNEA%20CONTINUA/sw.js) y [`mobile/sw.js`](file:///Users/daniellazarogomez/FOTOS%20DE%20LNEA%20CONTINUA/mobile/sw.js).
-4. Validar sin errores en navegador, hacer commit en `mobile-app`, merge a `main` y push a `origin`.
+## 5. Checklist de Integración al Implementarlo
+1. Prototipar y verificar en scratch: **0 cruces exactos**, **1 solo trazo continuo**, masas paralelas coherentes y tiempo `<= 1.5–2.5 s`.
+2. Añadir el nuevo motor y su entrada de estilo en [`index.html`](file:///Users/daniellazarogomez/FOTOS%20DE%20LNEA%20CONTINUA/index.html) (`<select id="engineMode">`, `MODE_DESCRIPTIONS`, `MODE_PRESETS`, Web Worker `onmessage`, sliders aplicables).
+3. Añadir exactamente el mismo motor y tarjeta en [`mobile/index.html`](file:///Users/daniellazarogomez/FOTOS%20DE%20LNEA%20CONTINUA/mobile/index.html) (`#styleCarousel`, `#engineMode`, `MODE_DESCRIPTIONS`, `MODE_PRESETS`, Web Worker `onmessage`, `syncSlidersFromState` / reset).
+4. Comprobar compatibilidad con modos de color y fondos (blanco, crema, oscuro).
+5. Subir versión de Service Workers en [`sw.js`](file:///Users/daniellazarogomez/FOTOS%20DE%20LNEA%20CONTINUA/sw.js) y [`mobile/sw.js`](file:///Users/daniellazarogomez/FOTOS%20DE%20LNEA%20CONTINUA/mobile/sw.js).
+6. Validar UI en navegador sin errores, commit en `mobile-app`, merge a `main` y push a `origin`.
 
 ---
 
 ## 6. Prompt listo para copiar al abrir el nuevo chat
-> *"Lee `PROYECTO_MEJORA_CORAL_LAMINAR.md` e implementa el nuevo motor de **Coral Laminar Armónico** basado en campo de ondas/franjas anisótropas acopladas + unión de isolíneas en un solo trazo continuo con 0 cruces, tanto en `index.html` como en `mobile/index.html`, manteniendo intacto Coral Clásico."*
+> *"Lee `PROYECTO_MEJORA_CORAL_LAMINAR.md` y crea el nuevo estilo independiente de **Ondas Paralelas Armónicas (estilo Algorigraph)** en `index.html` y `mobile/index.html` usando un campo de ondas/franjas anisótropas acopladas + unión de isolíneas en un solo trazo continuo con 0 cruces, dejando Coral Clásico y Coral Laminar Armónico intactos."*
