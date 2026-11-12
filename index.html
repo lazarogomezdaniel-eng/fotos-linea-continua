@@ -348,7 +348,7 @@
     <div class="panel-section">
       <div class="panel-title"><span>Modo / Algoritmo de Línea (Estilos)</span> <span>⚡</span></div>
       <select id="engineMode">
-        <option value="coral">🧠 1. Coral Cerebral Dendrítico (100% Relleno de Silueta)</option>
+        <option value="coral">🧠 1. Coral Cerebral (Clásico Original / Laminar Armónico)</option>
         <option value="coral_tsp">🌊 2. Coral Orgánico TSP (Alta Definición Pro / Clásico)</option>
         <option value="stencil_clean">✏️ 3. Calco Limpio de Galería Sin Cruces (Contorno Fino + Achurado)</option>
         <option value="stencil_cross">✍️ 4. Calco a Lápiz CON CRUCES (Boceto de Trazos Cruzados)</option>
@@ -367,7 +367,17 @@
         <option value="geo_pop">🎨 21. Pop Geométrico (Cuadrados y Círculos de Color)</option>
       </select>
       <div id="modeDesc" class="mode-badge">
-        🧠 Coral: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros en U de extremo a extremo.
+        🧠 Coral Cerebral (Clásico / Laminar Armónico): Alterna entre el Coral Dendrítico original y el nuevo Coral Laminar Armónico de bandas paralelas largas y meandros profundos con 0 cruces.
+      </div>
+      <div id="boxCoralControls" style="display:block; margin-top:6px; padding:6px 8px; border-radius:6px; background:rgba(56, 189, 248, 0.08); border:1px solid rgba(56, 189, 248, 0.28);">
+        <div>
+          <label style="margin:0 0 3px 0; font-weight:700; color:#d8e6ff;">Variante de Coral Cerebral</label>
+          <select id="coralMode">
+            <option value="classic" selected>🧠 Opción 1: Clásico Original (Coral Dendrítico)</option>
+            <option value="laminar">〰️ Opción 2: Laminar Armónico (Ondas Paralelas Largas)</option>
+          </select>
+        </div>
+        <div id="coralHint" style="font-size:10.5px; color:#9eb2cc; line-height:1.35; margin-top:4px;">🧠 Versión original de coral cerebral dendrítico (giros redondeados y 100% relleno de silueta).</div>
       </div>
       <div id="boxCoralTspControls" style="display:none; margin-top:6px; padding:6px 8px; border-radius:6px; background:rgba(56, 189, 248, 0.08); border:1px solid rgba(56, 189, 248, 0.28);">
         <div>
@@ -715,6 +725,7 @@ let GOLDEN_SIZE = 100;
 let FRACTAL_SIZE = 100;
 let FLOR_FRACTAL_MODE = 'classic'; // 'classic' | 'rect'
 let FLOR_FRACTAL_SIZE = 100;
+let CORAL_MODE = 'classic'; // 'classic' | 'laminar'
 let CORAL_TSP_MODE = 'pro'; // 'pro' | 'classic'
 let GEO_POP_DESAT = 100;
 let GEO_POP_SIZE = 100;
@@ -902,7 +913,7 @@ let liveNodesY = null;
 let liveNodeCount = 0;
 
 const MODE_DESCRIPTIONS = {
-  coral: '🧠 Coral Cerebral Dendrítico: Rellena el 100% de la silueta con canales paralelos de coral cerebral y giros redondeados en U sin dejar huecos vacíos.',
+  coral: '🧠 Coral Cerebral (Clásico / Laminar Armónico): Alterna entre el Coral Dendrítico original y el nuevo Coral Laminar Armónico de bandas paralelas largas y meandros profundos con 0 cruces.',
   coral_tsp: '🌊 Coral Orgánico TSP (Pro / Clásico): Alterna entre Alta Definición Pro (nitidez HD en ojos/rasgos, flujo tonal equilibrado y 0 cruces) y el algoritmo Clásico original.',
   stencil_clean: '✏️ Calco Limpio de Galería: Traza iso-contornos anatómicos subpíxel limpios y achurado curvo académico en sombras profundas en una sola línea continua libre de cruces.',
   stencil_cross: '✍️ Calco a Lápiz CON CRUCES: Mantiene el calco a lápiz del tatuador pero enlaza los trazos permitiendo cruces y sombreado cruzado rápido.',
@@ -945,6 +956,19 @@ function formatGeoPopDesat(v) {
   if (v >= 100) return '100% (B/N)';
   if (v <= 0) return '0% (Color)';
   return `${v}%`;
+}
+
+function updateCoralPanelVisibility() {
+  const box = document.getElementById('boxCoralControls');
+  if (box) box.style.display = (ENGINE_MODE === 'coral') ? 'block' : 'none';
+  const sel = document.getElementById('coralMode');
+  if (sel) sel.value = CORAL_MODE;
+  const hint = document.getElementById('coralHint');
+  if (hint) {
+    hint.textContent = (CORAL_MODE === 'laminar')
+      ? '〰️ Bandas paralelas largas, meandros sinuosos profundos y horquillas anidadas fieles a los rasgos, con 0 cruces.'
+      : '🧠 Versión original de coral cerebral dendrítico (giros redondeados y 100% relleno de silueta).';
+  }
 }
 
 function updateCoralTspPanelVisibility() {
@@ -1005,6 +1029,7 @@ function syncSlidersFromState() {
   if (lblGeoD) lblGeoD.textContent = formatGeoPopDesat(GEO_POP_DESAT);
   setSlider('geoPopSize', 'vGeoPopSize', GEO_POP_SIZE, null, '%');
   setSlider('geoPopCount', 'vGeoPopCount', GEO_POP_COUNT);
+  updateCoralPanelVisibility();
   updateCoralTspPanelVisibility();
   updateGoldenFractalPanelVisibility();
   updateFlorFractalPanelVisibility();
@@ -3026,6 +3051,916 @@ function generateDendriticCoralPortrait(toneMap, silhouetteMask, smoothSilMap, W
   }
 
   return { ptsX, ptsY };
+}
+
+function uncrossContinuousTour(pxArr, pyArr, W, H, maxPasses = 12, deadlineMs = Infinity) {
+  const M = pxArr.length;
+  if (M < 4) return 0;
+  const swCell = 8;
+  const swCols = Math.ceil(W / swCell) + 1;
+  const swRows = Math.ceil(H / swCell) + 1;
+  const swHead = new Int32Array(swCols * swRows);
+  const localBlocked = new Uint8Array(M);
+  const maxRefs = M * 6 + 16384;
+  const rSeg = new Int32Array(maxRefs);
+  const rNext = new Int32Array(maxRefs);
+  let totalFixed = 0;
+
+  const segIntersect = (ax, ay, bx, by, cx, cy, dx, dy) => {
+    const d1 = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+    const d2 = (bx - ax) * (dy - ay) - (by - ay) * (dx - ax);
+    if ((d1 >= -1e-7 && d2 >= -1e-7) || (d1 <= -1e-7 && d2 <= -1e-7)) return false;
+    const d3 = (dx - cx) * (ay - cy) - (dy - cy) * (ax - cx);
+    const d4 = (dx - cx) * (by - cy) - (dy - cy) * (bx - cx);
+    return ((d3 > 1e-7 && d4 < -1e-7) || (d3 < -1e-7 && d4 > 1e-7));
+  };
+
+  for (let pass = 0; pass < maxPasses; pass++) {
+    swHead.fill(-1);
+    let refCount = 0;
+    const pushRef = (cx, cy, segId) => {
+      if (refCount >= maxRefs || cx < 0 || cx >= swCols || cy < 0 || cy >= swRows) return;
+      const cIdx = cy * swCols + cx;
+      rSeg[refCount] = segId;
+      rNext[refCount] = swHead[cIdx];
+      swHead[cIdx] = refCount++;
+    };
+
+    for (let i = 0; i < M - 1; i++) {
+      const ax = pxArr[i], ay = pyArr[i], bx = pxArr[i + 1], by = pyArr[i + 1];
+      const gx0 = Math.max(0, Math.min(swCols - 1, ((ax < bx ? ax : bx) / swCell) | 0));
+      const gx1 = Math.max(0, Math.min(swCols - 1, ((ax > bx ? ax : bx) / swCell) | 0));
+      const gy0 = Math.max(0, Math.min(swRows - 1, ((ay < by ? ay : by) / swCell) | 0));
+      const gy1 = Math.max(0, Math.min(swRows - 1, ((ay > by ? ay : by) / swCell) | 0));
+      if ((gx1 - gx0) <= 2 && (gy1 - gy0) <= 2) {
+        for (let cy = gy0; cy <= gy1; cy++) {
+          for (let cx = gx0; cx <= gx1; cx++) pushRef(cx, cy, i);
+        }
+      } else {
+        const steps = Math.max(Math.abs(gx1 - gx0), Math.abs(gy1 - gy0)) * 2 + 2;
+        let lastC = -1;
+        for (let s = 0; s <= steps; s++) {
+          const f = s / steps;
+          const cx = Math.max(0, Math.min(swCols - 1, ((ax + (bx - ax) * f) / swCell) | 0));
+          const cy = Math.max(0, Math.min(swRows - 1, ((ay + (by - ay) * f) / swCell) | 0));
+          const k = cy * swCols + cx;
+          if (k !== lastC) { pushRef(cx, cy, i); lastC = k; }
+        }
+      }
+    }
+
+    localBlocked.fill(0);
+    let swaps = 0;
+    for (let i = 0; i < M - 2; i++) {
+      if (localBlocked[i] || localBlocked[i + 1]) continue;
+      const ax = pxArr[i], ay = pyArr[i], bx = pxArr[i + 1], by = pyArr[i + 1];
+      const minX1 = ax < bx ? ax : bx, maxX1 = ax > bx ? ax : bx;
+      const minY1 = ay < by ? ay : by, maxY1 = ay > by ? ay : by;
+      const gx0 = Math.max(0, Math.min(swCols - 1, (minX1 / swCell) | 0));
+      const gx1 = Math.max(0, Math.min(swCols - 1, (maxX1 / swCell) | 0));
+      const gy0 = Math.max(0, Math.min(swRows - 1, (minY1 / swCell) | 0));
+      const gy1 = Math.max(0, Math.min(swRows - 1, (maxY1 / swCell) | 0));
+
+      let foundJ = -1;
+      for (let cy = gy0; cy <= gy1 && foundJ === -1; cy++) {
+        const rowOff = cy * swCols;
+        for (let cx = gx0; cx <= gx1 && foundJ === -1; cx++) {
+          let rIdx = swHead[rowOff + cx];
+          while (rIdx !== -1) {
+            const j = rSeg[rIdx];
+            if (j > i + 1 && j < M - 2 && !localBlocked[j] && !localBlocked[j + 1]) {
+              const cx2 = pxArr[j], cy2 = pyArr[j], dx2 = pxArr[j + 1], dy2 = pyArr[j + 1];
+              if (!(maxX1 <= (cx2 < dx2 ? cx2 : dx2) || (cx2 > dx2 ? cx2 : dx2) <= minX1 ||
+                    maxY1 <= (cy2 < dy2 ? cy2 : dy2) || (cy2 > dy2 ? cy2 : dy2) <= minY1)) {
+                if (segIntersect(ax, ay, bx, by, cx2, cy2, dx2, dy2)) {
+                  foundJ = j;
+                  break;
+                }
+              }
+            }
+            rIdx = rNext[rIdx];
+          }
+        }
+      }
+      if (foundJ !== -1) {
+        let l = i + 1, r = foundJ;
+        while (l < r) {
+          const tx = pxArr[l], ty = pyArr[l];
+          pxArr[l] = pxArr[r]; pyArr[l] = pyArr[r];
+          pxArr[r] = tx; pyArr[r] = ty;
+          l++; r--;
+        }
+        if ((foundJ - i) <= 256) {
+          localBlocked.fill(1, i, Math.min(M, foundJ + 2));
+        } else {
+          localBlocked[i] = 1; localBlocked[i + 1] = 1;
+          localBlocked[foundJ] = 1; localBlocked[foundJ + 1] = 1;
+        }
+        swaps++;
+        totalFixed++;
+      }
+    }
+    if (swaps === 0) break;
+    if (pass >= 1 && performance.now() > deadlineMs) break;
+  }
+  return totalFixed;
+}
+
+/**
+ * MODO 1 · OPCIÓN 2: CORAL LAMINAR ARMÓNICO (BANDAS PARALELAS LARGAS + HORQUILLAS ANIDADAS, 0 CRUCES)
+ * Combina tensor estructural multiescala orientado a los rasgos, siembra laminar de streamlines,
+ * árbol generador de cadenas largas con poda de espolones y relajación diferencial armónica.
+ */
+function generateLaminarCoralPortrait(toneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, minW = 1.48, maxW = 4.8, chaikinPasses = 2, TARGET_NODES = 24000, seed = 0, maxTimeMs = 1800) {
+  const tStart = performance.now();
+  const N = W * H;
+
+  const fastBlur = (src, rad) => {
+    let a = new Float32Array(src), b = new Float32Array(N);
+    const colS = new Float32Array(W);
+    const r = Math.max(1, Math.round(rad)), d = r * 2 + 1, inv = 1.0 / d;
+    for (let p = 0; p < 2; p++) {
+      for (let y = 0; y < H; y++) {
+        const row = y * W;
+        let s = a[row] * (r + 1);
+        for (let x = 1; x <= r; x++) s += a[row + (x < W ? x : W - 1)];
+        for (let x = 0; x < W; x++) {
+          b[row + x] = s * inv;
+          const rp = x + r + 1, lm = x - r;
+          s += a[row + (rp < W ? rp : W - 1)] - a[row + (lm > 0 ? lm : 0)];
+        }
+      }
+      for (let x = 0; x < W; x++) colS[x] = b[x] * (r + 1);
+      for (let y = 1; y <= r; y++) {
+        const ro = (y < H ? y : H - 1) * W;
+        for (let x = 0; x < W; x++) colS[x] += b[ro + x];
+      }
+      for (let y = 0; y < H; y++) {
+        const ro = y * W;
+        const yr = (y + r + 1 < H ? y + r + 1 : H - 1) * W, yl = (y - r > 0 ? y - r : 0) * W;
+        for (let x = 0; x < W; x++) {
+          a[ro + x] = colS[x] * inv;
+          colS[x] += b[yr + x] - b[yl + x];
+        }
+      }
+    }
+    return a;
+  };
+
+  let activePix = 0;
+  for (let i = 0; i < N; i++) {
+    if (silhouetteMask[i]) activePix++;
+  }
+  if (activePix < 25) return { ptsX: new Float32Array(0), ptsY: new Float32Array(0) };
+
+  const hasStencil = Boolean(step232Stencil && step232Stencil.length === N);
+  const nodeScale = Math.sqrt(26000 / Math.max(5000, TARGET_NODES));
+  const effMinW = Math.max(0.84, minW * 0.98 * nodeScale);
+  const effMaxW = Math.max(effMinW + 1.25, Math.min(10.0, maxW * 1.15 * nodeScale));
+
+  let rng = (Math.imul(seed | 0, 1664525) + 1013904223) >>> 0;
+  const nextRand = () => {
+    rng = (Math.imul(1664525, rng) + 1013904223) >>> 0;
+    return rng / 4294967296;
+  };
+  const seedPhase = ((seed * 1.6180339) % (2 * Math.PI));
+
+  // 1. Distancia Chamfer al borde de silueta
+  const silDist = new Float32Array(N);
+  const isFullFrame = activePix > N * 0.96;
+  for (let y = 0; y < H; y++) {
+    const row = y * W;
+    for (let x = 0; x < W; x++) {
+      const i = row + x;
+      if (!silhouetteMask[i] || (isFullFrame && (x < 4 || x >= W - 4 || y < 4 || y >= H - 4))) {
+        silDist[i] = 0;
+      } else {
+        silDist[i] = 1e6;
+      }
+    }
+  }
+  for (let y = 1; y < H - 1; y++) {
+    const row = y * W;
+    for (let x = 1; x < W - 1; x++) {
+      const i = row + x;
+      if (silDist[i] === 0) continue;
+      silDist[i] = Math.min(silDist[i], silDist[i - 1] + 1, silDist[i - W] + 1, silDist[i - W - 1] + 1.414, silDist[i - W + 1] + 1.414);
+    }
+  }
+  for (let y = H - 2; y >= 1; y--) {
+    const row = y * W;
+    for (let x = W - 2; x >= 1; x--) {
+      const i = row + x;
+      if (silDist[i] === 0) continue;
+      silDist[i] = Math.min(silDist[i], silDist[i + 1] + 1, silDist[i + W] + 1, silDist[i + W + 1] + 1.414, silDist[i + W - 1] + 1.414);
+    }
+  }
+
+  // 2. Tensor estructural multiescala + campo de flujo armónico
+  const smoothStencil = hasStencil ? fastBlur(step232Stencil, 1.2) : null;
+  const detailTone = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    detailTone[i] = smoothStencil ? (toneMap[i] * 0.68 + smoothStencil[i] * 0.32) : toneMap[i];
+  }
+  const blurFine = fastBlur(detailTone, 1.4);
+  const blurDist = fastBlur(silDist, 2.5);
+
+  const jxx = new Float32Array(N), jxy = new Float32Array(N), jyy = new Float32Array(N);
+  const gradMag = new Float32Array(N);
+  const distGradX = new Float32Array(N);
+  const distGradY = new Float32Array(N);
+
+  for (let y = 1; y < H - 1; y++) {
+    const row = y * W;
+    const bottomTaper = y > H - 48 ? Math.max(0.05, (H - y) / 48.0) : 1.0;
+    for (let x = 1; x < W - 1; x++) {
+      const i = row + x;
+      if (!silhouetteMask[i]) continue;
+      const gx = (blurFine[i + 1] - blurFine[i - 1]) * 0.5;
+      const gy = (blurFine[i + W] - blurFine[i - W]) * 0.5;
+      gradMag[i] = Math.hypot(gx, gy);
+
+      const bx = (blurDist[i + 1] - blurDist[i - 1]) * 0.5;
+      const by = (blurDist[i + W] - blurDist[i - W]) * 0.5;
+      const bMag = Math.hypot(bx, by) + 1e-5;
+      const ubx = bx / bMag, uby = by / bMag;
+      distGradX[i] = ubx;
+      distGradY[i] = uby;
+      const rawSilW = silDist[i] > 26 ? 0.0 : (isFullFrame ? (Math.exp(-silDist[i] / 6.0) * 0.25) : (Math.exp(-silDist[i] / 6.5) * 0.95));
+      const silWeight = rawSilW * bottomTaper;
+
+      jxx[i] = gx * gx * 8.5 + ubx * ubx * silWeight;
+      jxy[i] = gx * gy * 8.5 + ubx * uby * silWeight;
+      jyy[i] = gy * gy * 8.5 + uby * uby * silWeight;
+    }
+  }
+  const sFxx = fastBlur(jxx, 3.2), sFxy = fastBlur(jxy, 3.2), sFyy = fastBlur(jyy, 3.2);
+  const sBxx = fastBlur(jxx, 8.0), sBxy = fastBlur(jxy, 8.0), sByy = fastBlur(jyy, 8.0);
+
+  const flowX = new Float32Array(N);
+  const flowY = new Float32Array(N);
+  const rawWMap = new Float32Array(N);
+
+  for (let y = 0; y < H; y++) {
+    const row = y * W;
+    for (let x = 0; x < W; x++) {
+      const i = row + x;
+      const fMix = Math.min(1.0, gradMag[i] * 7.5);
+      const a = sBxx[i] * (1 - fMix) + sFxx[i] * fMix;
+      const b = sBxy[i] * (1 - fMix) + sFxy[i] * fMix;
+      const c = sByy[i] * (1 - fMix) + sFyy[i] * fMix;
+      const diff = a - c;
+      const disc = Math.sqrt(diff * diff + 4 * b * b);
+      const lambdaMin = 0.5 * (a + c - disc);
+      const trace = a + c;
+      const coh = trace > 1e-6 ? Math.min(1.0, disc / (trace + 0.0045)) : 0.0;
+
+      const waveAng = 0.78 + 1.15 * Math.sin(x * 0.017 - y * 0.013 + seedPhase) + 0.85 * Math.cos(x * 0.012 + y * 0.019 + seedPhase * 1.4);
+      const wx = Math.cos(waveAng), wy = Math.sin(waveAng);
+
+      let tx = b, ty = lambdaMin - a;
+      let tLen = Math.hypot(tx, ty);
+      if (tLen < 1e-6) { tx = c - lambdaMin; ty = -b; tLen = Math.hypot(tx, ty); }
+
+      if (tLen < 1e-6) {
+        flowX[i] = wx; flowY[i] = wy;
+      } else {
+        let fx = tx / tLen, fy = ty / tLen;
+        if (fx * wx + fy * wy < 0) { fx = -fx; fy = -fy; }
+        const blend = Math.max(0.0, 1.0 - Math.min(1.0, coh * 1.65)) * 0.90;
+        const bx = fx * (1.0 - blend) + wx * blend;
+        const by = fy * (1.0 - blend) + wy * blend;
+        const bLen = Math.hypot(bx, by) || 1.0;
+        flowX[i] = bx / bLen; flowY[i] = by / bLen;
+      }
+
+      if (!silhouetteMask[i]) {
+        rawWMap[i] = effMaxW * 1.75;
+      } else {
+        const stBias = smoothStencil ? (toneMap[i] * 0.72 + smoothStencil[i] * 0.28) : toneMap[i];
+        const t = Math.max(0, Math.min(1, stBias));
+        const s = t < 0.44 ? 0.22 * Math.pow(t / 0.44, 1.55) : 0.22 + 0.78 * Math.pow((t - 0.44) / 0.56, 1.25);
+        const edgeTight = Math.min(1.0, gradMag[i] * 2.6 + (smoothStencil ? Math.max(0, 1.0 - smoothStencil[i]) * 0.42 : 0));
+        rawWMap[i] = Math.max(effMinW * 0.86, (effMinW + (effMaxW - effMinW) * s) * (1.0 - Math.min(0.28, edgeTight * 0.26)));
+      }
+    }
+  }
+  const wMap = fastBlur(rawWMap, 1.8);
+
+  // 3. Siembra laminar priorizada en rasgos, anillos de contorno e interior
+  const cellSize = 4;
+  const gCols = Math.ceil(W / cellSize) + 1;
+  const gRows = Math.ceil(H / cellSize) + 1;
+  const pHead = new Int32Array(gCols * gRows).fill(-1);
+  const maxNodes = Math.min(48000, Math.round(TARGET_NODES * 1.1) + 2500);
+  const vx = new Float32Array(maxNodes);
+  const vy = new Float32Array(maxNodes);
+  const vd = new Float32Array(maxNodes);
+  const vStream = new Int32Array(maxNodes).fill(-1);
+  const vBoundary = new Uint8Array(maxNodes);
+  const pNext = new Int32Array(maxNodes).fill(-1);
+  let vCount = 0;
+
+  const sepMult = 2.08;
+  const canPlace = (x, y, dReq, factor = 0.47) => {
+    const cx = (x / cellSize) | 0, cy = (y / cellSize) | 0;
+    const rad = Math.ceil((dReq + 3) / cellSize);
+    for (let dy = -rad; dy <= rad; dy++) {
+      const ny = cy + dy; if (ny < 0 || ny >= gRows) continue;
+      const rowOff = ny * gCols;
+      for (let dx = -rad; dx <= rad; dx++) {
+        const nx = cx + dx; if (nx < 0 || nx >= gCols) continue;
+        let j = pHead[rowOff + nx];
+        while (j !== -1) {
+          const ddx = x - vx[j], ddy = y - vy[j];
+          const minSep = (dReq + vd[j]) * factor;
+          if (ddx * ddx + ddy * ddy < minSep * minSep) return false;
+          j = pNext[j];
+        }
+      }
+    }
+    return true;
+  };
+  const addVertex = (x, y, dReq, streamId, isBound = 0) => {
+    if (vCount >= maxNodes) return -1;
+    const i = vCount++;
+    vx[i] = x; vy[i] = y; vd[i] = dReq; vStream[i] = streamId; vBoundary[i] = isBound;
+    const cx = Math.max(0, Math.min(gCols - 1, (x / cellSize) | 0));
+    const cy = Math.max(0, Math.min(gRows - 1, (y / cellSize) | 0));
+    const cIdx = cy * gCols + cx;
+    pNext[i] = pHead[cIdx]; pHead[cIdx] = i;
+    return i;
+  };
+
+  const traceStreamline = (sx, sy, streamId, dirSign, isBound = 0) => {
+    let px = sx, py = sy;
+    const i0 = (py | 0) * W + (px | 0);
+    let prevDx = flowX[i0] * dirSign, prevDy = flowY[i0] * dirSign;
+    let placed = 0;
+    for (let step = 0; step < 360; step++) {
+      if (px < 6 || px >= W - 6 || py < 6 || py >= H - 6) break;
+      const idx = (py | 0) * W + (px | 0);
+      if (!silhouetteMask[idx] || (!isFullFrame && silDist[idx] < 1.8)) break;
+      const dReq = wMap[idx] * sepMult;
+      if (step === 0 || canPlace(px, py, dReq, 0.45)) {
+        if (addVertex(px, py, dReq, streamId, isBound) === -1) break;
+        placed++;
+      } else if (step > 2) break;
+      let fx1 = flowX[idx], fy1 = flowY[idx];
+      if (fx1 * prevDx + fy1 * prevDy < 0) { fx1 = -fx1; fy1 = -fy1; }
+      const hStep = Math.max(2.6, Math.min(6.6, dReq * 0.92));
+      const mx = Math.max(1, Math.min(W - 2, (px + fx1 * hStep * 0.5) | 0));
+      const my = Math.max(1, Math.min(H - 2, (py + fy1 * hStep * 0.5) | 0));
+      const mIdx = my * W + mx;
+      let fx2 = flowX[mIdx], fy2 = flowY[mIdx];
+      if (fx2 * fx1 + fy2 * fy1 < 0) { fx2 = -fx2; fy2 = -fy2; }
+      prevDx = fx2; prevDy = fy2;
+      px += fx2 * hStep + (nextRand() - 0.5) * 0.04;
+      py += fy2 * hStep + (nextRand() - 0.5) * 0.04;
+    }
+    return placed;
+  };
+
+  const traceBiDir = (x, y, sid, isBound = 0) => {
+    const i = (y | 0) * W + (x | 0);
+    const dReq = wMap[i] * sepMult;
+    traceStreamline(x, y, sid, 1, isBound);
+    const fx = -flowX[i], fy = -flowY[i];
+    const nx = x + fx * dReq * 0.92, ny = y + fy * dReq * 0.92;
+    if (nx > 6 && nx < W - 6 && ny > 6 && ny < H - 6 && silhouetteMask[(ny | 0) * W + (nx | 0)] && (isFullFrame || silDist[(ny | 0) * W + (nx | 0)] >= 2.0) && canPlace(nx, ny, dReq, 0.45)) {
+      traceStreamline(nx, ny, sid, -1, isBound);
+    }
+  };
+
+  let nextStreamId = 1;
+  if (!isFullFrame) {
+    const bandOff = (nextRand() * 1.0);
+    for (let band = 3.0 + bandOff; band <= 11.5; band += Math.max(3.2, effMinW * 2.25)) {
+      for (let y = 7; y < H - 7; y += 2) {
+        for (let x = 7; x < W - 7; x += 2) {
+          const i = y * W + x;
+          if (!silhouetteMask[i] || silDist[i] < band - 1.1 || silDist[i] > band + 1.1) continue;
+          const dReq = wMap[i] * sepMult;
+          if (canPlace(x, y, dReq, 0.48)) traceBiDir(x, y, nextStreamId++, band < 5.0 ? 1 : 0);
+        }
+      }
+    }
+  }
+  for (let y = 7; y < H - 7; y += 2) {
+    for (let x = 7; x < W - 7; x += 2) {
+      const i = y * W + x;
+      if (!silhouetteMask[i] || (!isFullFrame && silDist[i] < 2.2)) continue;
+      if (gradMag[i] < 0.042 && (!smoothStencil || smoothStencil[i] > 0.65)) continue;
+      const dReq = wMap[i] * sepMult;
+      if (canPlace(x, y, dReq, 0.48)) traceBiDir(x, y, nextStreamId++, 0);
+    }
+  }
+  const scanOffY = (seed % 3);
+  const scanOffX = ((seed * 2) % 3);
+  for (let pass = 0; pass < 2; pass++) {
+    const step = pass === 0 ? 4 : 2;
+    for (let y = 7 + (pass === 0 ? scanOffY : 0); y < H - 7; y += step) {
+      const l2r = ((y + pass + seed) & 1) === 0;
+      for (let s = 7 + (pass === 0 ? scanOffX : 0); s < W - 7; s += step) {
+        const x = l2r ? s : (W - 1 - s);
+        const i = y * W + x;
+        if (!silhouetteMask[i] || (!isFullFrame && silDist[i] < 2.0)) continue;
+        const dReq = wMap[i] * sepMult;
+        if (canPlace(x, y, dReq, pass === 0 ? 0.47 : 0.46)) traceBiDir(x, y, nextStreamId++, 0);
+      }
+    }
+  }
+  for (let y = 7; y < H - 7; y += 3) {
+    for (let x = 7; x < W - 7; x += 3) {
+      const i = y * W + x;
+      if (!silhouetteMask[i] || (!isFullFrame && silDist[i] < 2.0)) continue;
+      const dReq = wMap[i] * sepMult;
+      if (canPlace(x, y, dReq, 0.46)) addVertex(x, y, dReq, nextStreamId++, 0);
+    }
+  }
+  if (vCount < 10) return { ptsX: new Float32Array(0), ptsY: new Float32Array(0) };
+
+  const rCell = 10;
+  const rCols = Math.ceil(W / rCell) + 1;
+  const rRows = Math.ceil(H / rCell) + 1;
+  const rHead = new Int32Array(rCols * rRows);
+  const rNext = new Int32Array(vCount);
+
+  for (let iter = 0; iter < 3; iter++) {
+    rHead.fill(-1);
+    for (let i = 0; i < vCount; i++) {
+      const cx = Math.max(0, Math.min(rCols - 1, (vx[i] / rCell) | 0));
+      const cy = Math.max(0, Math.min(rRows - 1, (vy[i] / rCell) | 0));
+      const cIdx = cy * rCols + cx;
+      rNext[i] = rHead[cIdx]; rHead[cIdx] = i;
+    }
+    for (let i = 0; i < vCount; i++) {
+      const px = vx[i], py = vy[i];
+      const idx = Math.min(H - 1, Math.max(0, py | 0)) * W + Math.min(W - 1, Math.max(0, px | 0));
+      const di = wMap[idx] * sepMult; vd[i] = di;
+      let fx = 0, fy = 0;
+      const cx = (px / rCell) | 0, cy = (py / rCell) | 0;
+      const rad = Math.ceil((di + 4) / rCell);
+      for (let dy = -rad; dy <= rad; dy++) {
+        const ny = cy + dy; if (ny < 0 || ny >= rRows) continue;
+        const rowOff = ny * rCols;
+        for (let dx = -rad; dx <= rad; dx++) {
+          const nx = cx + dx; if (nx < 0 || nx >= rCols) continue;
+          let j = rHead[rowOff + nx];
+          while (j !== -1) {
+            if (j !== i) {
+              const ddx = px - vx[j], ddy = py - vy[j];
+              const dSq = ddx * ddx + ddy * ddy;
+              const targetD = (di + vd[j]) * 0.50;
+              if (dSq < targetD * targetD && dSq > 1e-4) {
+                const d = Math.sqrt(dSq);
+                const f = ((targetD - d) / d) * 0.25;
+                fx += ddx * f; fy += ddy * f;
+              }
+            }
+            j = rNext[j];
+          }
+        }
+      }
+      if (vBoundary[i]) { fx *= 0.35; fy *= 0.35; }
+      const nx = Math.max(6, Math.min(W - 6, px + Math.max(-0.9, Math.min(0.9, fx))));
+      const ny = Math.max(6, Math.min(H - 6, py + Math.max(-0.9, Math.min(0.9, fy))));
+      const nIdx = (ny | 0) * W + (nx | 0);
+      if (silhouetteMask[nIdx] && (isFullFrame || silDist[nIdx] >= 1.8)) { vx[i] = nx; vy[i] = ny; }
+    }
+  }
+
+  // 4. Grafo de Gabriel planar
+  const adj = Array.from({ length: vCount }, () => []);
+  rHead.fill(-1);
+  for (let i = 0; i < vCount; i++) {
+    const cx = Math.max(0, Math.min(rCols - 1, (vx[i] / rCell) | 0));
+    const cy = Math.max(0, Math.min(rRows - 1, (vy[i] / rCell) | 0));
+    const cIdx = cy * rCols + cx;
+    rNext[i] = rHead[cIdx]; rHead[cIdx] = i;
+  }
+  for (let i = 0; i < vCount; i++) {
+    const ax = vx[i], ay = vy[i], da = vd[i];
+    const cx = (ax / rCell) | 0, cy = (ay / rCell) | 0;
+    const rad = Math.ceil((da * 2.5) / rCell);
+    for (let dy = -rad; dy <= rad; dy++) {
+      const ny = cy + dy; if (ny < 0 || ny >= rRows) continue;
+      const rowOff = ny * rCols;
+      for (let dx = -rad; dx <= rad; dx++) {
+        const nx = cx + dx; if (nx < 0 || nx >= rCols) continue;
+        let j = rHead[rowOff + nx];
+        while (j !== -1) {
+          if (j > i) {
+            const bx = vx[j], by = vy[j], db = vd[j];
+            const ddx = bx - ax, ddy = by - ay;
+            const dSq = ddx * ddx + ddy * ddy;
+            const maxAllow = (da + db) * 1.55;
+            if (dSq <= maxAllow * maxAllow) {
+              const mx = (ax + bx) * 0.5, my = (ay + by) * 0.5;
+              const mIdx = (my | 0) * W + (mx | 0);
+              if (silhouetteMask[mIdx]) {
+                const rGabSq = dSq * 0.25 - 1e-3;
+                const mCx = (mx / rCell) | 0, mCy = (my / rCell) | 0;
+                const gRad = Math.ceil(Math.sqrt(rGabSq) / rCell);
+                let gabrielOk = true;
+                for (let gdy = -gRad; gdy <= gRad && gabrielOk; gdy++) {
+                  const gny = mCy + gdy; if (gny < 0 || gny >= rRows) continue;
+                  const gRowOff = gny * rCols;
+                  for (let gdx = -gRad; gdx <= gRad; gdx++) {
+                    const gnx = mCx + gdx; if (gnx < 0 || gnx >= rCols) continue;
+                    let k = rHead[gRowOff + gnx];
+                    while (k !== -1) {
+                      if (k !== i && k !== j) {
+                        const kdx = vx[k] - mx, kdy = vy[k] - my;
+                        if (kdx * kdx + kdy * kdy < rGabSq) { gabrielOk = false; break; }
+                      }
+                      k = rNext[k];
+                    }
+                  }
+                }
+                if (gabrielOk) { adj[i].push(j); adj[j].push(i); }
+              }
+            }
+          }
+          j = rNext[j];
+        }
+      }
+    }
+  }
+
+  // 5. Árbol generador serpenteante de cadenas largas + poda de espolones
+  const inTree = new Uint8Array(vCount);
+  const treeAdj = Array.from({ length: vCount }, () => []);
+  const parentOf = new Int32Array(vCount).fill(-1);
+  const chainLen = new Int32Array(vCount);
+  const heapCap = vCount * 16 + 4096;
+  const heapU = new Int32Array(heapCap);
+  const heapV = new Int32Array(heapCap);
+  const heapW = new Float32Array(heapCap);
+  let heapSize = 0;
+
+  const heapPush = (u, v, w) => {
+    if (heapSize >= heapCap) return;
+    let i = heapSize++;
+    heapU[i] = u; heapV[i] = v; heapW[i] = w;
+    while (i > 0) {
+      const p = (i - 1) >> 1;
+      if (heapW[p] <= heapW[i]) break;
+      let tu = heapU[p], tv = heapV[p], tw = heapW[p];
+      heapU[p] = heapU[i]; heapV[p] = heapV[i]; heapW[p] = heapW[i];
+      heapU[i] = tu; heapV[i] = tv; heapW[i] = tw;
+      i = p;
+    }
+  };
+  const heapPop = () => {
+    const u = heapU[0], v = heapV[0];
+    heapSize--;
+    if (heapSize > 0) {
+      heapU[0] = heapU[heapSize]; heapV[0] = heapV[heapSize]; heapW[0] = heapW[heapSize];
+      let i = 0;
+      while (true) {
+        const l = (i << 1) + 1, r = l + 1;
+        let s = i;
+        if (l < heapSize && heapW[l] < heapW[s]) s = l;
+        if (r < heapSize && heapW[r] < heapW[s]) s = r;
+        if (s === i) break;
+        let tu = heapU[i], tv = heapV[i], tw = heapW[i];
+        heapU[i] = heapU[s]; heapV[i] = heapV[s]; heapW[i] = heapW[s];
+        heapU[s] = tu; heapV[s] = tv; heapW[s] = tw;
+        i = s;
+      }
+    }
+    return { u, v };
+  };
+
+  let tipSeq = 0;
+  const pushEdgesFrom = (u) => {
+    const p = parentOf[u];
+    let pdx = 0, pdy = 0;
+    if (p !== -1) {
+      pdx = vx[u] - vx[p]; pdy = vy[u] - vy[p];
+      const l = Math.hypot(pdx, pdy) + 1e-5;
+      pdx /= l; pdy /= l;
+    }
+    const sidU = vStream[u];
+    const isTip = treeAdj[u].length <= 1;
+    const seqBonus = isTip ? Math.min(8.0, (tipSeq++) * 0.0007) : 0.0;
+
+    for (const v of adj[u]) {
+      if (inTree[v]) continue;
+      const dx = vx[v] - vx[u], dy = vy[v] - vy[u];
+      const dist = Math.hypot(dx, dy) + 1e-5;
+      const ux = dx / dist, uy = dy / dist;
+
+      const mIdx = Math.max(0, Math.min(N - 1, (((vy[u] + vy[v]) * 0.5) | 0) * W + (((vx[u] + vx[v]) * 0.5) | 0)));
+      const fx = flowX[mIdx], fy = flowY[mIdx];
+      const flowAlign = Math.abs(ux * fx + uy * fy);
+      const flowWeight = 0.16 + 1.65 * (1.0 - flowAlign);
+
+      let momWeight = 1.0;
+      if (p !== -1) {
+        const dot = pdx * ux + pdy * uy;
+        if (dot < -0.15) momWeight = 3.2;
+        else momWeight = chainLen[u] < 24 ? (0.26 + (1.0 - Math.max(0, dot)) * 1.15) : (0.78 + Math.abs(dot - 0.52) * 0.48);
+      }
+      const sameStream = (sidU > 0 && vStream[v] === sidU) ? 0.36 : 1.0;
+      const branchMult = treeAdj[u].length >= 2 ? 9.5 : 1.0;
+      const tipBonus = isTip ? (-14.0 - seqBonus) : 16.0;
+
+      const w = dist * flowWeight * momWeight * sameStream * branchMult + tipBonus;
+      heapPush(u, v, w);
+    }
+  };
+
+  let root = 0, bestRootD = Infinity;
+  const rxTarget = W * (0.5 + (seed % 5 - 2) * 0.03);
+  const ryTarget = H * (0.45 + ((seed * 3) % 5 - 2) * 0.03);
+  for (let i = 0; i < vCount; i++) {
+    const d = Math.hypot(vx[i] - rxTarget, vy[i] - ryTarget);
+    if (d < bestRootD) { bestRootD = d; root = i; }
+  }
+  inTree[root] = 1;
+  pushEdgesFrom(root);
+
+  while (heapSize > 0) {
+    const { u, v } = heapPop();
+    if (inTree[v] || treeAdj[u].length >= 3) continue;
+    inTree[v] = 1;
+    parentOf[v] = u;
+    chainLen[v] = treeAdj[u].length === 1 ? (chainLen[u] + 1) : 1;
+    treeAdj[u].push(v); treeAdj[v].push(u);
+    pushEdgesFrom(v);
+  }
+  for (let pass = 0; pass < 3; pass++) {
+    for (let i = 0; i < vCount; i++) {
+      if (inTree[i]) continue;
+      let bestU = -1, bestD = Infinity;
+      for (const nb of adj[i]) {
+        if (inTree[nb] && treeAdj[nb].length < 3) {
+          const d = Math.hypot(vx[i] - vx[nb], vy[i] - vy[nb]) + treeAdj[nb].length * 14.0;
+          if (d < bestD) { bestD = d; bestU = nb; }
+        }
+      }
+      if (bestU !== -1) {
+        inTree[i] = 1; parentOf[i] = bestU;
+        treeAdj[bestU].push(i); treeAdj[i].push(bestU);
+      }
+    }
+  }
+
+  for (let prunePass = 0; prunePass < 2; prunePass++) {
+    for (let u = 0; u < vCount; u++) {
+      if (treeAdj[u].length !== 3 || u === root) continue;
+      for (let idx = treeAdj[u].length - 1; idx >= 0 && treeAdj[u].length === 3; idx--) {
+        const ch = treeAdj[u][idx];
+        if (ch === root) continue;
+        if (treeAdj[ch].length === 1) {
+          let nearAny = false;
+          const thresh = vd[ch] * 1.90;
+          for (const nb of adj[ch]) {
+            if (nb !== u && inTree[nb] && treeAdj[nb].length > 0 && Math.hypot(vx[nb] - vx[ch], vy[nb] - vy[ch]) < thresh) {
+              nearAny = true; break;
+            }
+          }
+          if (nearAny) {
+            treeAdj[u].splice(idx, 1);
+            treeAdj[ch].length = 0;
+          }
+        } else if (treeAdj[ch].length === 2) {
+          const gCh = treeAdj[ch][0] === u ? treeAdj[ch][1] : treeAdj[ch][0];
+          if (gCh !== root && treeAdj[gCh].length === 1) {
+            let nearG = false;
+            const thresh = vd[gCh] * 1.75;
+            for (const nb of adj[gCh]) {
+              if (nb !== ch && nb !== u && inTree[nb] && treeAdj[nb].length > 0 && Math.hypot(vx[nb] - vx[gCh], vy[nb] - vy[gCh]) < thresh) {
+                nearG = true; break;
+              }
+            }
+            if (nearG) {
+              treeAdj[u].splice(idx, 1);
+              treeAdj[ch].length = 0;
+              treeAdj[gCh].length = 0;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  const bfsVis = new Uint8Array(vCount);
+  const queue = new Int32Array(vCount);
+  let qHead = 0, qTail = 0;
+  bfsVis[root] = 1;
+  queue[qTail++] = root;
+  let treeEdges = 0;
+  while (qHead < qTail) {
+    const u = queue[qHead++];
+    for (let j = treeAdj[u].length - 1; j >= 0; j--) {
+      const nb = treeAdj[u][j];
+      if (!bfsVis[nb]) {
+        bfsVis[nb] = 1;
+        queue[qTail++] = nb;
+        treeEdges++;
+      }
+    }
+  }
+  if (treeEdges < 2) return { ptsX: new Float32Array(0), ptsY: new Float32Array(0) };
+
+  for (let u = 0; u < vCount; u++) {
+    if (bfsVis[u] && treeAdj[u].length > 1) {
+      treeAdj[u].sort((a, b) => Math.atan2(vy[a] - vy[u], vx[a] - vx[u]) - Math.atan2(vy[b] - vy[u], vx[b] - vx[u]));
+    }
+  }
+
+  // 6. Contorno Euleriano de doble pared
+  const outX = [], outY = [];
+  let startU = -1;
+  for (let i = 0; i < vCount; i++) {
+    if (bfsVis[i] && treeAdj[i].length === 1) { startU = i; break; }
+  }
+  if (startU === -1) startU = root;
+
+  const edgeSegStep = Math.max(2.9, effMinW * 2.25);
+  let currU = startU, currV = treeAdj[startU][0];
+  const totalDirEdges = treeEdges * 2;
+  for (let step = 0; step < totalDirEdges; step++) {
+    const dx = vx[currV] - vx[currU], dy = vy[currV] - vy[currU];
+    const len = Math.hypot(dx, dy);
+    const tx = dx / (len + 1e-5), ty = dy / (len + 1e-5);
+    const nx = ty, ny = -tx;
+    const rU = vd[currU] * 0.252;
+    const rV = vd[currV] * 0.252;
+    const tStart = Math.min(0.42, (rU * 0.85) / (len + 1e-5));
+    const tEnd = Math.max(0.58, 1.0 - (rV * 0.85) / (len + 1e-5));
+    const span = Math.max(0.05, tEnd - tStart);
+    const numSegs = Math.max(1, Math.ceil((len * span) / edgeSegStep));
+    for (let s = 0; s <= numSegs; s++) {
+      const t = tStart + (s / numSegs) * span;
+      const rMid = rU * (1.0 - t) + rV * t;
+      outX.push(vx[currU] + dx * t + nx * rMid);
+      outY.push(vy[currU] + dy * t + ny * rMid);
+    }
+    const nbrs = treeAdj[currV], deg = nbrs.length;
+    const idxBack = nbrs.indexOf(currU);
+    const nextW = nbrs[(idxBack + 1) % deg];
+    if (deg === 1) {
+      const baseAng = Math.atan2(ny, nx);
+      for (let c = 1; c < 4; c++) {
+        const ang = baseAng + (c / 4) * Math.PI;
+        outX.push(vx[currV] + Math.cos(ang) * rV);
+        outY.push(vy[currV] + Math.sin(ang) * rV);
+      }
+    } else {
+      const rdx2 = vx[nextW] - vx[currV], rdy2 = vy[nextW] - vy[currV];
+      const len2 = Math.hypot(rdx2, rdy2);
+      const tx2 = rdx2 / (len2 + 1e-5), ty2 = rdy2 / (len2 + 1e-5);
+      const nx2 = ty2, ny2 = -tx2;
+      const turnDot = tx2 * nx + ty2 * ny;
+      if (turnDot < -0.05) {
+        const ang1 = Math.atan2(ny, nx);
+        let ang2 = Math.atan2(ny2, nx2);
+        let dAng = ang2 - ang1;
+        while (dAng < 0) dAng += 2 * Math.PI;
+        if (dAng > Math.PI * 1.25) dAng -= 2 * Math.PI;
+        const arcSteps = Math.max(2, Math.min(3, Math.ceil(Math.abs(dAng) / 0.65)));
+        for (let c = 1; c < arcSteps; c++) {
+          const ang = ang1 + (c / arcSteps) * dAng;
+          outX.push(vx[currV] + Math.cos(ang) * rV);
+          outY.push(vy[currV] + Math.sin(ang) * rV);
+        }
+      } else {
+        let bx = nx + nx2, by = ny + ny2;
+        const bLen = Math.hypot(bx, by);
+        if (bLen > 1e-3) {
+          outX.push(vx[currV] + (bx / bLen) * rV);
+          outY.push(vy[currV] + (by / bLen) * rV);
+        }
+      }
+    }
+    currU = currV; currV = nextW;
+  }
+
+  // 7. Relajación de crecimiento diferencial armónico + descruzado exacto 0-cruces
+  let ptsX = new Float32Array(outX);
+  let ptsY = new Float32Array(outY);
+  let k = ptsX.length;
+  const maxVertCap = Math.min(36000, Math.max(24000, Math.round(TARGET_NODES * 0.95)));
+
+  const subdivideIfNeeded = () => {
+    if (k >= maxVertCap) return;
+    const nX = [], nY = [];
+    for (let i = 0; i < k; i++) {
+      const ni = (i === k - 1) ? 0 : (i + 1);
+      const x0 = ptsX[i], y0 = ptsY[i], x1 = ptsX[ni], y1 = ptsY[ni];
+      nX.push(x0); nY.push(y0);
+      const idx = Math.min(H - 1, Math.max(0, ((y0 + y1) * 0.5) | 0)) * W + Math.min(W - 1, Math.max(0, ((x0 + x1) * 0.5) | 0));
+      const maxEdge = Math.max(2.3, wMap[idx] * 0.96);
+      if ((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0) > maxEdge * maxEdge && nX.length < maxVertCap) {
+        nX.push((x0 + x1) * 0.5); nY.push((y0 + y1) * 0.5);
+      }
+    }
+    ptsX = new Float32Array(nX); ptsY = new Float32Array(nY);
+    k = ptsX.length;
+  };
+
+  const pCell = 9;
+  const pCols = Math.ceil(W / pCell) + 1;
+  const pRows = Math.ceil(H / pCell) + 1;
+  const cHead = new Int32Array(pCols * pRows);
+
+  const relaxPasses = 16 + chaikinPasses * 2;
+  const relaxDeadline = tStart + Math.max(700, maxTimeMs * 0.72);
+  let tempX = new Float32Array(k);
+  let tempY = new Float32Array(k);
+  let cNext = new Int32Array(k);
+
+  for (let iter = 0; iter < relaxPasses; iter++) {
+    if (iter === 4) {
+      subdivideIfNeeded();
+      if (tempX.length !== k) {
+        tempX = new Float32Array(k);
+        tempY = new Float32Array(k);
+        cNext = new Int32Array(k);
+      }
+    }
+    if (iter >= 8 && performance.now() > relaxDeadline) break;
+
+    cHead.fill(-1);
+    for (let i = 0; i < k; i++) {
+      const cx = Math.max(0, Math.min(pCols - 1, (ptsX[i] / pCell) | 0));
+      const cy = Math.max(0, Math.min(pRows - 1, (ptsY[i] / pCell) | 0));
+      const cIdx = cy * pCols + cx;
+      cNext[i] = cHead[cIdx]; cHead[cIdx] = i;
+    }
+
+    for (let i = 0; i < k; i++) {
+      const prv = (i === 0) ? (k - 1) : (i - 1);
+      const nxt = (i === k - 1) ? 0 : (i + 1);
+      const px = ptsX[i], py = ptsY[i];
+      const idx = Math.min(H - 1, Math.max(0, py | 0)) * W + Math.min(W - 1, Math.max(0, px | 0));
+      const targetSep = wMap[idx] * 0.99;
+      const targetSq = targetSep * targetSep;
+
+      let fx = ((ptsX[prv] + ptsX[nxt]) * 0.5 - px) * 0.44;
+      let fy = ((ptsY[prv] + ptsY[nxt]) * 0.5 - py) * 0.44;
+
+      const cx = (px / pCell) | 0, cy = (py / pCell) | 0;
+      const rad = Math.ceil(targetSep / pCell);
+      for (let dy = -rad; dy <= rad; dy++) {
+        const ny = cy + dy; if (ny < 0 || ny >= pRows) continue;
+        const rowOff = ny * pCols;
+        for (let dx = -rad; dx <= rad; dx++) {
+          const nx = cx + dx; if (nx < 0 || nx >= pCols) continue;
+          let j = cHead[rowOff + nx];
+          while (j !== -1) {
+            const diff = Math.abs(i - j);
+            const loopDiff = diff < (k - diff) ? diff : (k - diff);
+            if (loopDiff > 2) {
+              const ddx = px - ptsX[j], ddy = py - ptsY[j];
+              const dSq = ddx * ddx + ddy * ddy;
+              if (dSq < targetSq && dSq > 1e-4) {
+                const d = Math.sqrt(dSq);
+                const f = ((targetSep - d) / d) * 0.28;
+                fx += ddx * f; fy += ddy * f;
+              }
+            }
+            j = cNext[j];
+          }
+        }
+      }
+
+      const nx = Math.max(4, Math.min(W - 4, px + Math.max(-0.52, Math.min(0.52, fx))));
+      const ny = Math.max(4, Math.min(H - 4, py + Math.max(-0.52, Math.min(0.52, fy))));
+      const nIdx = (ny | 0) * W + (nx | 0);
+      if (silhouetteMask[nIdx] && (isFullFrame || silDist[nIdx] >= 1.2)) {
+        tempX[i] = nx; tempY[i] = ny;
+      } else if (silhouetteMask[idx]) {
+        const pullX = px + distGradX[idx] * 0.28;
+        const pullY = py + distGradY[idx] * 0.28;
+        const pIdx = Math.min(H - 1, Math.max(0, pullY | 0)) * W + Math.min(W - 1, Math.max(0, pullX | 0));
+        tempX[i] = silhouetteMask[pIdx] ? pullX : px;
+        tempY[i] = silhouetteMask[pIdx] ? pullY : py;
+      } else {
+        tempX[i] = px; tempY[i] = py;
+      }
+    }
+    ptsX.set(tempX); ptsY.set(tempY);
+  }
+
+  const closedX = new Float32Array(k + 1);
+  const closedY = new Float32Array(k + 1);
+  closedX.set(ptsX, 0); closedY.set(ptsY, 0);
+  closedX[k] = ptsX[0]; closedY[k] = ptsY[0];
+
+  uncrossContinuousTour(closedX, closedY, W, H, 10, tStart + Math.max(900, maxTimeMs * 0.88));
+
+  let outPtsX = closedX, outPtsY = closedY;
+  if (chaikinPasses > 0) {
+    ({ ptsX: outPtsX, ptsY: outPtsY } = chaikinSmoothOpenTour(closedX, closedY, chaikinPasses));
+    uncrossContinuousTour(outPtsX, outPtsY, W, H, 8, tStart + Math.max(1150, maxTimeMs));
+  }
+
+  return { ptsX: outPtsX, ptsY: outPtsY };
 }
 
 /**
@@ -6977,7 +7912,7 @@ function generateCoralTspPro(coralToneMap, step232Stencil, silhouetteMask, smoot
 
 self.onmessage = function(e) {
   const {
-    jobId, engineMode, coralTspMode = 'pro', step232Stencil, coralToneMap, silhouetteMask, smoothSilMap,
+    jobId, engineMode, coralMode = 'classic', coralTspMode = 'pro', step232Stencil, coralToneMap, silhouetteMask, smoothSilMap,
     W, H, TARGET_NODES, MIN_R, MAX_R, CHAIKIN_PASSES, seed = 0, maxTimeMs,
     honeycombSize = 14.0, honeycombWalls = 3, honeycombSubdiv = true,
     hexSpiralSize = 8.5, isoDiamondSize = 11.0, panotSize = 10.0, florBcnSize = 15.0, goldenSize = 100, fractalSize = 100, florFractalSize = 100, florFractalMode = 'classic', vortexSize = 8.5, escherSize = 6.0
@@ -6994,9 +7929,14 @@ self.onmessage = function(e) {
   }
 
   if (engineMode === 'coral') {
-    let { ptsX, ptsY } = generateDendriticCoralPortrait(coralToneMap, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, CHAIKIN_PASSES, TARGET_NODES, seed);
-    if (CHAIKIN_PASSES > 0) {
-      ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+    let ptsX, ptsY;
+    if (coralMode === 'laminar') {
+      ({ ptsX, ptsY } = generateLaminarCoralPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, CHAIKIN_PASSES, TARGET_NODES, seed, maxTimeMs));
+    } else {
+      ({ ptsX, ptsY } = generateDendriticCoralPortrait(coralToneMap, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, CHAIKIN_PASSES, TARGET_NODES, seed));
+      if (CHAIKIN_PASSES > 0) {
+        ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, CHAIKIN_PASSES));
+      }
     }
     const outX = new Float32Array(ptsX);
     const outY = new Float32Array(ptsY);
@@ -7310,9 +8250,10 @@ function rebuildPortrait(needsStencilRebuild = true) {
     MAX_R,
     CHAIKIN_PASSES,
     seed: REBUILD_SEED,
+    coralMode: CORAL_MODE,
     coralTspMode: CORAL_TSP_MODE,
-    maxTimeMs: (ENGINE_MODE === 'coral_tsp' && CORAL_TSP_MODE !== 'classic')
-      ? (isMobileDevice ? (TARGET_NODES > 45000 ? 2000 : (TARGET_NODES > 35000 ? 1500 : 850)) : (TARGET_NODES > 45000 ? 2800 : 1800))
+    maxTimeMs: ((ENGINE_MODE === 'coral_tsp' && CORAL_TSP_MODE !== 'classic') || (ENGINE_MODE === 'coral' && CORAL_MODE === 'laminar'))
+      ? (isMobileDevice ? (TARGET_NODES > 45000 ? 2200 : (TARGET_NODES > 35000 ? 1600 : 1200)) : (TARGET_NODES > 45000 ? 2800 : 1800))
       : (isMobileDevice ? 650 : 1100),
     honeycombSize: 14.0,
     honeycombWalls: 3,
@@ -8661,6 +9602,7 @@ document.getElementById('engineMode').addEventListener('change', (e) => {
   ENGINE_MODE = e.target.value;
   document.getElementById('modeDesc').textContent = MODE_DESCRIPTIONS[ENGINE_MODE] || '';
   applyModePreset(ENGINE_MODE);
+  updateCoralPanelVisibility();
   updateCoralTspPanelVisibility();
   updateGoldenFractalPanelVisibility();
   updateFlorFractalPanelVisibility();
@@ -9023,6 +9965,16 @@ if (selFlorFractalMode) {
   });
 }
 
+const selCoralMode = document.getElementById('coralMode');
+if (selCoralMode) {
+  selCoralMode.addEventListener('change', (e) => {
+    CORAL_MODE = (e.target.value === 'laminar') ? 'laminar' : 'classic';
+    updateCoralPanelVisibility();
+    lineCacheDirty = true;
+    rebuildPortrait(false);
+  });
+}
+
 const selCoralTspMode = document.getElementById('coralTspMode');
 if (selCoralTspMode) {
   selCoralTspMode.addEventListener('change', (e) => {
@@ -9110,6 +10062,7 @@ document.getElementById('btnResetDefaults').onclick = () => {
   FRACTAL_SIZE = 100;
   FLOR_FRACTAL_MODE = 'classic';
   FLOR_FRACTAL_SIZE = 100;
+  CORAL_MODE = 'classic';
   CORAL_TSP_MODE = 'pro';
   GEO_POP_DESAT = 100;
   GEO_POP_SIZE = 100;
@@ -9327,6 +10280,7 @@ btnRec.onclick = () => {
 
 initDemoPortrait();
 updateColorPanelVisibility();
+updateCoralPanelVisibility();
 updateCoralTspPanelVisibility();
 updateGoldenFractalPanelVisibility();
 updateFlorFractalPanelVisibility();
