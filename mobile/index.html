@@ -1995,17 +1995,18 @@
       <option value="honeycomb">🐝 19. Colmena Hexagonal (Panal de Abeja Orgánico)</option>
       <option value="escher_cube">🎲 20. Celosía Escheriana en Y (Isométrico)</option>
       <option value="geo_pop">🎨 21. Pop Geométrico (Cuadrados y Círculos de Color)</option>
+      <option value="harmonic_waves">〰️ 22. Ondas Paralelas Armónicas (Estilo Algorigraph · 0 Cruces)</option>
     </select>
 
     <div id="dockContent">
       <!-- =========================================================
-           TAB 1: ESTILOS (21 ESTILOS + AJUSTES ESPECÍFICOS)
+           TAB 1: ESTILOS (22 ESTILOS + AJUSTES ESPECÍFICOS)
            ========================================================= -->
       <div class="tab-pane active" id="paneEstilo">
         <div class="studio-group-block">
           <div class="studio-block-header">
             <span class="studio-block-label">Algoritmo de Trazado</span>
-            <span class="studio-block-value">21 Estilos</span>
+            <span class="studio-block-value">22 Estilos</span>
           </div>
           <div class="style-carousel" id="styleCarousel">
             <div class="style-card active" data-mode="coral">
@@ -2112,6 +2113,11 @@
               <span class="card-emoji">🎨</span>
               <span class="card-title">Pop Geométrico</span>
               <span class="card-badge">Estilo 21 · Color</span>
+            </div>
+            <div class="style-card" data-mode="harmonic_waves">
+              <span class="card-emoji">〰️</span>
+              <span class="card-title">Ondas Armónicas</span>
+              <span class="card-badge">Estilo 22 · 0 Cruces</span>
             </div>
           </div>
         </div>
@@ -3389,7 +3395,8 @@ const MODE_DESCRIPTIONS = {
   halftone_dots:  '⚫ Trama de Puntos (Halftone Pop-Art): Retícula angular serigráfica a 45° con puntos de área proporcional a la densidad tonal y ganancia de punto en sombras profundas.',
   honeycomb:      '🐝 Colmena Hexagonal (Panal de Abeja Orgánico): Mosaico continuo de celdas hexagonales 100% encajadas que esculpen los rasgos y volúmenes del retrato mediante cámaras y anillos concéntricos adaptativos.',
   escher_cube:    '🎲 Celosía Escheriana en Y (Isométrico): Mosaico hexagonal continuo con celdas de brazos a 120° y puntas de flecha entrelazadas en Y (estilo Escher / Kumiko) que modulan pliegues concéntricos según la densidad tonal.',
-  geo_pop:        '🎨 Pop Geométrico Retro: Combina cuadrados, rectángulos y círculos translúcidos con fusión de color sobre fotografía ajustable a blanco y negro.'
+  geo_pop:        '🎨 Pop Geométrico Retro: Combina cuadrados, rectángulos y círculos translúcidos con fusión de color sobre fotografía ajustable a blanco y negro.',
+  harmonic_waves: '〰️ Ondas Paralelas Armónicas (Estilo Algorigraph · 0 Cruces): Campo de franjas acopladas que empuja grandes masas de curvas paralelas al unísono con bifurcaciones limpias en sombras y 1 solo trazo continuo sin cruces.'
 };
 
 const MODE_PRESETS = {
@@ -3413,7 +3420,8 @@ const MODE_PRESETS = {
   halftone_dots:  { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.52, bgClean: 0.000, minR: 1.4, maxR: 6.8, chaikin: 1, lineW: 1.0, fusionOpacity: 25, colorMode: 'mono' },
   honeycomb:      { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 6.0, chaikin: 0, lineW: 1.0, honeycombSize: 14.0, fusionOpacity: 50, colorMode: 'mono' },
   escher_cube:    { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 5.5, chaikin: 0, lineW: 1.0, escherSize: 6.0, fusionOpacity: 50, colorMode: 'mono', monoInk: 'indigo' },
-  geo_pop:        { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 4.8, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' }
+  geo_pop:        { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 4.8, chaikin: 1, lineW: 1.0, fusionOpacity: 0, colorMode: 'mono' },
+  harmonic_waves: { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.4, maxR: 3.2, chaikin: 1, lineW: 1.0, fusionOpacity: 25, colorMode: 'mono' }
 };
 
 function syncSliderProgress(el) {
@@ -6422,6 +6430,779 @@ function generateLaminarCoralPortrait(toneMap, step232Stencil, silhouetteMask, s
   }
 
   return { ptsX: outPtsX, ptsY: outPtsY };
+}
+
+/**
+ * MODO 22: ONDAS PARALELAS ARMÓNICAS (ESTILO ALGORIGRAPH · 0 CRUCES)
+ * Campo de orientación armónico multiescala + solver de fasores complejos acoplados (Knöppel-Crane)
+ * + extracción Marching Squares subpíxel + empalme topológico planar de horquillas en 1 sola línea continua cerrada.
+ */
+function generateHarmonicWavesPortrait(toneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, minW = 1.4, maxW = 3.2, chaikinPasses = 1, TARGET_NODES = 44000, seed = 0, maxTimeMs = 1800) {
+  const tStart = performance.now();
+  const N = W * H;
+
+  const fastBlur = (src, rad, gw = W, gh = H) => {
+    const gn = gw * gh;
+    let a = new Float32Array(src), b = new Float32Array(gn);
+    const colS = new Float32Array(gw);
+    const r = Math.max(1, Math.round(rad)), d = r * 2 + 1, inv = 1.0 / d;
+    for (let p = 0; p < 2; p++) {
+      for (let y = 0; y < gh; y++) {
+        const row = y * gw;
+        let s = a[row] * (r + 1);
+        for (let x = 1; x <= r; x++) s += a[row + (x < gw ? x : gw - 1)];
+        for (let x = 0; x < gw; x++) {
+          b[row + x] = s * inv;
+          const rp = x + r + 1, lm = x - r;
+          s += a[row + (rp < gw ? rp : gw - 1)] - a[row + (lm > 0 ? lm : 0)];
+        }
+      }
+      for (let x = 0; x < gw; x++) colS[x] = b[x] * (r + 1);
+      for (let y = 1; y <= r; y++) {
+        const ro = (y < gh ? y : gh - 1) * gw;
+        for (let x = 0; x < gw; x++) colS[x] += b[ro + x];
+      }
+      for (let y = 0; y < gh; y++) {
+        const ro = y * gw;
+        const yr = (y + r + 1 < gh ? y + r + 1 : gh - 1) * gw, yl = (y - r > 0 ? y - r : 0) * gw;
+        for (let x = 0; x < gw; x++) {
+          a[ro + x] = colS[x] * inv;
+          colS[x] += b[yr + x] - b[yl + x];
+        }
+      }
+    }
+    return a;
+  };
+
+  let activePix = 0;
+  for (let i = 0; i < N; i++) if (silhouetteMask[i]) activePix++;
+  if (activePix < 25) return { ptsX: new Float32Array(0), ptsY: new Float32Array(0) };
+
+  const hasStencil = Boolean(step232Stencil && step232Stencil.length === N);
+  const isFullFrame = activePix > N * 0.96;
+
+  // Resolución de rejilla armónica adaptada a ~220k celdas para <1.5s sin aliasing
+  const cellPx = Math.max(1.0, Math.min(1.36, Math.sqrt((W * H) / 220000)));
+  const GW = Math.max(32, Math.floor(W / cellPx));
+  const GH = Math.max(32, Math.floor(H / cellPx));
+  const GN = GW * GH;
+  const gCellX = W / GW, gCellY = H / GH;
+
+  // 1. Distancia Chamfer a borde de silueta o marco exterior
+  const silDist = new Float32Array(N);
+  for (let y = 0; y < H; y++) {
+    const row = y * W;
+    for (let x = 0; x < W; x++) {
+      const i = row + x;
+      silDist[i] = (!silhouetteMask[i] || (isFullFrame && (x < 3 || x >= W - 3 || y < 3 || y >= H - 3))) ? 0 : 1e6;
+    }
+  }
+  for (let y = 1; y < H - 1; y++) {
+    const row = y * W;
+    for (let x = 1; x < W - 1; x++) {
+      const i = row + x;
+      if (silDist[i] === 0) continue;
+      silDist[i] = Math.min(silDist[i], silDist[i - 1] + 1, silDist[i - W] + 1, silDist[i - W - 1] + 1.414, silDist[i - W + 1] + 1.414);
+    }
+  }
+  for (let y = H - 2; y >= 1; y--) {
+    const row = y * W;
+    for (let x = W - 2; x >= 1; x--) {
+      const i = row + x;
+      if (silDist[i] === 0) continue;
+      silDist[i] = Math.min(silDist[i], silDist[i + 1] + 1, silDist[i + W] + 1, silDist[i + W + 1] + 1.414, silDist[i + W - 1] + 1.414);
+    }
+  }
+
+  // 2. Campo Director Armónico de Largo Alcance directamente en rejilla GW x GH
+  const tc2 = new Float32Array(GN);
+  const ts2 = new Float32Array(GN);
+  const gTone = new Float32Array(GN);
+  const gSt = new Float32Array(GN);
+  const gSil = new Uint8Array(GN);
+  const gDist = new Float32Array(GN);
+
+  for (let gy = 0; gy < GH; gy++) {
+    const sy = Math.min(H - 1, Math.max(0, Math.round((gy + 0.5) * gCellY)));
+    const row = gy * GW, sRow = sy * W;
+    for (let gx = 0; gx < GW; gx++) {
+      const sx = Math.min(W - 1, Math.max(0, Math.round((gx + 0.5) * gCellX)));
+      const gi = row + gx, si = sRow + sx;
+      gTone[gi] = toneMap[si];
+      gSt[gi] = hasStencil ? step232Stencil[si] : 1.0;
+      gDist[gi] = silDist[si];
+      gSil[gi] = (gx >= 1 && gx < GW - 1 && gy >= 1 && gy < GH - 1 && silhouetteMask[si] && (isFullFrame || silDist[si] >= 1.5)) ? 1 : 0;
+    }
+  }
+
+  const gToneSmooth = fastBlur(gTone, 1.35 / cellPx, GW, GH);
+  const gStSmooth = hasStencil ? fastBlur(gSt, 0.95 / cellPx, GW, GH) : gToneSmooth;
+  const gDistSmooth = fastBlur(gDist, 2.5 / cellPx, GW, GH);
+
+  for (let gy = 1; gy < GH - 1; gy++) {
+    const row = gy * GW;
+    for (let gx = 1; gx < GW - 1; gx++) {
+      const gi = row + gx;
+      if (!gSil[gi]) continue;
+      const dtX = ((gToneSmooth[gi + 1] - gToneSmooth[gi - 1]) * 0.65 + (gStSmooth[gi + 1] - gStSmooth[gi - 1]) * 0.35) * 0.5;
+      const dtY = ((gToneSmooth[gi + GW] - gToneSmooth[gi - GW]) * 0.65 + (gStSmooth[gi + GW] - gStSmooth[gi - GW]) * 0.35) * 0.5;
+      let c2 = (dtY * dtY - dtX * dtX) * 18.0;
+      let s2 = (-2.0 * dtX * dtY) * 18.0;
+
+      const bx = (gDistSmooth[gi + 1] - gDistSmooth[gi - 1]) * 0.5;
+      const by = (gDistSmooth[gi + GW] - gDistSmooth[gi - GW]) * 0.5;
+      const bMag = Math.hypot(bx, by) + 1e-5;
+      const ubx = bx / bMag, uby = by / bMag;
+      const silW = isFullFrame
+        ? (Math.exp(-gDist[gi] / 22.0) * 0.24)
+        : (Math.exp(-gDist[gi] / 25.0) * 1.35);
+      c2 += (uby * uby - ubx * ubx) * silW;
+      s2 += (-2.0 * ubx * uby) * silW;
+
+      tc2[gi] = c2;
+      ts2[gi] = s2;
+    }
+  }
+
+  // Difusión tensorial multiescala
+  const diffLongC = fastBlur(tc2, 18.0 / cellPx, GW, GH);
+  const diffLongS = fastBlur(ts2, 18.0 / cellPx, GW, GH);
+  const diffMedC = fastBlur(tc2, 7.5 / cellPx, GW, GH);
+  const diffMedS = fastBlur(ts2, 7.5 / cellPx, GW, GH);
+  const diffShortC = fastBlur(tc2, 2.4 / cellPx, GW, GH);
+  const diffShortS = fastBlur(ts2, 2.4 / cellPx, GW, GH);
+
+  const seedPh = (seed * 1.6180339) % (2 * Math.PI);
+  const nxArr = new Float32Array(GN);
+  const nyArr = new Float32Array(GN);
+  const omegaArr = new Float32Array(GN);
+
+  const nodeScale = Math.max(0.76, Math.min(1.30, Math.sqrt(44000 / Math.max(10000, TARGET_NODES))));
+  const dMin = Math.max(cellPx * 1.10, Math.min(3.0, minW * 0.96 * nodeScale));
+  const dMax = Math.max(dMin + 0.70, Math.min(6.4, maxW * 1.25 * nodeScale));
+
+  const rawD = new Float32Array(GN);
+  for (let gy = 0; gy < GH; gy++) {
+    const py = (gy + 0.5) * gCellY;
+    const row = gy * GW;
+    for (let gx = 0; gx < GW; gx++) {
+      const px = (gx + 0.5) * gCellX;
+      const gi = row + gx;
+
+      const ambAng = 0.52 + 0.65 * Math.sin(px * 0.0062 - py * 0.0050 + seedPh) + 0.42 * Math.cos(px * 0.0046 + py * 0.0066 + seedPh * 1.3);
+      const longMag = Math.hypot(diffLongC[gi], diffLongS[gi]);
+      const ambW = Math.max(0.015, 0.075 * (1.0 - Math.min(1.0, longMag * 1.8)));
+      const ac2 = Math.cos(2.0 * ambAng) * ambW;
+      const as2 = Math.sin(2.0 * ambAng) * ambW;
+
+      const sMag = Math.hypot(diffShortC[gi], diffShortS[gi]);
+      const fMix = Math.min(1.0, sMag * 2.2);
+      const c2 = (diffLongC[gi] * 0.62 + diffMedC[gi] * 0.38) * (1.0 - 0.38 * fMix) + diffShortC[gi] * (0.38 * fMix) + ac2;
+      const s2 = (diffLongS[gi] * 0.62 + diffMedS[gi] * 0.38) * (1.0 - 0.38 * fMix) + diffShortS[gi] * (0.38 * fMix) + as2;
+
+      const theta = 0.5 * Math.atan2(s2, c2);
+      nxArr[gi] = -Math.sin(theta);
+      nyArr[gi] = Math.cos(theta);
+
+      const stVal = hasStencil ? gStSmooth[gi] : 1.0;
+      const edgeDark = Math.min(gTone[gi], stVal * 0.85 + gTone[gi] * 0.15);
+      const tBias = Math.max(0, Math.min(1, gTone[gi] * 0.62 + edgeDark * 0.38));
+      rawD[gi] = dMin + (dMax - dMin) * Math.pow(tBias, 1.05);
+    }
+  }
+  const smoothD = fastBlur(rawD, 1.35 / cellPx, GW, GH);
+  for (let i = 0; i < GN; i++) {
+    omegaArr[i] = Math.PI / Math.max(cellPx * 1.06, smoothD[i]);
+  }
+
+  // 3. Solver de Fasores Complejos Acoplados (Knöppel-Crane double-cover Gauss-Seidel)
+  const re = new Float32Array(GN);
+  const im = new Float32Array(GN);
+  for (let gy = 0; gy < GH; gy++) {
+    const py = (gy + 0.5) * gCellY;
+    const row = gy * GW;
+    for (let gx = 0; gx < GW; gx++) {
+      const px = (gx + 0.5) * gCellX;
+      const gi = row + gx;
+      const phi = (isFullFrame ? (px * 0.7 + py * 0.7) : gDist[gi]) * omegaArr[gi] + seedPh;
+      re[gi] = Math.cos(phi);
+      im[gi] = Math.sin(phi);
+    }
+  }
+
+  const erC = new Float32Array(GN), erS = new Float32Array(GN), erFlip = new Uint8Array(GN);
+  const edC = new Float32Array(GN), edS = new Float32Array(GN), edFlip = new Uint8Array(GN);
+  const edrC = new Float32Array(GN), edrS = new Float32Array(GN), edrFlip = new Uint8Array(GN);
+  const edlC = new Float32Array(GN), edlS = new Float32Array(GN), edlFlip = new Uint8Array(GN);
+
+  for (let gy = 0; gy < GH; gy++) {
+    const row = gy * GW;
+    for (let gx = 0; gx < GW; gx++) {
+      const gi = row + gx;
+      const nxp = nxArr[gi], nyp = nyArr[gi], op = omegaArr[gi];
+
+      if (gx + 1 < GW) {
+        const q = gi + 1;
+        let nxq = nxArr[q], nyq = nyArr[q];
+        const flip = (nxp * nxq + nyp * nyq) < 0 ? 1 : 0;
+        if (flip) { nxq = -nxq; nyq = -nyq; }
+        let mx = nxp + nxq, my = nyp + nyq;
+        const ml = Math.hypot(mx, my) || 1.0;
+        const dPhi = (0.5 * (op + omegaArr[q])) * (mx / ml) * gCellX;
+        erC[gi] = Math.cos(dPhi);
+        erS[gi] = Math.sin(dPhi);
+        erFlip[gi] = flip;
+      }
+      if (gy + 1 < GH) {
+        const q = gi + GW;
+        let nxq = nxArr[q], nyq = nyArr[q];
+        const flip = (nxp * nxq + nyp * nyq) < 0 ? 1 : 0;
+        if (flip) { nxq = -nxq; nyq = -nyq; }
+        let mx = nxp + nxq, my = nyp + nyq;
+        const ml = Math.hypot(mx, my) || 1.0;
+        const dPhi = (0.5 * (op + omegaArr[q])) * (my / ml) * gCellY;
+        edC[gi] = Math.cos(dPhi);
+        edS[gi] = Math.sin(dPhi);
+        edFlip[gi] = flip;
+      }
+      if (gx + 1 < GW && gy + 1 < GH) {
+        const q = gi + GW + 1;
+        let nxq = nxArr[q], nyq = nyArr[q];
+        const flip = (nxp * nxq + nyp * nyq) < 0 ? 1 : 0;
+        if (flip) { nxq = -nxq; nyq = -nyq; }
+        let mx = nxp + nxq, my = nyp + nyq;
+        const ml = Math.hypot(mx, my) || 1.0;
+        const dPhi = (0.5 * (op + omegaArr[q])) * ((mx / ml) * gCellX + (my / ml) * gCellY);
+        edrC[gi] = Math.cos(dPhi) * 0.25;
+        edrS[gi] = Math.sin(dPhi) * 0.25;
+        edrFlip[gi] = flip;
+      }
+      if (gx - 1 >= 0 && gy + 1 < GH) {
+        const q = gi + GW - 1;
+        let nxq = nxArr[q], nyq = nyArr[q];
+        const flip = (nxp * nxq + nyp * nyq) < 0 ? 1 : 0;
+        if (flip) { nxq = -nxq; nyq = -nyq; }
+        let mx = nxp + nxq, my = nyp + nyq;
+        const ml = Math.hypot(mx, my) || 1.0;
+        const dPhi = (0.5 * (op + omegaArr[q])) * (-(mx / ml) * gCellX + (my / ml) * gCellY);
+        edlC[gi] = Math.cos(dPhi) * 0.25;
+        edlS[gi] = Math.sin(dPhi) * 0.25;
+        edlFlip[gi] = flip;
+      }
+    }
+  }
+
+  const solveDeadline = tStart + Math.max(380, maxTimeMs * 0.36);
+  const maxSweeps = 48;
+  for (let sweep = 0; sweep < maxSweeps; sweep++) {
+    if (sweep >= 20 && (sweep & 1) === 0 && performance.now() > solveDeadline) break;
+    const rev = (sweep & 1) === 1;
+    const yStart = rev ? GH - 2 : 1, yEnd = rev ? 0 : GH - 1, yStep = rev ? -1 : 1;
+    const xStart = rev ? GW - 2 : 1, xEnd = rev ? 0 : GW - 1, xStep = rev ? -1 : 1;
+
+    for (let gy = yStart; gy !== yEnd; gy += yStep) {
+      const row = gy * GW;
+      for (let gx = xStart; gx !== xEnd; gx += xStep) {
+        const i = row + gx;
+        let sr = 0, si = 0;
+
+        {
+          const q = i + 1;
+          const qr = re[q], qi = erFlip[i] ? -im[q] : im[q];
+          const c = erC[i], s = erS[i];
+          sr += qr * c + qi * s; si += qi * c - qr * s;
+        }
+        {
+          const w = i - 1;
+          const wr = re[w], wi = erFlip[w] ? -im[w] : im[w];
+          const c = erC[w], s = erS[w];
+          sr += wr * c - wi * s; si += wi * c + wr * s;
+        }
+        {
+          const q = i + GW;
+          const qr = re[q], qi = edFlip[i] ? -im[q] : im[q];
+          const c = edC[i], s = edS[i];
+          sr += qr * c + qi * s; si += qi * c - qr * s;
+        }
+        {
+          const n = i - GW;
+          const nr = re[n], ni = edFlip[n] ? -im[n] : im[n];
+          const c = edC[n], s = edS[n];
+          sr += nr * c - ni * s; si += ni * c + nr * s;
+        }
+        {
+          const q = i + GW + 1;
+          const qr = re[q], qi = edrFlip[i] ? -im[q] : im[q];
+          const c = edrC[i], s = edrS[i];
+          sr += qr * c + qi * s; si += qi * c - qr * s;
+        }
+        {
+          const nw = i - GW - 1;
+          const wr = re[nw], wi = edrFlip[nw] ? -im[nw] : im[nw];
+          const c = edrC[nw], s = edrS[nw];
+          sr += wr * c - wi * s; si += wi * c + wr * s;
+        }
+        {
+          const q = i + GW - 1;
+          const qr = re[q], qi = edlFlip[i] ? -im[q] : im[q];
+          const c = edlC[i], s = edlS[i];
+          sr += qr * c + qi * s; si += qi * c - qr * s;
+        }
+        {
+          const ne = i - GW + 1;
+          const er = re[ne], ei = edlFlip[ne] ? -im[ne] : im[ne];
+          const c = edlC[ne], s = edlS[ne];
+          sr += er * c - ei * s; si += ei * c + er * s;
+        }
+
+        const mag = Math.hypot(sr, si);
+        if (mag > 1e-6) { re[i] = sr / mag; im[i] = si / mag; }
+      }
+    }
+  }
+
+  // Altura escalar de ondas dentro de la silueta (estrictamente negativa fuera)
+  const u = new Float32Array(GN);
+  for (let i = 0; i < GN; i++) {
+    u[i] = gSil[i] ? (re[i] + 1e-4) : -1.0;
+  }
+
+  // 4. Marching Squares desambiguado (isolíneas cerradas estrictamente disjuntas)
+  const hEdges = new Int32Array(GN).fill(-1);
+  const vEdges = new Int32Array(GN).fill(-1);
+  const evX = [];
+  const evY = [];
+
+  const getHEdge = (gx, gy) => {
+    const idx = gy * GW + gx;
+    if (hEdges[idx] !== -1) return hEdges[idx];
+    const u0 = u[idx], u1 = u[idx + 1];
+    const t = Math.max(0.02, Math.min(0.98, -u0 / (u1 - u0)));
+    const id = evX.length;
+    evX.push((gx + t + 0.5) * gCellX);
+    evY.push((gy + 0.5) * gCellY);
+    hEdges[idx] = id;
+    return id;
+  };
+  const getVEdge = (gx, gy) => {
+    const idx = gy * GW + gx;
+    if (vEdges[idx] !== -1) return vEdges[idx];
+    const u0 = u[idx], u1 = u[idx + GW];
+    const t = Math.max(0.02, Math.min(0.98, -u0 / (u1 - u0)));
+    const id = evX.length;
+    evX.push((gx + 0.5) * gCellX);
+    evY.push((gy + t + 0.5) * gCellY);
+    vEdges[idx] = id;
+    return id;
+  };
+
+  const adj0 = [];
+  const adj1 = [];
+  const addMSeg = (a, b) => {
+    if (a === b) return;
+    while (adj0.length <= Math.max(a, b)) { adj0.push(-1); adj1.push(-1); }
+    if (adj0[a] === -1) adj0[a] = b; else adj1[a] = b;
+    if (adj0[b] === -1) adj0[b] = a; else adj1[b] = a;
+  };
+
+  for (let gy = 0; gy < GH - 1; gy++) {
+    const row = gy * GW;
+    for (let gx = 0; gx < GW - 1; gx++) {
+      const i00 = row + gx;
+      const u00 = u[i00], u10 = u[i00 + 1], u11 = u[i00 + GW + 1], u01 = u[i00 + GW];
+      const mask = (u00 > 0 ? 1 : 0) | (u10 > 0 ? 2 : 0) | (u11 > 0 ? 4 : 0) | (u01 > 0 ? 8 : 0);
+      if (mask === 0 || mask === 15) continue;
+      const eVal = (e) => (e === 0 ? getHEdge(gx, gy) : (e === 1 ? getVEdge(gx + 1, gy) : (e === 2 ? getHEdge(gx, gy + 1) : getVEdge(gx, gy))));
+      switch (mask) {
+        case 1: case 14: addMSeg(eVal(3), eVal(0)); break;
+        case 2: case 13: addMSeg(eVal(0), eVal(1)); break;
+        case 3: case 12: addMSeg(eVal(3), eVal(1)); break;
+        case 4: case 11: addMSeg(eVal(1), eVal(2)); break;
+        case 6: case 9:  addMSeg(eVal(0), eVal(2)); break;
+        case 7: case 8:  addMSeg(eVal(3), eVal(2)); break;
+        case 5: {
+          if (0.25 * (u00 + u10 + u11 + u01) > 0) { addMSeg(eVal(3), eVal(2)); addMSeg(eVal(0), eVal(1)); }
+          else { addMSeg(eVal(3), eVal(0)); addMSeg(eVal(1), eVal(2)); }
+          break;
+        }
+        case 10: {
+          if (0.25 * (u00 + u10 + u11 + u01) > 0) { addMSeg(eVal(3), eVal(0)); addMSeg(eVal(1), eVal(2)); }
+          else { addMSeg(eVal(3), eVal(2)); addMSeg(eVal(0), eVal(1)); }
+          break;
+        }
+      }
+    }
+  }
+
+  const evCount = evX.length;
+  const visited = new Uint8Array(evCount);
+  const rawLoops = [];
+  for (let s = 0; s < evCount; s++) {
+    if (visited[s] || adj0[s] === -1) continue;
+    const loop = [];
+    let curr = s, prev = -1;
+    while (curr !== -1 && !visited[curr]) {
+      visited[curr] = 1;
+      loop.push(curr);
+      const n0 = adj0[curr], n1 = adj1[curr];
+      const next = (n0 !== prev && n0 !== -1) ? n0 : ((n1 !== prev && n1 !== -1) ? n1 : -1);
+      prev = curr;
+      curr = next;
+    }
+    if (loop.length >= 8) rawLoops.push(loop);
+  }
+  if (rawLoops.length === 0) return { ptsX: new Float32Array(0), ptsY: new Float32Array(0) };
+
+  // Decimación con preservación de curvatura
+  const vx = [], vy = [], nxt = [], prv = [], loopIdOf = [], loopSizes = [];
+  let numLoops = 0;
+  for (const loop of rawLoops) {
+    const kept = [];
+    const nL = loop.length;
+    let lastX = evX[loop[0]], lastY = evY[loop[0]], prevDirX = 0, prevDirY = 0;
+    kept.push(loop[0]);
+    for (let k = 1; k < nL; k++) {
+      const id = loop[k];
+      const x = evX[id], y = evY[id];
+      const dx = x - lastX, dy = y - lastY;
+      const d = Math.hypot(dx, dy);
+      if (d >= 2.05 || k === nL - 1) {
+        kept.push(id);
+        if (d > 1e-4) { prevDirX = dx / d; prevDirY = dy / d; }
+        lastX = x; lastY = y;
+      } else if (d >= 1.15 && (prevDirX !== 0 || prevDirY !== 0)) {
+        const dot = (dx / d) * prevDirX + (dy / d) * prevDirY;
+        if (dot < 0.90) {
+          kept.push(id);
+          prevDirX = dx / d; prevDirY = dy / d;
+          lastX = x; lastY = y;
+        }
+      }
+    }
+    if (kept.length < 6) continue;
+    if (Math.hypot(evX[kept[kept.length - 1]] - evX[kept[0]], evY[kept[kept.length - 1]] - evY[kept[0]]) < 0.7 && kept.length > 5) {
+      kept.pop();
+    }
+    let loopPerim = 0;
+    for (let k = 0; k < kept.length; k++) {
+      const a = kept[k], b = kept[(k + 1) % kept.length];
+      loopPerim += Math.hypot(evX[b] - evX[a], evY[b] - evY[a]);
+    }
+    if (loopPerim < 14.0) continue;
+    const base = vx.length;
+    const L = kept.length;
+    for (let k = 0; k < L; k++) {
+      const id = kept[k];
+      vx.push(evX[id]); vy.push(evY[id]);
+      nxt.push(base + ((k + 1) % L));
+      prv.push(base + ((k - 1 + L) % L));
+      loopIdOf.push(numLoops);
+    }
+    loopSizes.push(L);
+    numLoops++;
+  }
+  if (numLoops === 0) return { ptsX: new Float32Array(0), ptsY: new Float32Array(0) };
+
+  const V = vx.length;
+  const tmpX = new Float32Array(V), tmpY = new Float32Array(V);
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 0; i < V; i++) {
+      const p = prv[i], n = nxt[i];
+      tmpX[i] = vx[i] * 0.56 + (vx[p] + vx[n]) * 0.22;
+      tmpY[i] = vy[i] * 0.56 + (vy[p] + vy[n]) * 0.22;
+    }
+    for (let i = 0; i < V; i++) { vx[i] = tmpX[i]; vy[i] = tmpY[i]; }
+  }
+
+  // 5. Empalme Planar en Horquillas: une las isolíneas sin cruzar en 1 única polilínea cerrada
+  const uf = new Int32Array(numLoops);
+  const compSize = new Int32Array(numLoops);
+  for (let i = 0; i < numLoops; i++) { uf[i] = i; compSize[i] = loopSizes[i]; }
+  const ufFind = (x) => { while (uf[x] !== x) { uf[x] = uf[uf[x]]; x = uf[x]; } return x; };
+
+  const segCross = (ax, ay, bx, by, cx, cy, dx, dy) => {
+    if (Math.max(ax, bx) <= Math.min(cx, dx) + 1e-7 || Math.max(cx, dx) <= Math.min(ax, bx) + 1e-7 ||
+        Math.max(ay, by) <= Math.min(cy, dy) + 1e-7 || Math.max(cy, dy) <= Math.min(ay, by) + 1e-7) return false;
+    const d1 = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+    const d2 = (bx - ax) * (dy - ay) - (by - ay) * (dx - ax);
+    const d3 = (dx - cx) * (ay - cy) - (dy - cy) * (ax - cx);
+    const d4 = (dx - cx) * (by - cy) - (dy - cy) * (bx - cx);
+    return ((d1 > 1e-7 && d2 < -1e-7) || (d1 < -1e-7 && d2 > 1e-7)) &&
+           ((d3 > 1e-7 && d4 < -1e-7) || (d3 < -1e-7 && d4 > 1e-7));
+  };
+  const ptSegDistSq = (px, py, ax, ay, bx, by) => {
+    const dx = bx - ax, dy = by - ay;
+    const l2 = dx * dx + dy * dy;
+    if (l2 < 1e-9) return (px - ax) * (px - ax) + (py - ay) * (py - ay);
+    const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / l2));
+    const qx = ax + t * dx, qy = ay + t * dy;
+    return (px - qx) * (px - qx) + (py - qy) * (py - qy);
+  };
+  const segDistSq = (ax, ay, bx, by, cx, cy, dx, dy) => {
+    if (segCross(ax, ay, bx, by, cx, cy, dx, dy)) return 0;
+    return Math.min(
+      ptSegDistSq(ax, ay, cx, cy, dx, dy),
+      ptSegDistSq(bx, by, cx, cy, dx, dy),
+      ptSegDistSq(cx, cy, ax, ay, bx, by),
+      ptSegDistSq(dx, dy, ax, ay, bx, by)
+    );
+  };
+
+  const eCell = 8;
+  const eCols = Math.ceil(W / eCell) + 1;
+  const eRows = Math.ceil(H / eCell) + 1;
+  const eGrid = new Array(eCols * eRows);
+  for (let i = 0; i < eGrid.length; i++) eGrid[i] = [];
+
+  const addEdgeToGrid = (u) => {
+    const v = nxt[u];
+    const gx0 = Math.max(0, (Math.min(vx[u], vx[v]) / eCell) | 0);
+    const gx1 = Math.min(eCols - 1, (Math.max(vx[u], vx[v]) / eCell) | 0);
+    const gy0 = Math.max(0, (Math.min(vy[u], vy[v]) / eCell) | 0);
+    const gy1 = Math.min(eRows - 1, (Math.max(vy[u], vy[v]) / eCell) | 0);
+    for (let gy = gy0; gy <= gy1; gy++) {
+      const ro = gy * eCols;
+      for (let gx = gx0; gx <= gx1; gx++) eGrid[ro + gx].push(u);
+    }
+  };
+  const removeEdgeFromGrid = (u, v) => {
+    const gx0 = Math.max(0, (Math.min(vx[u], vx[v]) / eCell) | 0);
+    const gx1 = Math.min(eCols - 1, (Math.max(vx[u], vx[v]) / eCell) | 0);
+    const gy0 = Math.max(0, (Math.min(vy[u], vy[v]) / eCell) | 0);
+    const gy1 = Math.min(eRows - 1, (Math.max(vy[u], vy[v]) / eCell) | 0);
+    for (let gy = gy0; gy <= gy1; gy++) {
+      const ro = gy * eCols;
+      for (let gx = gx0; gx <= gx1; gx++) {
+        const arr = eGrid[ro + gx];
+        const idx = arr.indexOf(u);
+        if (idx !== -1) { arr[idx] = arr[arr.length - 1]; arr.pop(); }
+      }
+    }
+  };
+
+  const activeEdgeSet = new Uint8Array(V).fill(1);
+  for (let u = 0; u < V; u++) addEdgeToGrid(u);
+
+  const segmentHitsAny = (ax, ay, bx, by, ignoreU1, ignoreV1, ignoreU2, ignoreV2, minDistSq) => {
+    const pad = 0.25;
+    const gx0 = Math.max(0, ((Math.min(ax, bx) - pad) / eCell) | 0);
+    const gx1 = Math.min(eCols - 1, ((Math.max(ax, bx) + pad) / eCell) | 0);
+    const gy0 = Math.max(0, ((Math.min(ay, by) - pad) / eCell) | 0);
+    const gy1 = Math.min(eRows - 1, ((Math.max(ay, by) + pad) / eCell) | 0);
+    for (let gy = gy0; gy <= gy1; gy++) {
+      const ro = gy * eCols;
+      for (let gx = gx0; gx <= gx1; gx++) {
+        const arr = eGrid[ro + gx];
+        for (let k = 0; k < arr.length; k++) {
+          const e = arr[k];
+          if (!activeEdgeSet[e]) continue;
+          const ev = nxt[e];
+          if (e === ignoreU1 || e === ignoreU2 || e === prv[ignoreU1] || e === prv[ignoreU2] || e === ignoreV1 || e === ignoreV2) continue;
+          if (segDistSq(ax, ay, bx, by, vx[e], vy[e], vx[ev], vy[ev]) < minDistSq) return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  const trySplice = (inA, inB, strict = true) => {
+    if (!activeEdgeSet[inA] || !activeEdgeSet[inB]) return false;
+    let cA = ufFind(loopIdOf[inA]), cB = ufFind(loopIdOf[inB]);
+    if (cA === cB) return false;
+    let a0 = inA, b0 = inB;
+    if (compSize[cA] < compSize[cB]) {
+      a0 = inB; b0 = inA;
+      const tc = cA; cA = cB; cB = tc;
+    }
+    const a1 = nxt[a0], b1 = nxt[b0];
+    const opt1Len = Math.hypot(vx[a0] - vx[b0], vy[a0] - vy[b0]) + Math.hypot(vx[b1] - vx[a1], vy[b1] - vy[a1]);
+    const opt2Len = Math.hypot(vx[a0] - vx[b1], vy[a0] - vy[b1]) + Math.hypot(vx[b0] - vx[a1], vy[b0] - vy[a1]);
+
+    const pairClearSq = strict ? 0.10 : 0.0005;
+    const hitClearSq = strict ? 0.04 : 0.0005;
+    const candidates = opt1Len <= opt2Len ? [1, 2] : [2, 1];
+    for (const mode of candidates) {
+      const p1 = a0, q1 = (mode === 1) ? b0 : b1;
+      const q2 = (mode === 1) ? b1 : b0, p2 = a1;
+      if (segDistSq(vx[p1], vy[p1], vx[q1], vy[q1], vx[q2], vy[q2], vx[p2], vy[p2]) < pairClearSq) continue;
+      if (segmentHitsAny(vx[p1], vy[p1], vx[q1], vy[q1], a0, a1, b0, b1, hitClearSq)) continue;
+      if (segmentHitsAny(vx[q2], vy[q2], vx[p2], vy[p2], a0, a1, b0, b1, hitClearSq)) continue;
+
+      removeEdgeFromGrid(a0, a1);
+      removeEdgeFromGrid(b0, b1);
+      activeEdgeSet[a0] = 0;
+      activeEdgeSet[b0] = 0;
+
+      if (mode === 1) {
+        const bNodes = [];
+        let cur = b0;
+        do {
+          bNodes.push(cur);
+          cur = prv[cur];
+        } while (cur !== b0 && bNodes.length <= V);
+        for (let idx = 0; idx < bNodes.length; idx++) {
+          const u = bNodes[idx];
+          if (activeEdgeSet[u]) { removeEdgeFromGrid(u, nxt[u]); activeEdgeSet[u] = 0; }
+        }
+        for (let idx = 0; idx < bNodes.length; idx++) {
+          const u = bNodes[idx];
+          const t = nxt[u]; nxt[u] = prv[u]; prv[u] = t;
+        }
+        nxt[a0] = b0; prv[b0] = a0;
+        nxt[b1] = a1; prv[a1] = b1;
+        for (let idx = 0; idx < bNodes.length; idx++) {
+          const u = bNodes[idx];
+          if (u !== b1) { activeEdgeSet[u] = 1; addEdgeToGrid(u); }
+        }
+        activeEdgeSet[a0] = 1; addEdgeToGrid(a0);
+        activeEdgeSet[b1] = 1; addEdgeToGrid(b1);
+      } else {
+        nxt[a0] = b1; prv[b1] = a0;
+        nxt[b0] = a1; prv[a1] = b0;
+        activeEdgeSet[a0] = 1; addEdgeToGrid(a0);
+        activeEdgeSet[b0] = 1; addEdgeToGrid(b0);
+      }
+
+      uf[cB] = cA;
+      compSize[cA] += compSize[cB];
+      return true;
+    }
+    return false;
+  };
+
+  let compsLeft = numLoops;
+  const radii = [5.5, 12.0, 28.0, 72.0, Math.max(W, H)];
+  for (let rPass = 0; rPass < radii.length && compsLeft > 1; rPass++) {
+    const maxD = radii[rPass];
+    const maxDSq = maxD * maxD;
+    const cands = [];
+    const rSearch = Math.min(Math.ceil(maxD / eCell) + 1, rPass === 0 ? 1 : (rPass === 1 ? 2 : (rPass === 2 ? 4 : 9)));
+    const stepV = rPass === 0 ? 2 : (rPass <= 2 ? 3 : 5);
+
+    for (let u = 0; u < V && cands.length < 90000; u += stepV) {
+      if (!activeEdgeSet[u]) continue;
+      const v = nxt[u];
+      const mx = (vx[u] + vx[v]) * 0.5, my = (vy[u] + vy[v]) * 0.5;
+      const tix = Math.min(W - 1, Math.max(0, mx | 0));
+      const tiy = Math.min(H - 1, Math.max(0, my | 0));
+      const toneMult = 0.72 + 0.58 * toneMap[tiy * W + tix];
+      const cu = ufFind(loopIdOf[u]);
+      const cx = (mx / eCell) | 0, cy = (my / eCell) | 0;
+
+      let bestB = -1, bestScore = Infinity;
+      for (let dy = -rSearch; dy <= rSearch; dy++) {
+        const ny = cy + dy; if (ny < 0 || ny >= eRows) continue;
+        const ro = ny * eCols;
+        for (let dx = -rSearch; dx <= rSearch; dx++) {
+          const nx = cx + dx; if (nx < 0 || nx >= eCols) continue;
+          const arr = eGrid[ro + nx];
+          for (let k = 0; k < arr.length; k++) {
+            const b = arr[k];
+            if (!activeEdgeSet[b] || ufFind(loopIdOf[b]) === cu) continue;
+            const bv = nxt[b];
+            const bmx = (vx[b] + vx[bv]) * 0.5, bmy = (vy[b] + vy[bv]) * 0.5;
+            const dSq = (mx - bmx) * (mx - bmx) + (my - bmy) * (my - bmy);
+            if (dSq > maxDSq) continue;
+            const e1x = vx[v] - vx[u], e1y = vy[v] - vy[u];
+            const e1l = Math.hypot(e1x, e1y) + 1e-5;
+            const dLen = Math.sqrt(dSq) + 1e-5;
+            const para = Math.abs((e1x / e1l) * ((bmx - mx) / dLen) + (e1y / e1l) * ((bmy - my) / dLen));
+            const score = dSq * (1.0 + 0.70 * para) * toneMult;
+            if (score < bestScore) { bestScore = score; bestB = b; }
+          }
+        }
+      }
+      if (bestB !== -1) cands.push({ u, b: bestB, s: bestScore });
+    }
+
+    cands.sort((x, y) => x.s - y.s);
+    for (let i = 0; i < cands.length && compsLeft > 1; i++) {
+      if (trySplice(cands[i].u, cands[i].b, true)) compsLeft--;
+    }
+  }
+
+  for (let fbPass = 0; fbPass < 2 && compsLeft > 1; fbPass++) {
+    const roots = new Map();
+    for (let u = 0; u < V; u++) {
+      const r = ufFind(loopIdOf[u]);
+      if (!roots.has(r)) roots.set(r, []);
+      roots.get(r).push(u);
+    }
+    const rootList = [...roots.values()].sort((a, b) => b.length - a.length);
+    const mainSet = rootList[0];
+    const fbCands = [];
+    for (let i = 1; i < rootList.length; i++) {
+      const compB = rootList[i];
+      const stepB = Math.max(1, (compB.length / 60) | 0);
+      const stepA = Math.max(1, (mainSet.length / 260) | 0);
+      const pairs = [];
+      for (let bi = 0; bi < compB.length; bi += stepB) {
+        const b = compB[bi];
+        for (let ai = 0; ai < mainSet.length; ai += stepA) {
+          const u = mainSet[ai];
+          const dSq = (vx[u] - vx[b]) * (vx[u] - vx[b]) + (vy[u] - vy[b]) * (vy[u] - vy[b]);
+          pairs.push({ u, b, s: dSq });
+        }
+      }
+      for (let bi = 0; bi < compB.length; bi += Math.max(1, (compB.length / 40) | 0)) {
+        const b = compB[bi];
+        const bv = nxt[b];
+        const bmx = (vx[b] + vx[bv]) * 0.5, bmy = (vy[b] + vy[bv]) * 0.5;
+        const cx = (bmx / eCell) | 0, cy = (bmy / eCell) | 0;
+        const cuB = ufFind(loopIdOf[b]);
+        for (let dy = -3; dy <= 3; dy++) {
+          const ny = cy + dy; if (ny < 0 || ny >= eRows) continue;
+          const ro = ny * eCols;
+          for (let dx = -3; dx <= 3; dx++) {
+            const nx = cx + dx; if (nx < 0 || nx >= eCols) continue;
+            const arr = eGrid[ro + nx];
+            for (let k = 0; k < arr.length; k++) {
+              const u = arr[k];
+              if (!activeEdgeSet[u] || ufFind(loopIdOf[u]) === cuB) continue;
+              const uv = nxt[u];
+              const umx = (vx[u] + vx[uv]) * 0.5, umy = (vy[u] + vy[uv]) * 0.5;
+              const dSq = (umx - bmx) * (umx - bmx) + (umy - bmy) * (umy - bmy);
+              pairs.push({ u, b, s: dSq });
+            }
+          }
+        }
+      }
+      pairs.sort((x, y) => x.s - y.s);
+      for (let p = 0; p < pairs.length && p < 32; p++) fbCands.push(pairs[p]);
+    }
+    fbCands.sort((x, y) => x.s - y.s);
+    for (let i = 0; i < fbCands.length && compsLeft > 1; i++) {
+      if (trySplice(fbCands[i].u, fbCands[i].b, fbPass === 0)) compsLeft--;
+    }
+  }
+
+  let startRoot = ufFind(loopIdOf[0]), bestCompSz = compSize[startRoot], startVertex = 0;
+  for (let u = 0; u < V; u++) {
+    const r = ufFind(loopIdOf[u]);
+    if (compSize[r] > bestCompSz) { bestCompSz = compSize[r]; startRoot = r; startVertex = u; }
+  }
+  const tourX = [], tourY = [];
+  const visV = new Uint8Array(V);
+  let cur = startVertex;
+  for (let steps = 0; steps <= V; steps++) {
+    if (visV[cur]) break;
+    visV[cur] = 1;
+    tourX.push(vx[cur]);
+    tourY.push(vy[cur]);
+    cur = nxt[cur];
+  }
+  tourX.push(tourX[0]);
+  tourY.push(tourY[0]);
+
+  let ptsX = new Float32Array(tourX);
+  let ptsY = new Float32Array(tourY);
+
+  if (chaikinPasses > 0) {
+    ({ ptsX, ptsY } = chaikinSmoothOpenTour(ptsX, ptsY, Math.min(2, chaikinPasses)));
+  }
+  uncrossContinuousTour(ptsX, ptsY, W, H, 10, tStart + Math.max(1200, maxTimeMs));
+
+  return { ptsX, ptsY };
 }
 
 /**
@@ -12024,6 +12805,14 @@ self.onmessage = function(e) {
     return;
   }
 
+  if (engineMode === 'harmonic_waves') {
+    const { ptsX, ptsY } = generateHarmonicWavesPortrait(coralToneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, MIN_R, MAX_R, CHAIKIN_PASSES, TARGET_NODES, seed, maxTimeMs);
+    const outX = new Float32Array(ptsX);
+    const outY = new Float32Array(ptsY);
+    self.postMessage({ jobId, ptsX: outX, ptsY: outY, pass: 1, totalPasses: 1, done: true }, [outX.buffer, outY.buffer]);
+    return;
+  }
+
   if (engineMode === 'hex_spiral') {
     let { ptsX, ptsY } = generateHexSpiralPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R, MAX_R, TARGET_NODES, seed, hexSpiralSize);
     if (CHAIKIN_PASSES > 0) {
@@ -12346,7 +13135,7 @@ function rebuildPortrait(needsStencilRebuild = true) {
     seed: REBUILD_SEED,
     coralMode: CORAL_MODE,
     coralTspMode: CORAL_TSP_MODE,
-    maxTimeMs: ((ENGINE_MODE === 'coral_tsp' && CORAL_TSP_MODE !== 'classic') || (ENGINE_MODE === 'coral' && CORAL_MODE === 'laminar'))
+    maxTimeMs: ((ENGINE_MODE === 'coral_tsp' && CORAL_TSP_MODE !== 'classic') || (ENGINE_MODE === 'coral' && CORAL_MODE === 'laminar') || ENGINE_MODE === 'harmonic_waves')
       ? (isMobileDevice ? (TARGET_NODES > 45000 ? 2200 : (TARGET_NODES > 35000 ? 1600 : 1200)) : (TARGET_NODES > 45000 ? 3000 : (TARGET_NODES > 35000 ? 2600 : 1400)))
       : (isMobileDevice ? (TARGET_NODES > 35000 ? 1500 : 800) : (TARGET_NODES > 35000 ? 2600 : 1400)),
     customFocalX,
@@ -13544,7 +14333,7 @@ function loadFromImageElement(img, isUserUpload = false) {
   if (initialFusion !== 25) autoOpacityAssisted = true;
 
   // Garantizar alta definición por defecto al abrir una foto para que los rasgos se distingan nítidos de primeras
-  const optimalNodes = (ENGINE_MODE === 'coral' && CORAL_MODE === 'laminar')
+  const optimalNodes = ((ENGINE_MODE === 'coral' && CORAL_MODE === 'laminar') || ENGINE_MODE === 'harmonic_waves')
     ? 50000
     : (isMobileDevice ? 38000 : 44000);
   if (TARGET_NODES < optimalNodes) {
@@ -13870,7 +14659,7 @@ function applyModePreset(mode) {
   BG_CLEAN = p.bgClean;
   MIN_R = (mode === 'coral' && CORAL_MODE === 'laminar') ? 1.4 : p.minR;
   MAX_R = (mode === 'coral' && CORAL_MODE === 'laminar') ? 3.2 : p.maxR;
-  if (mode === 'coral' && CORAL_MODE === 'laminar') {
+  if ((mode === 'coral' && CORAL_MODE === 'laminar') || mode === 'harmonic_waves') {
     if (TARGET_NODES < 50000) TARGET_NODES = 50000;
   }
   CHAIKIN_PASSES = p.chaikin;
