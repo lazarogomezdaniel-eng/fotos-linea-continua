@@ -9220,7 +9220,9 @@ function loadFromImageElement(img, isUserUpload = false) {
 
   applyModePreset(ENGINE_MODE);
 
-  const optimalNodes = isMobileDevice ? 22000 : 26000;
+  const optimalNodes = (ENGINE_MODE === 'coral' && CORAL_MODE === 'laminar')
+    ? (isMobileDevice ? 38000 : 44000)
+    : (isMobileDevice ? 22000 : 26000);
   if (TARGET_NODES < optimalNodes) {
     TARGET_NODES = optimalNodes;
     syncSlidersFromState();
@@ -9538,8 +9540,12 @@ function applyModePreset(mode) {
   PENCIL_BLUR = p.pencilBlur;
   SHADE_WEIGHT = p.shadeWeight;
   BG_CLEAN = p.bgClean;
-  MIN_R = p.minR;
-  MAX_R = p.maxR;
+  MIN_R = (mode === 'coral' && CORAL_MODE === 'laminar') ? 1.4 : p.minR;
+  MAX_R = (mode === 'coral' && CORAL_MODE === 'laminar') ? 3.2 : p.maxR;
+  if (mode === 'coral' && CORAL_MODE === 'laminar') {
+    const lamNodes = isMobileDevice ? 38000 : 44000;
+    if (TARGET_NODES < lamNodes) TARGET_NODES = lamNodes;
+  }
   CHAIKIN_PASSES = p.chaikin;
   if (p.lineW !== undefined) LINE_W = p.lineW;
   if (p.goldenSize !== undefined) GOLDEN_SIZE = p.goldenSize;
@@ -9969,7 +9975,20 @@ const selCoralMode = document.getElementById('coralMode');
 if (selCoralMode) {
   selCoralMode.addEventListener('change', (e) => {
     CORAL_MODE = (e.target.value === 'laminar') ? 'laminar' : 'classic';
-    updateCoralPanelVisibility();
+    if (CORAL_MODE === 'laminar') {
+      MIN_R = 1.4;
+      MAX_R = 3.2;
+      const lamNodes = isMobileDevice ? 38000 : 44000;
+      if (TARGET_NODES < lamNodes) TARGET_NODES = lamNodes;
+    } else {
+      const p = MODE_PRESETS.coral;
+      if (p) {
+        MIN_R = p.minR;
+        MAX_R = p.maxR;
+      }
+      TARGET_NODES = isMobileDevice ? 22000 : 26000;
+    }
+    syncSlidersFromState();
     lineCacheDirty = true;
     rebuildPortrait(false);
   });
