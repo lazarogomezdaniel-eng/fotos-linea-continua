@@ -13544,7 +13544,9 @@ function loadFromImageElement(img, isUserUpload = false) {
   if (initialFusion !== 25) autoOpacityAssisted = true;
 
   // Garantizar alta definición por defecto al abrir una foto para que los rasgos se distingan nítidos de primeras
-  const optimalNodes = isMobileDevice ? 38000 : 44000;
+  const optimalNodes = (ENGINE_MODE === 'coral' && CORAL_MODE === 'laminar')
+    ? 50000
+    : (isMobileDevice ? 38000 : 44000);
   if (TARGET_NODES < optimalNodes) {
     TARGET_NODES = optimalNodes;
     syncSlidersFromState();
@@ -13866,8 +13868,11 @@ function applyModePreset(mode) {
   PENCIL_BLUR = p.pencilBlur;
   SHADE_WEIGHT = p.shadeWeight;
   BG_CLEAN = p.bgClean;
-  MIN_R = p.minR;
-  MAX_R = p.maxR;
+  MIN_R = (mode === 'coral' && CORAL_MODE === 'laminar') ? 1.4 : p.minR;
+  MAX_R = (mode === 'coral' && CORAL_MODE === 'laminar') ? 3.2 : p.maxR;
+  if (mode === 'coral' && CORAL_MODE === 'laminar') {
+    if (TARGET_NODES < 50000) TARGET_NODES = 50000;
+  }
   CHAIKIN_PASSES = p.chaikin;
   LINE_W = p.lineW !== undefined ? p.lineW : 1.0;
 
@@ -14978,7 +14983,13 @@ if (btnCoralClassic && btnCoralLaminar) {
   btnCoralClassic.addEventListener('click', () => {
     if (CORAL_MODE === 'classic') return;
     CORAL_MODE = 'classic';
-    syncCoralModePills('classic');
+    const p = MODE_PRESETS.coral;
+    if (p) {
+      MIN_R = p.minR;
+      MAX_R = p.maxR;
+    }
+    TARGET_NODES = isMobileDevice ? 38000 : 44000;
+    syncSlidersFromState();
     lineCacheDirty = true;
     rebuildPortrait(false);
     if (typeof haptic === 'function') haptic(10);
@@ -14986,7 +14997,10 @@ if (btnCoralClassic && btnCoralLaminar) {
   btnCoralLaminar.addEventListener('click', () => {
     if (CORAL_MODE === 'laminar') return;
     CORAL_MODE = 'laminar';
-    syncCoralModePills('laminar');
+    MIN_R = 1.4;
+    MAX_R = 3.2;
+    if (TARGET_NODES < 50000) TARGET_NODES = 50000;
+    syncSlidersFromState();
     lineCacheDirty = true;
     rebuildPortrait(false);
     if (typeof haptic === 'function') haptic(10);
