@@ -364,7 +364,7 @@
         <option value="flor_fractal">🌸 14. Flor Fractal de Barcelona (Clásico / Toda la Foto · Sin Cruces)</option>
         <option value="golden_spiral">🐚 15. Espiral Áurea Proporcional (Caracol Fibonacci φ = 1.618)</option>
         <option value="honeycomb">🐝 20. Colmena Hexagonal (Panal de Abeja Orgánico)</option>
-        <option value="escher_cube">🎲 21. Celosía Escheriana en Y (Isométrico)</option>
+        <option value="escher_cube">🎲 21. Celosía Isométrica en Y (Teselado 3D)</option>
         <option value="geo_pop">🎨 22. Pop Geométrico (Cuadrados y Círculos de Color)</option>
       </select>
       <div id="modeDesc" class="mode-badge">
@@ -930,7 +930,7 @@ const MODE_DESCRIPTIONS = {
   flor_fractal:   '🌸 Flor Fractal de Barcelona: Alterna entre el Fractal Clásico (cuadrado Hilbert 2ⁿ original) y el Mosaico Rectangular en toda la foto, sin cruces.',
   golden_spiral:  '🐚 Espiral Áurea Proporcional (φ = 1.618): Caracol logarítmico de Fibonacci anclado en la pupila dominante que esculpe el retrato mediante grabado caligráfico al buril de un solo trazo continuo.',
   honeycomb:      '🐝 Colmena Hexagonal (Panal de Abeja Orgánico): Mosaico continuo de celdas hexagonales 100% encajadas que esculpen los rasgos y volúmenes del retrato mediante cámaras y anillos concéntricos adaptativos.',
-  escher_cube:    '🎲 Celosía Escheriana en Y (Isométrico): Mosaico hexagonal continuo con celdas de brazos a 120° y puntas de flecha entrelazadas en Y (estilo Escher / Kumiko) que modulan pliegues concéntricos según la densidad tonal.',
+  escher_cube:    '🎲 Celosía Isométrica en Y (Teselado 3D): Mosaico hexagonal continuo con celdas de brazos a 120° y puntas de flecha entrelazadas en Y (estilo geométrico / Kumiko) que modulan pliegues concéntricos según la densidad tonal.',
   geo_pop:        '🎨 Pop Geométrico Retro: Combina cuadrados, rectángulos y círculos translúcidos con fusión de color sobre fotografía ajustable a blanco y negro.'
 };
 
@@ -5895,9 +5895,8 @@ function generatePursuitVortexPortrait(coralToneMap, step232Stencil, silhouetteM
 }
 
 /**
- * MODO 20: CELOSÍA ESCHERIANA EN Y (MOSAICO ISOMÉTRICO 3-EJES / KUMIKO BISHAMON):
- * Mosaico hexagonal continuo con celdas de 3 brazos a 120° y cheurones/puntas de flecha entrelazadas en Y
- * inspiradas en las divisiones regulares del plano de M.C. Escher.
+ * MODO 21: CELOSÍA ISOMÉTRICA EN Y (MOSAICO ISOMÉTRICO 3-EJES / KUMIKO BISHAMON):
+ * Mosaico hexagonal continuo con celdas de 3 brazos a 120° y cheurones/puntas de flecha entrelazadas en Y.
  * Modula pliegues concéntricos continuos según los claroscuros del retrato con 0 cruces de pluma.
  */
 function generateEscherYPortrait(coralToneMap, step232Stencil, silhouetteMask, W, H, MIN_R = 1.4, MAX_R = 5.5, TARGET_NODES = 38000, seed = 0, escherSize = 6.0) {
@@ -10887,13 +10886,23 @@ document.getElementById('btnAnimate').onclick = () => {
   }
 };
 
+function getExportModeSlug(mode = ENGINE_MODE) {
+  const safeMap = {
+    keith_haring: 'pop_urbano',
+    haring_croc: 'bestiario_pop',
+    haring_puzzle: 'puzle_humano',
+    escher_cube: 'celosia_isometrica'
+  };
+  return safeMap[mode] || mode;
+}
+
 document.getElementById('btnPng').onclick = () => {
   render();
   const a = document.createElement('a');
   a.href = canvas.toDataURL('image/png');
   a.download = (ENGINE_MODE === 'geo_pop')
     ? `retrato_geo_pop_${GEO_POP_DESAT}bw.png`
-    : `retrato_${ENGINE_MODE}_${COLOR_MODE}.png`;
+    : `retrato_${getExportModeSlug(ENGINE_MODE)}_${COLOR_MODE}.png`;
   a.click();
 };
 
@@ -11047,7 +11056,7 @@ ${pathsMarkup}
 
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
-  a.download = `retrato_${ENGINE_MODE}_${COLOR_MODE}.svg`;
+  a.download = `retrato_${getExportModeSlug(ENGINE_MODE)}_${COLOR_MODE}.svg`;
   a.click();
 };
 
@@ -11067,7 +11076,7 @@ btnRec.onclick = () => {
     recorder.onstop = () => {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }));
-      a.download = `retrato_${ENGINE_MODE}.webm`;
+      a.download = `retrato_${getExportModeSlug(ENGINE_MODE)}.webm`;
       a.click();
     };
     recorder.start();
