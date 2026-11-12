@@ -348,29 +348,29 @@
     <div class="panel-section">
       <div class="panel-title"><span>Modo / Algoritmo de Línea (Estilos)</span> <span>⚡</span></div>
       <select id="engineMode">
-        <option value="coral">🧠 1. Coral Cerebral (Clásico Original / Laminar Armónico)</option>
-        <option value="coral_tsp">🌊 2. Coral Orgánico TSP (Alta Definición Pro / Clásico)</option>
-        <option value="stencil_clean">✏️ 3. Calco Limpio de Galería Sin Cruces (Contorno Fino + Achurado)</option>
-        <option value="stencil_cross">✍️ 4. Calco a Lápiz CON CRUCES (Boceto de Trazos Cruzados)</option>
-        <option value="live_growth">🌱 5. Crecimiento en Vivo CON CRUCES (1ª Versión Original)</option>
-        <option value="golden">💠 6. Cuasicristal Áureo de Penrose φ = 1.618 (Rombos 72°/36° · Sin Cruces)</option>
-        <option value="fractal">❄️ 7. Curva Fractal Adaptativa (Hilbert Multiescala 2ⁿ)</option>
-        <option value="hex_spiral">🌀 8. Mosaico Hex-Espiral Geométrico</option>
-        <option value="iso_diamond">💎 9. Mosaico Rombos Isométricos 3D</option>
-        <option value="pursuit_vortex">🌪️ 10. Vórtice Geométrico en Espiral</option>
-        <option value="panot_bcn">🧱 11. Panots de Barcelona (Baldosa Hidráulica con Marco)</option>
-        <option value="flor_bcn">🌺 12. Flor de Barcelona (Silueta Floral Concéntrica · Sin Marco)</option>
-        <option value="flor_fractal">🌸 13. Flor Fractal de Barcelona (Clásico / Toda la Foto · Sin Cruces)</option>
-        <option value="golden_spiral">🐚 14. Espiral Áurea Proporcional (Caracol Fibonacci φ = 1.618)</option>
-        <option value="honeycomb">🐝 19. Colmena Hexagonal (Panal de Abeja Orgánico)</option>
-        <option value="escher_cube">🎲 20. Celosía Escheriana en Y (Isométrico)</option>
-        <option value="geo_pop">🎨 21. Pop Geométrico (Cuadrados y Círculos de Color)</option>
-        <option value="harmonic_waves">〰️ 22. Ondas Paralelas Armónicas (Estilo Algorigraph · 0 Cruces)</option>
+        <option value="harmonic_waves" selected>〰️ 1. Ondas Paralelas Armónicas</option>
+        <option value="coral">🧠 2. Coral Cerebral (Clásico Original / Laminar Armónico)</option>
+        <option value="coral_tsp">🌊 3. Coral Orgánico TSP (Alta Definición Pro / Clásico)</option>
+        <option value="stencil_clean">✏️ 4. Calco Limpio de Galería Sin Cruces (Contorno Fino + Achurado)</option>
+        <option value="stencil_cross">✍️ 5. Calco a Lápiz CON CRUCES (Boceto de Trazos Cruzados)</option>
+        <option value="live_growth">🌱 6. Crecimiento en Vivo CON CRUCES (1ª Versión Original)</option>
+        <option value="golden">💠 7. Cuasicristal Áureo de Penrose φ = 1.618 (Rombos 72°/36° · Sin Cruces)</option>
+        <option value="fractal">❄️ 8. Curva Fractal Adaptativa (Hilbert Multiescala 2ⁿ)</option>
+        <option value="hex_spiral">🌀 9. Mosaico Hex-Espiral Geométrico</option>
+        <option value="iso_diamond">💎 10. Mosaico Rombos Isométricos 3D</option>
+        <option value="pursuit_vortex">🌪️ 11. Vórtice Geométrico en Espiral</option>
+        <option value="panot_bcn">🧱 12. Panots de Barcelona (Baldosa Hidráulica con Marco)</option>
+        <option value="flor_bcn">🌺 13. Flor de Barcelona (Silueta Floral Concéntrica · Sin Marco)</option>
+        <option value="flor_fractal">🌸 14. Flor Fractal de Barcelona (Clásico / Toda la Foto · Sin Cruces)</option>
+        <option value="golden_spiral">🐚 15. Espiral Áurea Proporcional (Caracol Fibonacci φ = 1.618)</option>
+        <option value="honeycomb">🐝 20. Colmena Hexagonal (Panal de Abeja Orgánico)</option>
+        <option value="escher_cube">🎲 21. Celosía Escheriana en Y (Isométrico)</option>
+        <option value="geo_pop">🎨 22. Pop Geométrico (Cuadrados y Círculos de Color)</option>
       </select>
       <div id="modeDesc" class="mode-badge">
-        🧠 Coral Cerebral (Clásico / Laminar Armónico): Alterna entre el Coral Dendrítico original y el nuevo Coral Laminar Armónico de bandas paralelas largas y meandros profundos con 0 cruces.
+        〰️ Ondas Paralelas Armónicas: Campo de ondas acopladas que empuja grandes masas de curvas paralelas al unísono con bifurcaciones limpias en sombras en un único trazo continuo.
       </div>
-      <div id="boxCoralControls" style="display:block; margin-top:6px; padding:6px 8px; border-radius:6px; background:rgba(56, 189, 248, 0.08); border:1px solid rgba(56, 189, 248, 0.28);">
+      <div id="boxCoralControls" style="display:none; margin-top:6px; padding:6px 8px; border-radius:6px; background:rgba(56, 189, 248, 0.08); border:1px solid rgba(56, 189, 248, 0.28);">
         <div>
           <label style="margin:0 0 3px 0; font-weight:700; color:#d8e6ff;">Variante de Coral Cerebral</label>
           <select id="coralMode">
@@ -710,7 +710,7 @@ let cachedPath2D = null;
 let lineCacheDirty = true;
 
 // Parámetros activos
-let ENGINE_MODE = 'coral';
+let ENGINE_MODE = 'harmonic_waves';
 let VIEW_MODE = 'line';
 let PENCIL_STR = 8.5;
 let PENCIL_BLUR = 2.0;
@@ -914,6 +914,7 @@ let liveNodesY = null;
 let liveNodeCount = 0;
 
 const MODE_DESCRIPTIONS = {
+  harmonic_waves: '〰️ Ondas Paralelas Armónicas: Campo de ondas acopladas que empuja grandes masas de curvas paralelas al unísono con bifurcaciones limpias en sombras en un único trazo continuo.',
   coral: '🧠 Coral Cerebral (Clásico / Laminar Armónico): Alterna entre el Coral Dendrítico original y el nuevo Coral Laminar Armónico de bandas paralelas largas y meandros profundos con 0 cruces.',
   coral_tsp: '🌊 Coral Orgánico TSP (Pro / Clásico): Alterna entre Alta Definición Pro (nitidez HD en ojos/rasgos, flujo tonal equilibrado y 0 cruces) y el algoritmo Clásico original.',
   stencil_clean: '✏️ Calco Limpio de Galería: Traza iso-contornos anatómicos subpíxel limpios y achurado curvo académico en sombras profundas en una sola línea continua libre de cruces.',
@@ -930,8 +931,7 @@ const MODE_DESCRIPTIONS = {
   golden_spiral:  '🐚 Espiral Áurea Proporcional (φ = 1.618): Caracol logarítmico de Fibonacci anclado en la pupila dominante que esculpe el retrato mediante grabado caligráfico al buril de un solo trazo continuo.',
   honeycomb:      '🐝 Colmena Hexagonal (Panal de Abeja Orgánico): Mosaico continuo de celdas hexagonales 100% encajadas que esculpen los rasgos y volúmenes del retrato mediante cámaras y anillos concéntricos adaptativos.',
   escher_cube:    '🎲 Celosía Escheriana en Y (Isométrico): Mosaico hexagonal continuo con celdas de brazos a 120° y puntas de flecha entrelazadas en Y (estilo Escher / Kumiko) que modulan pliegues concéntricos según la densidad tonal.',
-  geo_pop:        '🎨 Pop Geométrico Retro: Combina cuadrados, rectángulos y círculos translúcidos con fusión de color sobre fotografía ajustable a blanco y negro.',
-  harmonic_waves: '〰️ Ondas Paralelas Armónicas (Estilo Algorigraph · 0 Cruces): Campo de franjas acopladas que empuja grandes masas de curvas paralelas al unísono con bifurcaciones limpias en sombras y 1 solo trazo continuo sin cruces.'
+  geo_pop:        '🎨 Pop Geométrico Retro: Combina cuadrados, rectángulos y círculos translúcidos con fusión de color sobre fotografía ajustable a blanco y negro.'
 };
 
 const MODE_PRESETS = {
@@ -3967,8 +3967,8 @@ function generateLaminarCoralPortrait(toneMap, step232Stencil, silhouetteMask, s
 }
 
 /**
- * MODO 22: ONDAS PARALELAS ARMÓNICAS (ESTILO ALGORIGRAPH · 0 CRUCES)
- * Campo de orientación armónico multiescala + solver de fasores complejos acoplados (Knöppel-Crane)
+ * MODO 1: ONDAS PARALELAS ARMÓNICAS
+ * Campo de orientación armónico multiescala + solver de fasores complejos acoplados
  * + extracción Marching Squares subpíxel + empalme topológico planar de horquillas en 1 sola línea continua cerrada.
  */
 function generateHarmonicWavesPortrait(toneMap, step232Stencil, silhouetteMask, smoothSilMap, W, H, minW = 1.4, maxW = 3.2, chaikinPasses = 1, TARGET_NODES = 44000, seed = 0, maxTimeMs = 1800) {
@@ -11082,6 +11082,10 @@ btnRec.onclick = () => {
 };
 
 initDemoPortrait();
+const initEngineSel = document.getElementById('engineMode');
+if (initEngineSel) initEngineSel.value = ENGINE_MODE;
+const initModeDesc = document.getElementById('modeDesc');
+if (initModeDesc) initModeDesc.textContent = MODE_DESCRIPTIONS[ENGINE_MODE] || '';
 updateColorPanelVisibility();
 updateCoralPanelVisibility();
 updateCoralTspPanelVisibility();
