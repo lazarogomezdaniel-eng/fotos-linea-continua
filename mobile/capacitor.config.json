@@ -1,12 +1,25 @@
 {
   "appId": "com.lineacontinua.studio",
-  "appName": "L\u00ednea Continua",
+  "appName": "LolyLine",
   "webDir": "www",
-  "bundledWebRuntime": false,
   "android": {
     "allowMixedContent": true,
     "captureInput": true,
     "webContentsDebuggingEnabled": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "launchAutoHide": true,
+      "backgroundColor": "#0b0d13",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#07090e"
+    }
   },
   "server": {
     "androidScheme": "https"

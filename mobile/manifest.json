@@ -1,7 +1,7 @@
 {
-  "name": "Estudio de Línea Continua",
-  "short_name": "Línea Continua",
-  "description": "Transforma fotos en arte de una sola línea continua con 13 motores algorítmicos",
+  "name": "LolyLine: Arte en Línea Continua",
+  "short_name": "LolyLine",
+  "description": "Transforma fotos en arte de una sola línea continua con 22 motores algorítmicos",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
