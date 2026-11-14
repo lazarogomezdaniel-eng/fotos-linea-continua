@@ -586,20 +586,23 @@
   async function exportFileNativeOrWeb({ fileName, dataUrl, textContent, mimeType, shareTitle }) {
     if (isNative && window.Capacitor.isPluginAvailable('Filesystem')) {
       try {
-        const { Filesystem, Directory } = window.Capacitor.Plugins;
+        const { Filesystem } = window.Capacitor.Plugins;
         let writeData = '';
+        const writeOptions = {
+          path: fileName,
+          directory: 'CACHE'
+        };
+
         if (dataUrl) {
           const parts = dataUrl.split(',');
           writeData = parts[1] || parts[0];
         } else if (textContent) {
           writeData = textContent;
+          writeOptions.encoding = 'utf8';
         }
+        writeOptions.data = writeData;
 
-        const fileResult = await Filesystem.writeFile({
-          path: fileName,
-          data: writeData,
-          directory: Directory.Cache
-        });
+        const fileResult = await Filesystem.writeFile(writeOptions);
 
         if (window.Capacitor.isPluginAvailable('Share')) {
           await window.Capacitor.Plugins.Share.share({
@@ -637,10 +640,10 @@
   async function openPhotoPicker(preferredSource = 'prompt') {
     if (isNative && window.Capacitor.isPluginAvailable('Camera')) {
       try {
-        const { Camera, CameraSource, CameraResultType } = window.Capacitor.Plugins;
-        let source = CameraSource.Prompt;
-        if (preferredSource === 'camera') source = CameraSource.Camera;
-        if (preferredSource === 'photos') source = CameraSource.Photos;
+        const { Camera } = window.Capacitor.Plugins;
+        let source = 'PROMPT';
+        if (preferredSource === 'camera') source = 'CAMERA';
+        if (preferredSource === 'photos') source = 'PHOTOS';
 
         const image = await Camera.getPhoto({
           quality: 92,
@@ -648,7 +651,7 @@
           correctOrientation: true,
           width: 1600,
           height: 1600,
-          resultType: CameraResultType.DataUrl,
+          resultType: 'dataUrl',
           source: source,
           promptLabelHeader: I18N[currentLang].cameraPromptHeader,
           promptLabelPhoto: I18N[currentLang].cameraPromptPhoto,
@@ -661,7 +664,19 @@
           closeLanding();
         }
       } catch (err) {
-        console.log('Camera dismissed or error:', err);
+        const msg = (err && err.message) ? err.message : String(err || '');
+        console.log('Camera dismissed or error:', msg);
+        const isCancelled = /cancel|dismiss|closed/i.test(msg);
+        if (!isCancelled) {
+          if (preferredSource === 'photos') {
+            const input = document.getElementById('imgInput');
+            if (input) input.click();
+          } else {
+            alert((currentLang === 'es')
+              ? 'No se pudo abrir la cámara. Verifica los permisos de cámara en Ajustes de Android.'
+              : 'Could not open camera. Please check Camera permissions in Android Settings.');
+          }
+        }
       }
     } else {
       // Web fallback: click hidden file input
@@ -1060,10 +1075,44 @@
     style.id = 'lolyLineStyles';
     style.textContent = `
       /* Home & Lang Buttons */
+      #appHeader {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 4px !important;
+        padding-left: max(8px, env(safe-area-inset-left)) !important;
+        padding-right: max(8px, env(safe-area-inset-right)) !important;
+      }
+      #appHeader .header-left,
+      #appHeader .header-right {
+        gap: 5px !important;
+        flex-shrink: 0 !important;
+      }
+      #appHeader .header-center {
+        position: static !important;
+        transform: none !important;
+        left: auto !important;
+        top: auto !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+      }
+      #appHeader .upload-btn,
+      #appHeader .stencil-solo-btn {
+        padding: 6px 9px !important;
+        font-size: 12px !important;
+        gap: 5px !important;
+      }
+      #appHeader .icon-btn {
+        width: 33px !important;
+        height: 33px !important;
+        min-width: 33px !important;
+      }
       .home-btn {
-        width: 34px !important;
-        height: 34px !important;
-        min-width: 34px !important;
+        width: 33px !important;
+        height: 33px !important;
+        min-width: 33px !important;
         border-radius: 9px !important;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid var(--border);
