@@ -140,6 +140,7 @@
       proBtnUnlock: 'Desbloquear Pro — ',
       proBtnRestore: 'Restaurar compras',
       proBtnPrivacy: 'Política de Privacidad',
+      proBtnTerms: 'Términos de Uso',
       proAlreadyActive: '¡LolyLine Pro ya está activo!',
       proUnlockedToast: '¡Gracias! LolyLine Pro desbloqueado con éxito.',
       proRestoredToast: 'Compras restauradas con éxito.',
@@ -315,6 +316,7 @@
       proBtnUnlock: 'Unlock Pro — ',
       proBtnRestore: 'Restore purchases',
       proBtnPrivacy: 'Privacy Policy',
+      proBtnTerms: 'Terms of Service',
       proAlreadyActive: 'LolyLine Pro is already active!',
       proUnlockedToast: 'Thank you! LolyLine Pro successfully unlocked.',
       proRestoredToast: 'Purchases restored successfully.',
@@ -805,8 +807,10 @@
           </button>
         </div>
 
-        <div class="loly-pro-legal-row">
+        <div class="loly-pro-legal-row" style="display:flex; justify-content:center; gap:14px; flex-wrap:wrap;">
           <a href="privacy-policy.html" target="_blank" id="lnkProPrivacy" class="loly-link-muted"></a>
+          <span style="color:#475569; font-size:0.8rem;">•</span>
+          <a href="https://mycoverso.com/terminos.html" target="_blank" id="lnkProTerms" class="loly-link-muted"></a>
         </div>
 
         <button type="button" id="proBtnClose" class="loly-close-btn" title="Cerrar / Close">✕</button>
@@ -842,6 +846,8 @@
     if (btnRes) btnRes.textContent = dict.proBtnRestore;
     const lnkPriv = document.getElementById('lnkProPrivacy');
     if (lnkPriv) lnkPriv.textContent = dict.proBtnPrivacy;
+    const lnkTerms = document.getElementById('lnkProTerms');
+    if (lnkTerms) lnkTerms.textContent = dict.proBtnTerms;
   }
 
   function showProModal(reason = '') {
