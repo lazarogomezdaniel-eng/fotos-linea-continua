@@ -573,12 +573,193 @@
       window.updateActiveFunctionPill();
     }
 
+    // Complete UI localization for Trazo, Color, Exportar & Modals
+    localizeStudioPanels(currentLang);
+
     // Update landing texts if open
     updateLandingTexts();
 
     // Update Pro texts and UI
     if (typeof updateProModalTexts === 'function') updateProModalTexts();
     if (typeof updateProUi === 'function') updateProUi();
+  }
+
+  function setText(selector, text) {
+    const el = typeof selector === 'string' ? document.querySelector(selector) : selector;
+    if (el && text !== undefined) el.textContent = text;
+  }
+
+  function localizeStudioPanels(lang) {
+    const es = lang === 'es';
+
+    // Sub-tabs (Trazo & Color)
+    setText('.studio-subnav-btn[data-subtab="subTrazoLine"]', es ? '✒️ Pluma & Nodos' : '✒️ Pen & Nodes');
+    setText('.studio-subnav-btn[data-subtab="subTrazoSilueta"]', es ? '✏️ Lectura Retrato' : '✏️ Portrait Trace');
+    setText('.studio-subnav-btn[data-subtab="subTrazoEspaciado"]', es ? '📐 Densidad' : '📐 Density');
+    setText('.studio-subnav-btn[data-subtab="subColorTinta"]', es ? '🎨 Tinta & Paleta' : '🎨 Ink & Palette');
+    setText('.studio-subnav-btn[data-subtab="subColorLienzo"]', es ? '🖼️ Lienzo & Fusión' : '🖼️ Canvas & Blend');
+    setText('.studio-subnav-btn[data-subtab="subColorDinamica"]', es ? '✨ Dinámica' : '✨ Dynamics');
+
+    // Geo-Pop notices
+    setText('#geoPopTrazoNotice .geo-pop-lock-head span:first-child', es ? '🔒 Trazo y Silueta deshabilitados' : '🔒 Stroke & Silhouette disabled');
+    setText('#geoPopTrazoNotice .geo-pop-lock-badge', es ? 'Estilo 22' : 'Style 22');
+    setText('#geoPopColorNotice .geo-pop-lock-head span:first-child', es ? '🔒 Tinta, Lienzo y Dinámica deshabilitados' : '🔒 Ink, Canvas & Dynamics disabled');
+    setText('#geoPopColorNotice .geo-pop-lock-badge', es ? 'Estilo 22' : 'Style 22');
+    document.querySelectorAll('.geo-pop-jump-btn span:last-child').forEach(el => {
+      el.textContent = es ? 'Ir a ajustes Pop Geométrico' : 'Go to Geometric Pop settings';
+    });
+
+    // paneTrazo sliders (matched by input ID -> parent .studio-slider-card)
+    const sliderTitles = {
+      maxN: es ? 'Nodos Vectoriales Activos' : 'Active Vector Nodes',
+      lineW: es ? 'Grosor de Pluma' : 'Pen Thickness',
+      chaikinPasses: es ? 'Suavizado de Curva (Chaikin)' : 'Curve Smoothing (Chaikin)',
+      pencilStr: es ? 'Fuerza de Lápiz (Contraste)' : 'Pencil Strength (Contrast)',
+      shadeWeight: es ? 'Peso de Sombras y Pelo' : 'Shadow & Hair Weight',
+      pencilBlur: es ? 'Difuminado del Calco' : 'Trace Blur',
+      bgClean: es ? 'Limpieza de Fondo' : 'Background Cleanup',
+      minR: es ? 'Separación en Sombras' : 'Shadow Spacing',
+      maxR: es ? 'Separación en Luces' : 'Highlight Spacing',
+      colorHue: es ? 'Rueda de Matiz (360°)' : 'Hue Wheel (360°)',
+      fusionOpacity: es ? 'Fusión con Retrato' : 'Portrait Blend',
+      colorScale: es ? 'Frecuencia Cromática' : 'Color Frequency',
+      colorIntensity: es ? 'Saturación e Intensidad' : 'Saturation & Intensity'
+    };
+    Object.entries(sliderTitles).forEach(([id, title]) => {
+      const card = document.getElementById(id)?.closest('.studio-slider-card');
+      const titleEl = card?.querySelector('.studio-slider-title');
+      if (titleEl) titleEl.textContent = title;
+    });
+
+    setText('.studio-pill[data-set-target="maxN"][data-set-value="38000"]', es ? '38k Óptimo' : '38k Optimal');
+    setText('.studio-pill[data-set-target="fusionOpacity"][data-set-value="0"]', es ? '0% Off' : '0% Off');
+
+    const btnResetStyle = document.getElementById('btnResetStyleParams');
+    if (btnResetStyle) {
+      btnResetStyle.innerHTML = `<span class="btn-reset-icon">↺</span> ${es ? 'Restablecer parámetros de este estilo' : 'Reset style parameters'}`;
+      btnResetStyle.title = es ? 'Restaura los deslizadores a los valores óptimos por defecto del estilo actual' : 'Restore sliders to optimal defaults for the current style';
+    }
+
+    // paneColor block headers
+    setText('#subColorTinta > .studio-group-block:first-child .studio-block-label', es ? 'Modo de Tinta' : 'Ink Mode');
+    setText('#boxMonoInk .studio-block-label', es ? 'Color de Tinta' : 'Ink Color');
+    setText('#boxPalette .studio-block-label', es ? 'Armonía Cromática' : 'Color Harmony');
+    setText('#boxRainbowPattern .studio-block-label', es ? 'Patrón de Arcoíris' : 'Rainbow Pattern');
+    setText('#boxPickers .studio-block-label', es ? 'Tonos de la Tríada' : 'Triad Tones');
+    setText('#boxPickers .studio-block-value', es ? 'Toca para editar' : 'Tap to edit');
+    setText('#subColorLienzo > .studio-group-block:first-child .studio-block-label', es ? 'Color del Lienzo' : 'Canvas Color');
+
+    // Color mode cards
+    const colorModes = {
+      mono: [es ? 'Monocromo' : 'Monochrome', es ? '1 Color' : '1 Color'],
+      organic_flow: [es ? 'Flujo Orgánico' : 'Organic Flow', es ? '3 Colores' : '3 Colors'],
+      organic_spatial: [es ? 'Ondas 2D' : '2D Waves', es ? 'Espacial' : 'Spatial'],
+      tonal_blend: [es ? 'Fusión Tonal' : 'Tonal Blend', es ? 'Sombras/Luz' : 'Shadows/Light'],
+      photo_exact: [es ? 'Color Foto' : 'Photo Color', es ? 'Original' : 'Original'],
+      photo_fusion: [es ? 'Foto + Mezcla' : 'Photo + Mix', es ? 'Híbrido' : 'Hybrid'],
+      rainbow: [es ? 'Arcoíris' : 'Rainbow', es ? 'Espectro' : 'Spectrum']
+    };
+    Object.entries(colorModes).forEach(([mode, [title, badge]]) => {
+      const card = document.querySelector(`.color-mode-card[data-mode="${mode}"]`);
+      if (card) {
+        setText(card.querySelector('.color-mode-title'), title);
+        setText(card.querySelector('.color-mode-badge'), badge);
+      }
+    });
+
+    // Mono ink chips
+    const inkNames = {
+      black: es ? 'Negro' : 'Black',
+      white: es ? 'Blanco' : 'White',
+      sepia: es ? 'Sepia' : 'Sepia',
+      indigo: es ? 'Índigo' : 'Indigo',
+      sanguine: es ? 'Sanguina' : 'Sanguine',
+      custom: es ? 'Libre' : 'Custom'
+    };
+    Object.entries(inkNames).forEach(([ink, label]) => {
+      setText(`.mono-ink-chip[data-ink="${ink}"] .swatch-label`, label);
+    });
+
+    // Palette cards
+    const palettes = {
+      iris: [es ? 'Iris Neón' : 'Neon Iris', es ? 'Autor' : 'Artist'],
+      sunset: [es ? 'Atardecer' : 'Sunset', es ? 'Autor' : 'Artist'],
+      ocean: [es ? 'Bioluminiscente' : 'Bioluminescent', es ? 'Autor' : 'Artist'],
+      forest: [es ? 'Bosque Boreal' : 'Boreal Forest', es ? 'Autor' : 'Artist'],
+      cyberpunk: ['Cyberpunk', es ? 'Autor' : 'Artist'],
+      terracotta: [es ? 'Terracota' : 'Terracotta', es ? 'Autor' : 'Artist'],
+      cyan_amber: [es ? 'Cian / Ámbar' : 'Cyan / Amber', es ? 'Autor' : 'Artist'],
+      triad: [es ? 'Tríada (120°)' : 'Triad (120°)', es ? 'Teoría' : 'Theory'],
+      analogous: [es ? 'Análoga (35°)' : 'Analogous (35°)', es ? 'Teoría' : 'Theory']
+    };
+    Object.entries(palettes).forEach(([pal, [title, badge]]) => {
+      const card = document.querySelector(`.palette-card[data-palette="${pal}"]`);
+      if (card) {
+        setText(card.querySelector('.palette-title'), title);
+        setText(card.querySelector('.palette-badge'), badge);
+      }
+    });
+
+    // Rainbow pattern cards
+    const strand = document.querySelector('.rainbow-style-chip[data-style="strand"]');
+    if (strand) {
+      setText(strand.querySelector('.palette-title'), es ? 'Hilo Continuo' : 'Continuous Strand');
+      setText(strand.querySelector('.palette-badge'), es ? 'Flujo' : 'Flow');
+    }
+    const bands = document.querySelector('.rainbow-style-chip[data-style="bands"]');
+    if (bands) {
+      setText(bands.querySelector('.palette-title'), es ? 'Franjas Verticales' : 'Vertical Bands');
+      setText(bands.querySelector('.palette-badge'), es ? 'Prisma' : 'Prism');
+    }
+
+    // Triad pickers
+    setText('#itemColPick1 .swatch-label', es ? 'Sombra' : 'Shadow');
+    setText('#itemColPick2 .swatch-label', es ? 'Medio' : 'Midtone');
+    setText('#itemColPick3 .swatch-label', es ? 'Luz' : 'Highlight');
+
+    // Background themes & fusion source
+    setText('.bg-theme-chip[data-theme="white"] .swatch-label', es ? 'Blanco' : 'White');
+    setText('.bg-theme-chip[data-theme="dark"] .swatch-label', es ? 'Noche' : 'Night');
+    setText('.bg-theme-chip[data-theme="cream"] .swatch-label', es ? 'Pergamino' : 'Parchment');
+    setText('.bg-theme-chip[data-theme="custom"] .swatch-label', es ? 'Color Libre' : 'Custom Color');
+    setText('#btnFusionStencil', es ? '✏️ Calco a Lápiz' : '✏️ Pencil Trace');
+    setText('#btnFusionPhoto', es ? '📷 Foto Original' : '📷 Original Photo');
+    setText('#btnColorFlow', es ? '🌈 Flujo Cromático Animado' : '🌈 Animated Color Flow');
+
+    const simpleNote = document.querySelector('#colorSimpleNotice span');
+    if (simpleNote) {
+      simpleNote.innerHTML = es
+        ? '✒️ Elige un modo cromático arriba o cambia el papel en <strong>Lienzo & Fusión</strong>.'
+        : '✒️ Pick a color mode above or change paper in <strong>Canvas & Blend</strong>.';
+    }
+    const monoNote = document.querySelector('#colorMonoNotice span');
+    if (monoNote) {
+      monoNote.innerHTML = es
+        ? '💡 Activa un modo de color en <strong>Tinta & Paleta</strong> o pulsa <strong>Flujo Animado</strong> abajo.'
+        : '💡 Enable a color mode in <strong>Ink & Palette</strong> or tap <strong>Animated Flow</strong> below.';
+    }
+
+    // paneExportar cards & buttons
+    setText('#cardExportSvg .export-card-title', es ? 'Vectorial SVG' : 'SVG Vector');
+    setText('#cardExportSvg .export-card-desc', es ? 'Trazado continuo infinito para plóter, corte láser o tatuaje.' : 'Infinite continuous line vector for plotter, laser cut, or tattoo.');
+    setText('#cardExportPng .export-card-title', es ? 'Imagen PNG HD' : 'HD PNG Image');
+    setText('#cardExportPng .export-card-badge', es ? 'Alta Resolución' : 'High Resolution');
+    setText('#cardExportPng .export-card-desc', es ? 'Imagen de alta nitidez lista para guardar o imprimir.' : 'Crisp high-resolution image ready to save or print.');
+    setText('#cardExportMotion .export-card-title', es ? 'Vídeo y Animación' : 'Video & Animation');
+    setText('#cardExportMotion .export-card-desc', es ? 'Recrea el dibujo en vivo y graba clips en vídeo WebM.' : 'Replay the drawing live and record WebM video clips.');
+    setText('#btnAnimate', es ? '🎬 Animar' : '🎬 Animate');
+    if (!document.getElementById('btnRecord')?.classList.contains('recording')) {
+      setText('#btnRecord', es ? '⏺ Grabar' : '⏺ Record');
+    }
+    setText('#cardExportShare .export-card-title', es ? 'Compartir Obra' : 'Share Artwork');
+    setText('#cardExportShare .export-card-badge', es ? 'Directo' : 'Direct');
+    setText('#cardExportShare .export-card-desc', es ? 'Enviar por WhatsApp, Instagram, Fotos o AirDrop.' : 'Send via WhatsApp, Instagram, Photos, or AirDrop.');
+    setText('#btnShare', es ? '📲 Compartir' : '📲 Share');
+    setText('#dockScrollFade .dock-scroll-cue span', es ? 'Más ajustes' : 'More settings');
+
+    // Studio Color Modal
+    setText('#scpTitle', es ? '🎨 Color Libre' : '🎨 Custom Color');
+    setText('.studio-color-sub', es ? 'Toca o arrastra para elegir cualquier tono libremente' : 'Tap or drag to pick any shade freely');
   }
 
   // =========================================================================
