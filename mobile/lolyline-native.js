@@ -513,9 +513,9 @@
     if (tabExport) tabExport.textContent = (currentLang === 'es') ? 'Exportar' : 'Export';
 
     // Carousel Section Headers
-    const secStyleTitle = document.querySelector('.carousel-header-title');
+    const secStyleTitle = document.querySelector('#paneEstilo .studio-block-label');
     if (secStyleTitle) secStyleTitle.textContent = (currentLang === 'es') ? 'Algoritmo de Trazado' : 'Line Algorithm';
-    const secStyleBadge = document.querySelector('.carousel-header-badge');
+    const secStyleBadge = document.querySelector('#paneEstilo .studio-block-value');
     if (secStyleBadge) secStyleBadge.textContent = (currentLang === 'es') ? '22 Estilos' : '22 Styles';
 
     // Export Buttons
@@ -545,10 +545,9 @@
     styleCards.forEach(card => {
       const mode = card.dataset.mode;
       if (mode && dict.styles[mode]) {
-        const nameEl = card.querySelector('.style-card-name');
-        const badgeEl = card.querySelector('.style-card-badge');
+        const nameEl = card.querySelector('.card-title, .style-card-name');
+        const badgeEl = card.querySelector('.card-badge, .style-card-badge');
         if (nameEl) {
-          // Keep clean display name without number
           const cleanTitle = dict.styles[mode].title.replace(/^[^a-zA-ZáéíóúÁÉÍÓÚñÑ]+[\d]+\.\s*/, '');
           nameEl.textContent = cleanTitle;
         }
@@ -556,16 +555,17 @@
       }
     });
 
-    // Update global MODE_DESCRIPTIONS in index.html if present
+    // Update global MODE_DESCRIPTIONS in index.html & active modeDesc
     if (typeof window.MODE_DESCRIPTIONS === 'object' && window.MODE_DESCRIPTIONS !== null) {
       for (const [k, v] of Object.entries(dict.styles)) {
         window.MODE_DESCRIPTIONS[k] = v.desc;
       }
-      const descEl = document.getElementById('modeDesc');
-      const curMode = (typeof window.ENGINE_MODE === 'string') ? window.ENGINE_MODE : 'harmonic_waves';
-      if (descEl && dict.styles[curMode]) {
-        descEl.textContent = dict.styles[curMode].desc;
-      }
+    }
+    const descEl = document.getElementById('modeDesc');
+    const activeCard = document.querySelector('.style-card.active');
+    const curMode = activeCard?.dataset.mode || (typeof window.ENGINE_MODE === 'string' ? window.ENGINE_MODE : 'harmonic_waves');
+    if (descEl && dict.styles[curMode]) {
+      descEl.textContent = dict.styles[curMode].desc;
     }
 
     // Update status pill if function exists

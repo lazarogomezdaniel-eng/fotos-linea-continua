@@ -3400,6 +3400,7 @@ const MODE_DESCRIPTIONS = {
   escher_cube:    '🎲 Celosía Isométrica en Y (Teselado 3D): Mosaico hexagonal continuo con celdas de brazos a 120° y puntas de flecha entrelazadas en Y (estilo geométrico / Kumiko) que modulan pliegues concéntricos según la densidad tonal.',
   geo_pop:        '🎨 Pop Geométrico Retro: Combina cuadrados, rectángulos y círculos translúcidos con fusión de color sobre fotografía ajustable a blanco y negro.'
 };
+window.MODE_DESCRIPTIONS = MODE_DESCRIPTIONS;
 
 const MODE_PRESETS = {
   coral:          { pencilStr: 8.5, pencilBlur: 2.0, shadeWeight: 0.55, bgClean: 0.000, minR: 1.5, maxR: 4.8, chaikin: 2, lineW: 1.0, fusionOpacity: 25, colorMode: 'mono' },
@@ -16876,11 +16877,18 @@ document.querySelectorAll('[data-jump-geopop]').forEach(btn => {
 function updateActiveFunctionPill() {
   const statusPill = document.getElementById('statusPill');
   if (!statusPill) return;
+  const isEn = window.LolyLine && window.LolyLine.getLanguage && window.LolyLine.getLanguage() === 'en';
 
   if (typeof isAnimatingDraw !== 'undefined' && isAnimatingDraw) {
-    statusPill.textContent = (ENGINE_MODE === 'halftone_dots')
-      ? '🎬 Animando Trama...'
-      : (ENGINE_MODE === 'geo_pop' ? '🎬 Componiendo Pop...' : '🎬 Animando Trazo...');
+    if (isEn) {
+      statusPill.textContent = (ENGINE_MODE === 'halftone_dots')
+        ? '🎬 Animating Dots...'
+        : (ENGINE_MODE === 'geo_pop' ? '🎬 Composing Pop...' : '🎬 Animating Line...');
+    } else {
+      statusPill.textContent = (ENGINE_MODE === 'halftone_dots')
+        ? '🎬 Animando Trama...'
+        : (ENGINE_MODE === 'geo_pop' ? '🎬 Componiendo Pop...' : '🎬 Animando Trazo...');
+    }
     return;
   }
 
@@ -16890,48 +16898,49 @@ function updateActiveFunctionPill() {
   if (activeTabId === 'paneEstilo') {
     const activeCard = document.querySelector('.style-card.active') || document.querySelector(`.style-card[data-mode="${ENGINE_MODE}"]`);
     const emoji = activeCard?.querySelector('.card-emoji')?.textContent || '🎨';
-    const title = activeCard?.querySelector('.card-title')?.textContent || 'Estilo';
+    const title = activeCard?.querySelector('.card-title')?.textContent || (isEn ? 'Style' : 'Estilo');
     statusPill.textContent = `${emoji} ${title}`;
   } else if (activeTabId === 'paneTrazo') {
     if (ENGINE_MODE === 'geo_pop') {
-      statusPill.textContent = '🔒 Trazo no aplica (Pop)';
+      statusPill.textContent = isEn ? '🔒 Stroke N/A (Pop)' : '🔒 Trazo no aplica (Pop)';
     } else if (ENGINE_MODE === 'halftone_dots') {
-      statusPill.textContent = '⚫ Trama de Puntos';
+      statusPill.textContent = isEn ? '⚫ Halftone Dots' : '⚫ Trama de Puntos';
     } else if (ENGINE_MODE === 'honeycomb') {
-      statusPill.textContent = '🐝 Panal Hexagonal';
+      statusPill.textContent = isEn ? '🐝 Honeycomb' : '🐝 Panal Hexagonal';
     } else if (ENGINE_MODE === 'escher_cube') {
-      statusPill.textContent = '🎲 Celosía en Y';
+      statusPill.textContent = isEn ? '🎲 Y-Lattice' : '🎲 Celosía en Y';
     } else {
       const activeSubtab = document.querySelector('#paneTrazo .studio-subnav-btn.active');
       const subId = activeSubtab ? activeSubtab.getAttribute('data-subtab') : '';
       if (subId === 'subTrazoSilueta') {
-        statusPill.textContent = '✏️ Lectura Retrato';
+        statusPill.textContent = isEn ? '✏️ Portrait Trace' : '✏️ Lectura Retrato';
       } else if (subId === 'subTrazoEspaciado') {
-        statusPill.textContent = '📐 Densidad';
+        statusPill.textContent = isEn ? '📐 Density' : '📐 Densidad';
       } else {
-        statusPill.textContent = '✒️ Pluma & Nodos';
+        statusPill.textContent = isEn ? '✒️ Pen & Nodes' : '✒️ Pluma & Nodos';
       }
     }
   } else if (activeTabId === 'paneColor') {
     if (ENGINE_MODE === 'geo_pop') {
-      statusPill.textContent = '🔒 Color no aplica (Pop)';
+      statusPill.textContent = isEn ? '🔒 Color N/A (Pop)' : '🔒 Color no aplica (Pop)';
     } else {
       const activeSubtab = document.querySelector('#paneColor .studio-subnav-btn.active');
       const subId = activeSubtab ? activeSubtab.getAttribute('data-subtab') : '';
       if (subId === 'subColorLienzo') {
-        statusPill.textContent = '🖼️ Lienzo & Fusión';
+        statusPill.textContent = isEn ? '🖼️ Canvas & Blend' : '🖼️ Lienzo & Fusión';
       } else if (subId === 'subColorDinamica') {
-        statusPill.textContent = '✨ Dinámica de Color';
+        statusPill.textContent = isEn ? '✨ Color Dynamics' : '✨ Dinámica de Color';
       } else {
-        statusPill.textContent = '🎨 Tinta & Paleta';
+        statusPill.textContent = isEn ? '🎨 Ink & Palette' : '🎨 Tinta & Paleta';
       }
     }
   } else if (activeTabId === 'paneExportar') {
-    statusPill.textContent = '📤 Exportar Obra';
+    statusPill.textContent = isEn ? '📤 Export Artwork' : '📤 Exportar Obra';
   } else {
-    statusPill.textContent = '🎨 Estudio de Línea';
+    statusPill.textContent = isEn ? '🎨 Line Art Studio' : '🎨 Estudio de Línea';
   }
 }
+window.updateActiveFunctionPill = updateActiveFunctionPill;
 
 function syncStyleCards(selectedMode) {
   styleCards.forEach(card => {
