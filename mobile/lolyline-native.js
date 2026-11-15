@@ -884,20 +884,77 @@
   // =========================================================================
   // 6.5. BILLING & FREEMIUM SERVICE (Google Play & Amazon Appstore)
   // =========================================================================
+  const FREE_STYLES = new Set([
+    'harmonic_waves',
+    'coral',
+    'stencil_clean',
+    'stencil_cross',
+    'fractal',
+    'golden_spiral',
+    'halftone_dots'
+  ]);
+
   function applyWatermark(ctx, width, height) {
     if (BillingService.isPro()) return;
     ctx.save();
-    const fontSize = Math.max(12, Math.round(width * 0.024));
-    ctx.font = `600 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'bottom';
-    const text = 'LolyLine • Single Line Art';
-    const padX = Math.round(width * 0.035);
-    const padY = Math.round(height * 0.025);
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-    ctx.shadowBlur = 6;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-    ctx.fillText(text, width - padX, height - padY);
+
+    // 1. Diagonal dual-contrast watermark across the artwork (cannot be cropped out)
+    const diagFont = Math.max(22, Math.round(width * 0.052));
+    ctx.font = `800 ${diagFont}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineWidth = Math.max(2, Math.round(diagFont * 0.08));
+    ctx.strokeStyle = 'rgba(15, 23, 42, 0.16)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+
+    const angle = -28 * Math.PI / 180;
+    const positions = [
+      [width * 0.28, height * 0.28],
+      [width * 0.72, height * 0.34],
+      [width * 0.50, height * 0.54],
+      [width * 0.26, height * 0.78],
+      [width * 0.74, height * 0.74]
+    ];
+    positions.forEach(([x, y]) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.strokeText('LolyLine', 0, 0);
+      ctx.fillText('LolyLine', 0, 0);
+      ctx.restore();
+    });
+
+    // 2. High-contrast bottom-right pill badge
+    const badgeFont = Math.max(15, Math.round(width * 0.028));
+    ctx.font = `700 ${badgeFont}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    const label = 'LolyLine • Single Line Art';
+    const textW = ctx.measureText(label).width;
+    const padX = Math.round(badgeFont * 0.75);
+    const padY = Math.round(badgeFont * 0.45);
+    const boxW = textW + padX * 2;
+    const boxH = badgeFont + padY * 2;
+    const margin = Math.round(width * 0.03);
+    const rx = width - margin - boxW;
+    const ry = height - margin - boxH;
+    const radius = Math.round(boxH * 0.35);
+
+    ctx.fillStyle = 'rgba(11, 13, 19, 0.78)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    if (typeof ctx.roundRect === 'function') {
+      ctx.roundRect(rx, ry, boxW, boxH, radius);
+    } else {
+      ctx.rect(rx, ry, boxW, boxH);
+    }
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
+    ctx.fillText(label, rx + boxW / 2, ry + boxH / 2);
+
     ctx.restore();
   }
 
@@ -1155,10 +1212,32 @@
     const isPro = BillingService.isPro();
     const banner = document.getElementById('lolyProBanner');
     const badge = document.querySelector('#cardExportSvg .export-card-badge');
+    const motionBadge = document.querySelector('#cardExportMotion .export-card-badge');
     const dict = I18N[currentLang];
     if (badge) {
       badge.textContent = isPro ? 'Master Pro' : 'Pro';
     }
+    if (motionBadge) {
+      motionBadge.textContent = isPro ? 'Motion' : '🔒 Pro';
+    }
+
+    // Lock / unlock Trazo & Color tabs visually
+    ['paneTrazo', 'paneColor'].forEach(tabId => {
+      const tabBtn = document.querySelector(`#dockTabs .tab-btn[data-tab="${tabId}"]`);
+      if (tabBtn) tabBtn.classList.toggle('loly-tab-pro-locked', !isPro);
+    });
+
+    // Lock / unlock Pro-only style cards
+    document.querySelectorAll('.style-card').forEach(card => {
+      const mode = card.dataset.mode;
+      const locked = !isPro && mode && !FREE_STYLES.has(mode);
+      card.classList.toggle('loly-pro-locked', locked);
+      const badgeEl = card.querySelector('.card-badge, .style-card-badge');
+      if (badgeEl && mode && dict.styles[mode]) {
+        badgeEl.textContent = locked ? `🔒 PRO` : dict.styles[mode].badge;
+      }
+    });
+
     if (banner) {
       const titleBanner = document.getElementById('proBannerTitle');
       const descBanner = document.getElementById('proBannerDesc');
@@ -1725,6 +1804,19 @@
         border: 1px solid rgba(16, 185, 129, 0.3);
         box-shadow: none;
       }
+      .tab-btn.loly-tab-pro-locked .tab-lock-dot {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+      .style-card.loly-pro-locked {
+        border-color: rgba(245, 158, 11, 0.28);
+      }
+      .style-card.loly-pro-locked .card-badge {
+        background: rgba(245, 158, 11, 0.16);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.35);
+      }
     `;
     document.head.appendChild(style);
 
@@ -1769,6 +1861,7 @@
     showLanding,
     closeLanding,
     isPro: () => BillingService.isPro(),
+    isStyleFree: (mode) => FREE_STYLES.has(mode),
     showProModal,
     closeProModal,
     purchasePro: () => BillingService.purchasePro(),

@@ -16626,6 +16626,10 @@ ${pathsMarkup}
 let recorder = null, chunks = [];
 const btnRec = document.getElementById('btnRecord');
 btnRec.onclick = () => {
+  if (window.LolyLine && !window.LolyLine.isPro()) {
+    window.LolyLine.showProModal('video');
+    return;
+  }
   if (typeof MediaRecorder === 'undefined' || !canvas.captureStream) {
     const msg = (window.LolyLine && window.LolyLine.getLanguage() === 'en')
       ? 'Video recording is not available on this device. You can still export in PNG or SVG vector.'
@@ -17034,6 +17038,11 @@ if (dockGrabber) {
 document.querySelectorAll('#dockTabs .tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const tabId = btn.dataset.tab;
+    if ((tabId === 'paneTrazo' || tabId === 'paneColor') && window.LolyLine && !window.LolyLine.isPro()) {
+      window.LolyLine.showProModal(tabId);
+      haptic(10);
+      return;
+    }
     document.querySelectorAll('#dockTabs .tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('#dockContent .tab-pane').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
@@ -17173,6 +17182,11 @@ window.addEventListener('resize', () => {
 styleCards.forEach(card => {
   card.addEventListener('click', () => {
     const mode = card.dataset.mode;
+    if (window.LolyLine && !window.LolyLine.isPro() && window.LolyLine.isStyleFree && !window.LolyLine.isStyleFree(mode)) {
+      window.LolyLine.showProModal('style');
+      haptic(10);
+      return;
+    }
     const sel = document.getElementById('engineMode');
     if (sel && sel.value !== mode) {
       sel.value = mode;
