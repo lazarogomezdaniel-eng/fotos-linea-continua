@@ -584,14 +584,16 @@
   // =========================================================================
   // 5. NATIVE EXPORT SERVICE (PNG, SVG, WEBM)
   // =========================================================================
-  async function exportFileNativeOrWeb({ fileName, dataUrl, textContent, mimeType, shareTitle }) {
+  async function exportFileNativeOrWeb({ fileName, dataUrl, textContent, mimeType, shareTitle, mode = 'save' }) {
     if (isNative && window.Capacitor.isPluginAvailable('Filesystem')) {
       try {
         const { Filesystem } = window.Capacitor.Plugins;
         let writeData = '';
+        const isShare = mode === 'share';
         const writeOptions = {
-          path: fileName,
-          directory: 'CACHE'
+          path: isShare ? fileName : `LolyLine/${fileName}`,
+          directory: isShare ? 'CACHE' : 'DOCUMENTS',
+          recursive: !isShare
         };
 
         if (dataUrl) {
@@ -605,14 +607,16 @@
 
         const fileResult = await Filesystem.writeFile(writeOptions);
 
-        if (window.Capacitor.isPluginAvailable('Share')) {
+        if (isShare && window.Capacitor.isPluginAvailable('Share')) {
           await window.Capacitor.Plugins.Share.share({
             title: shareTitle || fileName,
             url: fileResult.uri,
             dialogTitle: I18N[currentLang].shareDialogTitle
           });
         } else {
-          alert((currentLang === 'es') ? `Archivo guardado: ${fileName}` : `File saved: ${fileName}`);
+          alert((currentLang === 'es')
+            ? `Guardado en Documentos/LolyLine/${fileName}`
+            : `Saved to Documents/LolyLine/${fileName}`);
         }
         return;
       } catch (err) {
@@ -1579,6 +1583,7 @@
     setLanguage,
     getLanguage: () => currentLang,
     exportFile: exportFileNativeOrWeb,
+    shareFile: (opts) => exportFileNativeOrWeb({ ...opts, mode: 'share' }),
     openPhotoPicker,
     showLanding,
     closeLanding,

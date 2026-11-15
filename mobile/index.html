@@ -16312,8 +16312,31 @@ if (btnShare) {
     haptic(10);
     render();
     const fileName = (ENGINE_MODE === 'geo_pop')
-      ? `retrato_geo_pop_${GEO_POP_DESAT}bw.png`
-      : `retrato_${ENGINE_MODE}_${COLOR_MODE}.png`;
+      ? `lolyline_geopop_${GEO_POP_DESAT}bw.png`
+      : `lolyline_${getExportModeSlug(ENGINE_MODE)}_${COLOR_MODE}.png`;
+
+    if (window.LolyLine && window.LolyLine.isNative && window.LolyLine.isNative() && typeof window.LolyLine.shareFile === 'function') {
+      let shareCanvas = canvas;
+      if (!window.LolyLine.isPro()) {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tCtx = tempCanvas.getContext('2d');
+        tCtx.drawImage(canvas, 0, 0);
+        if (typeof window.LolyLine.applyWatermark === 'function') {
+          window.LolyLine.applyWatermark(tCtx, tempCanvas.width, tempCanvas.height);
+        }
+        shareCanvas = tempCanvas;
+      }
+      await window.LolyLine.shareFile({
+        fileName: fileName,
+        dataUrl: shareCanvas.toDataURL('image/png'),
+        mimeType: 'image/png',
+        shareTitle: 'LolyLine Artwork'
+      });
+      return;
+    }
+
     if (navigator.share && canvas.toBlob) {
       canvas.toBlob(async (blob) => {
         if (!blob) {
