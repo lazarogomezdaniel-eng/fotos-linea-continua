@@ -191,10 +191,15 @@ public class LolyBillingPlugin extends Plugin implements PurchasingListener {
 
         if (response.getRequestStatus() == PurchaseUpdatesResponse.RequestStatus.SUCCESSFUL) {
             boolean foundPro = false;
+            boolean canceledPro = false;
             for (Receipt receipt : response.getReceipts()) {
-                if (SKU_PRO.equals(receipt.getSku()) && !receipt.isCanceled()) {
-                    PurchasingService.notifyFulfillment(receipt.getReceiptId(), FulfillmentResult.FULFILLED);
-                    foundPro = true;
+                if (SKU_PRO.equals(receipt.getSku())) {
+                    if (!receipt.isCanceled()) {
+                        PurchasingService.notifyFulfillment(receipt.getReceiptId(), FulfillmentResult.FULFILLED);
+                        foundPro = true;
+                    } else {
+                        canceledPro = true;
+                    }
                 }
             }
 
@@ -204,6 +209,8 @@ public class LolyBillingPlugin extends Plugin implements PurchasingListener {
 
             if (foundPro) {
                 isProUnlocked = true;
+            } else if (canceledPro) {
+                isProUnlocked = false;
             }
 
             JSObject event = new JSObject();
