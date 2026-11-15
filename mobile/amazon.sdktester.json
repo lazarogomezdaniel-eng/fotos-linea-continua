@@ -1,0 +1,18 @@
+{
+  "lolyline_pro": {
+    "itemType": "ENTITLEMENT",
+    "price": 2.99,
+    "currencyCode": "EUR",
+    "title": "LolyLine Pro",
+    "description": "Desbloquea exportación SVG/PNG HD sin marcas, estilos avanzados y uso profesional completo.",
+    "smallIconUrl": "http://localhost/icon.png",
+    "languageTitleMap": {
+      "es": "LolyLine Pro",
+      "en": "LolyLine Pro"
+    },
+    "languageDescriptionMap": {
+      "es": "Desbloquea exportación SVG/PNG HD sin marcas, estilos avanzados y uso profesional completo.",
+      "en": "Unlock watermark-free HD SVG/PNG export, advanced styles, and full professional use."
+    }
+  }
+}

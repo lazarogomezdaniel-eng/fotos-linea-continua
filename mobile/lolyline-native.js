@@ -27,6 +27,7 @@
     window.Capacitor.Plugins.App = reg('App');
     window.Capacitor.Plugins.SplashScreen = reg('SplashScreen');
     window.Capacitor.Plugins.StatusBar = reg('StatusBar');
+    window.Capacitor.Plugins.LolyBilling = reg('LolyBilling');
   }
 
   // Hide splash screen smoothly on native launch
@@ -717,15 +718,62 @@
 
   const BillingService = {
     isProUnlocked: false,
+    nativePrice: null,
     listeners: [],
+    _initialized: false,
+
+    getNativePlugin() {
+      const cap = window.Capacitor;
+      if (!cap || !cap.isNativePlatform || !cap.isNativePlatform()) return null;
+      if (cap.isPluginAvailable && !cap.isPluginAvailable('LolyBilling')) return null;
+      return (cap.Plugins && cap.Plugins.LolyBilling) || null;
+    },
+
+    setProState(unlocked) {
+      const next = !!unlocked;
+      this.isProUnlocked = next;
+      try {
+        localStorage.setItem('lolyline_pro_unlocked', next ? 'true' : 'false');
+      } catch (_) {}
+      this.notifyListeners();
+      if (typeof updateProUi === 'function') updateProUi();
+    },
 
     init() {
       try {
-        const cached = localStorage.getItem('lolyline_pro_unlocked') === 'true';
-        this.isProUnlocked = cached;
+        this.isProUnlocked = localStorage.getItem('lolyline_pro_unlocked') === 'true';
       } catch (_) {
         this.isProUnlocked = false;
       }
+
+      const plugin = this.getNativePlugin();
+      if (!plugin || this._initialized) return;
+      this._initialized = true;
+
+      try {
+        if (typeof plugin.addListener === 'function') {
+          plugin.addListener('productUpdated', (data) => {
+            if (data && data.price) {
+              this.nativePrice = data.price;
+              if (typeof updateProUi === 'function') updateProUi();
+            }
+          });
+          plugin.addListener('entitlementUpdated', (data) => {
+            if (data && typeof data.isPro === 'boolean') {
+              this.setProState(data.isPro);
+            }
+          });
+        }
+        plugin.initialize().then((res) => {
+          if (!res) return;
+          if (res.price) this.nativePrice = res.price;
+          if (typeof res.isPro === 'boolean') {
+            this.setProState(res.isPro);
+          } else if (typeof updateProUi === 'function') {
+            updateProUi();
+          }
+        }).catch(() => {});
+      } catch (_) {}
     },
 
     isPro() {
@@ -733,28 +781,65 @@
     },
 
     getLocalizedPrice() {
+      if (this.nativePrice) return this.nativePrice;
       return (currentLang === 'es') ? '2,99 €' : '$2.99';
     },
 
     async purchasePro() {
-      this.isProUnlocked = true;
-      try {
-        localStorage.setItem('lolyline_pro_unlocked', 'true');
-      } catch (_) {}
-      this.notifyListeners();
-      updateProUi();
+      const plugin = this.getNativePlugin();
+      if (plugin) {
+        try {
+          const res = await plugin.purchasePro();
+          if (res && res.isPro) {
+            this.setProState(true);
+            closeProModal();
+            alert(I18N[currentLang].proUnlockedToast);
+            return true;
+          }
+          return false;
+        } catch (err) {
+          const msg = (err && err.message) ? err.message : '';
+          if (!/cancel/i.test(msg)) {
+            alert((currentLang === 'es')
+              ? 'No se pudo completar la compra en la tienda. Inténtalo de nuevo.'
+              : 'Could not complete the store purchase. Please try again.');
+          }
+          return false;
+        }
+      }
+
+      this.setProState(true);
       closeProModal();
       alert(I18N[currentLang].proUnlockedToast);
       return true;
     },
 
     async restorePurchases() {
+      const plugin = this.getNativePlugin();
+      if (plugin) {
+        try {
+          const res = await plugin.restorePurchases();
+          if (res && res.isPro) {
+            this.setProState(true);
+            closeProModal();
+            alert(I18N[currentLang].proRestoredToast);
+            return true;
+          } else {
+            alert((currentLang === 'es') ? 'No se encontraron compras previas activas.' : 'No active prior purchases found.');
+            return false;
+          }
+        } catch (_) {
+          alert((currentLang === 'es')
+            ? 'No se pudieron verificar tus compras en la tienda.'
+            : 'Could not verify your purchases with the store.');
+          return false;
+        }
+      }
+
       try {
         const cached = localStorage.getItem('lolyline_pro_unlocked') === 'true';
         if (cached) {
-          this.isProUnlocked = true;
-          this.notifyListeners();
-          updateProUi();
+          this.setProState(true);
           closeProModal();
           alert(I18N[currentLang].proRestoredToast);
           return true;
