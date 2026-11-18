@@ -15,6 +15,7 @@ public class LolyBillingPlugin extends Plugin {
     public void initialize(PluginCall call) {
         JSObject ret = new JSObject();
         ret.put("store", "play");
+        ret.put("syncedFromStore", false);
         ret.put("isPro", false);
         ret.put("price", "");
         call.resolve(ret);

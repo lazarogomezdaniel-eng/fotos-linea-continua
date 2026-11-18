@@ -28,7 +28,9 @@ public class LolyBillingPlugin extends Plugin implements PurchasingListener {
     public static final String SKU_PRO = "lolyline_pro";
 
     private boolean isInitialized = false;
+    private boolean hasSyncedFromStore = false;
     private boolean isProUnlocked = false;
+    private boolean accumFoundPro = false;
     private String localizedPrice = "";
     private String productTitle = "LolyLine Pro";
     private String productDescription = "";
@@ -49,19 +51,27 @@ public class LolyBillingPlugin extends Plugin implements PurchasingListener {
             Log.d(TAG, "Amazon PurchasingService registered.");
             PurchasingService.getUserData();
             PurchasingService.getProductData(Collections.singleton(SKU_PRO));
+            accumFoundPro = false;
             PurchasingService.getPurchaseUpdates(true);
         }
     }
 
     @PluginMethod
     public void initialize(PluginCall call) {
+        boolean alreadyRegistered = isInitialized;
         ensureRegistered();
-        PurchasingService.getProductData(Collections.singleton(SKU_PRO));
-        PurchasingService.getPurchaseUpdates(false);
+        if (alreadyRegistered) {
+            PurchasingService.getProductData(Collections.singleton(SKU_PRO));
+            accumFoundPro = false;
+            PurchasingService.getPurchaseUpdates(true);
+        }
 
         JSObject ret = new JSObject();
         ret.put("store", "amazon");
-        ret.put("isPro", isProUnlocked);
+        ret.put("syncedFromStore", hasSyncedFromStore);
+        if (hasSyncedFromStore) {
+            ret.put("isPro", isProUnlocked);
+        }
         ret.put("price", localizedPrice);
         call.resolve(ret);
     }
@@ -99,6 +109,7 @@ public class LolyBillingPlugin extends Plugin implements PurchasingListener {
             return;
         }
         pendingRestoreCall = call;
+        accumFoundPro = false;
         PurchasingService.getPurchaseUpdates(true);
     }
 
@@ -182,6 +193,7 @@ public class LolyBillingPlugin extends Plugin implements PurchasingListener {
     @Override
     public void onPurchaseUpdatesResponse(PurchaseUpdatesResponse response) {
         if (response == null) {
+            accumFoundPro = false;
             if (pendingRestoreCall != null) {
                 pendingRestoreCall.reject("Empty response from Amazon Appstore");
                 pendingRestoreCall = null;
@@ -190,41 +202,37 @@ public class LolyBillingPlugin extends Plugin implements PurchasingListener {
         }
 
         if (response.getRequestStatus() == PurchaseUpdatesResponse.RequestStatus.SUCCESSFUL) {
-            boolean foundPro = false;
-            boolean canceledPro = false;
             for (Receipt receipt : response.getReceipts()) {
-                if (SKU_PRO.equals(receipt.getSku())) {
-                    if (!receipt.isCanceled()) {
-                        PurchasingService.notifyFulfillment(receipt.getReceiptId(), FulfillmentResult.FULFILLED);
-                        foundPro = true;
-                    } else {
-                        canceledPro = true;
-                    }
+                if (SKU_PRO.equals(receipt.getSku()) && !receipt.isCanceled()) {
+                    PurchasingService.notifyFulfillment(receipt.getReceiptId(), FulfillmentResult.FULFILLED);
+                    accumFoundPro = true;
                 }
             }
 
             if (response.hasMore()) {
                 PurchasingService.getPurchaseUpdates(false);
+                return;
             }
 
-            if (foundPro) {
-                isProUnlocked = true;
-            } else if (canceledPro) {
-                isProUnlocked = false;
-            }
+            isProUnlocked = accumFoundPro;
+            hasSyncedFromStore = true;
+            accumFoundPro = false;
 
             JSObject event = new JSObject();
             event.put("isPro", isProUnlocked);
+            event.put("syncedFromStore", true);
             notifyListeners("entitlementUpdated", event);
 
             if (pendingRestoreCall != null) {
                 JSObject ret = new JSObject();
                 ret.put("isPro", isProUnlocked);
-                ret.put("restored", foundPro);
+                ret.put("restored", isProUnlocked);
+                ret.put("syncedFromStore", true);
                 pendingRestoreCall.resolve(ret);
                 pendingRestoreCall = null;
             }
         } else {
+            accumFoundPro = false;
             Log.w(TAG, "Amazon onPurchaseUpdatesResponse status: " + response.getRequestStatus());
             if (pendingRestoreCall != null) {
                 pendingRestoreCall.reject("Restore failed: " + response.getRequestStatus().name());
@@ -234,14 +242,17 @@ public class LolyBillingPlugin extends Plugin implements PurchasingListener {
     }
 
     private void resolvePendingPurchaseSuccess(String status) {
+        hasSyncedFromStore = true;
         JSObject event = new JSObject();
         event.put("isPro", true);
+        event.put("syncedFromStore", true);
         notifyListeners("entitlementUpdated", event);
 
         if (pendingPurchaseCall != null) {
             JSObject ret = new JSObject();
             ret.put("isPro", true);
             ret.put("status", status);
+            ret.put("syncedFromStore", true);
             pendingPurchaseCall.resolve(ret);
             pendingPurchaseCall = null;
         }

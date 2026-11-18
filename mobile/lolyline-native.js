@@ -120,10 +120,10 @@
       statusReady: 'Listo',
       statusComputing: 'Calculando trazado continuo...',
       statusCompleted: 'Completado',
-      exportPng: 'Guardar Imagen PNG (Alta Calidad)',
-      exportSvg: 'Descargar Vector SVG (Trazado Puro)',
-      exportVideo: 'Grabar Vídeo del Trazo',
-      exportStopVideo: '⏹ Guardar Vídeo Grabado',
+      exportPng: 'Guardar PNG',
+      exportSvg: 'Descargar SVG',
+      exportVideo: 'Grabar',
+      exportStopVideo: '⏹ Guardar Vídeo',
       exportSuccess: '¡Archivo listo para guardar o compartir!',
       shareDialogTitle: 'Guardar o Compartir Obra en LolyLine',
       cameraPromptHeader: 'Cargar Imagen',
@@ -296,10 +296,10 @@
       statusReady: 'Ready',
       statusComputing: 'Computing continuous line path...',
       statusCompleted: 'Completed',
-      exportPng: 'Save PNG Image (High Quality)',
-      exportSvg: 'Download Pure SVG Vector',
-      exportVideo: 'Record Line Path Video',
-      exportStopVideo: '⏹ Save Recorded Video',
+      exportPng: 'Save PNG',
+      exportSvg: 'Download SVG',
+      exportVideo: 'Record',
+      exportStopVideo: '⏹ Save Video',
       exportSuccess: 'Artwork ready to save or share!',
       shareDialogTitle: 'Save or Share Artwork with LolyLine',
       cameraPromptHeader: 'Load Image',
@@ -743,14 +743,9 @@
     setText('#cardExportSvg .export-card-title', es ? 'Vectorial SVG' : 'SVG Vector');
     setText('#cardExportSvg .export-card-desc', es ? 'Trazado continuo infinito para plóter, corte láser o tatuaje.' : 'Infinite continuous line vector for plotter, laser cut, or tattoo.');
     setText('#cardExportPng .export-card-title', es ? 'Imagen PNG HD' : 'HD PNG Image');
-    setText('#cardExportPng .export-card-badge', es ? 'Alta Resolución' : 'High Resolution');
     setText('#cardExportPng .export-card-desc', es ? 'Imagen de alta nitidez lista para guardar o imprimir.' : 'Crisp high-resolution image ready to save or print.');
     setText('#cardExportMotion .export-card-title', es ? 'Vídeo y Animación' : 'Video & Animation');
     setText('#cardExportMotion .export-card-desc', es ? 'Recrea el dibujo en vivo y graba clips en vídeo WebM.' : 'Replay the drawing live and record WebM video clips.');
-    setText('#btnAnimate', es ? '🎬 Animar' : '🎬 Animate');
-    if (!document.getElementById('btnRecord')?.classList.contains('recording')) {
-      setText('#btnRecord', es ? '⏺ Grabar' : '⏺ Record');
-    }
     setText('#cardExportShare .export-card-title', es ? 'Compartir Obra' : 'Share Artwork');
     setText('#cardExportShare .export-card-badge', es ? 'Directo' : 'Direct');
     setText('#cardExportShare .export-card-desc', es ? 'Enviar por WhatsApp, Instagram, Fotos o AirDrop.' : 'Send via WhatsApp, Instagram, Photos, or AirDrop.');
@@ -765,47 +760,90 @@
   // =========================================================================
   // 5. NATIVE EXPORT SERVICE (PNG, SVG, WEBM)
   // =========================================================================
+  function makeUniqueExportFileName(fileName) {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+    const dot = fileName.lastIndexOf('.');
+    if (dot > 0) {
+      return `${fileName.slice(0, dot)}_${stamp}${fileName.slice(dot)}`;
+    }
+    return `${fileName}_${stamp}`;
+  }
+
   async function exportFileNativeOrWeb({ fileName, dataUrl, textContent, mimeType, shareTitle, mode = 'save' }) {
-    if (isNative && window.Capacitor.isPluginAvailable('Filesystem')) {
-      try {
-        const { Filesystem } = window.Capacitor.Plugins;
-        let writeData = '';
-        const isShare = mode === 'share';
-        const writeOptions = {
-          path: isShare ? fileName : `LolyLine/${fileName}`,
-          directory: isShare ? 'CACHE' : 'DOCUMENTS',
-          recursive: !isShare
-        };
+    const isShare = mode === 'share';
+    const plugins = (window.Capacitor && window.Capacitor.Plugins) || {};
 
-        if (dataUrl) {
-          const parts = dataUrl.split(',');
-          writeData = parts[1] || parts[0];
-        } else if (textContent) {
-          writeData = textContent;
-          writeOptions.encoding = 'utf8';
-        }
-        writeOptions.data = writeData;
-
-        const fileResult = await Filesystem.writeFile(writeOptions);
-
-        if (isShare && window.Capacitor.isPluginAvailable('Share')) {
-          await window.Capacitor.Plugins.Share.share({
-            title: shareTitle || fileName,
-            url: fileResult.uri,
-            dialogTitle: I18N[currentLang].shareDialogTitle
+    if (isNative) {
+      // 1. Direct Save to MediaStore (Gallery Pictures / Movies / Downloads) - Android 7..15 safe
+      if (!isShare && window.Capacitor.isPluginAvailable('LolyExport') && plugins.LolyExport) {
+        try {
+          const uniqueName = makeUniqueExportFileName(fileName);
+          const res = await plugins.LolyExport.saveMedia({
+            fileName: uniqueName,
+            base64Data: dataUrl || undefined,
+            textData: textContent || undefined,
+            mimeType: mimeType || 'application/octet-stream'
           });
-        } else {
+          const loc = (res && res.location) ? res.location : uniqueName;
           alert((currentLang === 'es')
-            ? `Guardado en Documentos/LolyLine/${fileName}`
-            : `Saved to Documents/LolyLine/${fileName}`);
+            ? `Guardado en Galería / Archivos (${loc})`
+            : `Saved to Gallery / Files (${loc})`);
+          return;
+        } catch (err) {
+          console.warn('LolyExport.saveMedia failed:', err);
+          alert((currentLang === 'es')
+            ? 'No se pudo guardar en el dispositivo. Revisa los permisos de almacenamiento o usa Compartir.'
+            : 'Could not save to device storage. Check storage permission or use Share.');
+          return;
         }
-        return;
-      } catch (err) {
-        console.warn('Native export fallback triggered:', err);
+      }
+
+      // 2. Native Share Sheet (and fallback for save only if LolyExport wasn't available)
+      if (window.Capacitor.isPluginAvailable('Filesystem') && plugins.Filesystem) {
+        try {
+          const writeName = isShare ? `share_${Date.now()}_${fileName}` : `LolyLine/${makeUniqueExportFileName(fileName)}`;
+          const writeOptions = {
+            path: writeName,
+            directory: isShare ? 'CACHE' : 'DOCUMENTS',
+            recursive: !isShare
+          };
+
+          if (dataUrl) {
+            const parts = dataUrl.split(',');
+            writeOptions.data = parts[1] || parts[0];
+          } else if (textContent) {
+            writeOptions.data = textContent;
+            writeOptions.encoding = 'utf8';
+          }
+
+          const fileResult = await plugins.Filesystem.writeFile(writeOptions);
+
+          if (isShare && window.Capacitor.isPluginAvailable('Share') && plugins.Share) {
+            await plugins.Share.share({
+              title: shareTitle || fileName,
+              url: fileResult.uri,
+              dialogTitle: I18N[currentLang].shareDialogTitle
+            });
+          } else if (!isShare) {
+            alert((currentLang === 'es')
+              ? `Guardado en Documentos/${writeName}`
+              : `Saved to Documents/${writeName}`);
+          }
+          return;
+        } catch (err) {
+          if (err && /cancel/i.test(String(err.message || err))) return;
+          console.warn('Native export error:', err);
+          alert((currentLang === 'es')
+            ? 'No se pudo completar la exportación en Android.'
+            : 'Could not complete the export on Android.');
+          return;
+        }
       }
     }
 
-    // Standard Web Fallback
+    // Standard Web Fallback (desktop/mobile browser only)
     const a = document.createElement('a');
     if (dataUrl) {
       a.href = dataUrl;
@@ -886,11 +924,9 @@
   // =========================================================================
   const FREE_STYLES = new Set([
     'harmonic_waves',
-    'coral',
     'stencil_clean',
     'stencil_cross',
-    'fractal',
-    'golden_spiral',
+    'hex_spiral',
     'halftone_dots'
   ]);
 
@@ -898,22 +934,22 @@
     if (BillingService.isPro()) return;
     ctx.save();
 
-    // 1. Diagonal dual-contrast watermark across the artwork (cannot be cropped out)
-    const diagFont = Math.max(22, Math.round(width * 0.052));
+    // 1. Balanced 3-point diagonal watermark (unmistakable over dark ink & white paper without crowding the eyes)
+    const diagFont = Math.max(20, Math.round(width * 0.044));
     ctx.font = `800 ${diagFont}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.lineWidth = Math.max(2, Math.round(diagFont * 0.08));
-    ctx.strokeStyle = 'rgba(15, 23, 42, 0.16)';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.lineWidth = Math.max(4, Math.round(diagFont * 0.14));
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.78)';
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.40)';
 
-    const angle = -28 * Math.PI / 180;
+    const angle = -24 * Math.PI / 180;
     const positions = [
-      [width * 0.28, height * 0.28],
-      [width * 0.72, height * 0.34],
-      [width * 0.50, height * 0.54],
-      [width * 0.26, height * 0.78],
-      [width * 0.74, height * 0.74]
+      [width * 0.26, height * 0.22],
+      [width * 0.72, height * 0.44],
+      [width * 0.30, height * 0.78]
     ];
     positions.forEach(([x, y]) => {
       ctx.save();
@@ -924,22 +960,22 @@
       ctx.restore();
     });
 
-    // 2. High-contrast bottom-right pill badge
-    const badgeFont = Math.max(15, Math.round(width * 0.028));
+    // 2. Clean, readable bottom-right signature pill
+    const badgeFont = Math.max(14, Math.round(width * 0.026));
     ctx.font = `700 ${badgeFont}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-    const label = 'LolyLine • Single Line Art';
+    const label = 'LolyLine • Free';
     const textW = ctx.measureText(label).width;
     const padX = Math.round(badgeFont * 0.75);
-    const padY = Math.round(badgeFont * 0.45);
+    const padY = Math.round(badgeFont * 0.44);
     const boxW = textW + padX * 2;
     const boxH = badgeFont + padY * 2;
-    const margin = Math.round(width * 0.03);
+    const margin = Math.round(width * 0.025);
     const rx = width - margin - boxW;
     const ry = height - margin - boxH;
-    const radius = Math.round(boxH * 0.35);
+    const radius = Math.round(boxH * 0.38);
 
-    ctx.fillStyle = 'rgba(11, 13, 19, 0.78)';
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.82)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     if (typeof ctx.roundRect === 'function') {
@@ -952,11 +988,13 @@
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
     ctx.fillText(label, rx + boxW / 2, ry + boxH / 2);
 
     ctx.restore();
   }
+
+  const PRO_STORAGE_KEY = 'lolyline_pro_entitlement_v2';
 
   const BillingService = {
     isProUnlocked: false,
@@ -975,7 +1013,7 @@
       const next = !!unlocked;
       this.isProUnlocked = next;
       try {
-        localStorage.setItem('lolyline_pro_unlocked', next ? 'true' : 'false');
+        localStorage.setItem(PRO_STORAGE_KEY, next ? 'true' : 'false');
       } catch (_) {}
       this.notifyListeners();
       if (typeof updateProUi === 'function') updateProUi();
@@ -983,7 +1021,8 @@
 
     init() {
       try {
-        this.isProUnlocked = localStorage.getItem('lolyline_pro_unlocked') === 'true';
+        localStorage.removeItem('lolyline_pro_unlocked');
+        this.isProUnlocked = localStorage.getItem(PRO_STORAGE_KEY) === 'true';
       } catch (_) {
         this.isProUnlocked = false;
       }
@@ -1002,6 +1041,7 @@
           });
           plugin.addListener('entitlementUpdated', (data) => {
             if (data && typeof data.isPro === 'boolean') {
+              if (data.syncedFromStore === false) return;
               this.setProState(data.isPro);
             }
           });
@@ -1009,7 +1049,7 @@
         plugin.initialize().then((res) => {
           if (!res) return;
           if (res.price) this.nativePrice = res.price;
-          if (typeof res.isPro === 'boolean') {
+          if (res.syncedFromStore === true && typeof res.isPro === 'boolean') {
             this.setProState(res.isPro);
           } else if (typeof updateProUi === 'function') {
             updateProUi();
@@ -1050,6 +1090,13 @@
         }
       }
 
+      if (isNative) {
+        alert((currentLang === 'es')
+          ? 'El servicio de compras de la tienda no está disponible en este momento.'
+          : 'The app store billing service is not available right now.');
+        return false;
+      }
+
       this.setProState(true);
       closeProModal();
       alert(I18N[currentLang].proUnlockedToast);
@@ -1078,8 +1125,15 @@
         }
       }
 
+      if (isNative) {
+        alert((currentLang === 'es')
+          ? 'El servicio de compras de la tienda no está disponible en este momento.'
+          : 'The app store billing service is not available right now.');
+        return false;
+      }
+
       try {
-        const cached = localStorage.getItem('lolyline_pro_unlocked') === 'true';
+        const cached = localStorage.getItem(PRO_STORAGE_KEY) === 'true';
         if (cached) {
           this.setProState(true);
           closeProModal();
@@ -1210,21 +1264,60 @@
 
   function updateProUi() {
     const isPro = BillingService.isPro();
+    const es = currentLang === 'es';
     const banner = document.getElementById('lolyProBanner');
+    const pngBadge = document.querySelector('#cardExportPng .export-card-badge');
     const badge = document.querySelector('#cardExportSvg .export-card-badge');
     const motionBadge = document.querySelector('#cardExportMotion .export-card-badge');
     const dict = I18N[currentLang];
-    if (badge) {
-      badge.textContent = isPro ? 'Master Pro' : 'Pro';
-    }
-    if (motionBadge) {
-      motionBadge.textContent = isPro ? 'Motion' : '🔒 Pro';
+
+    const stageWm = document.getElementById('lolyStageWatermark');
+    if (stageWm) {
+      stageWm.classList.toggle('is-visible', !isPro);
+      stageWm.textContent = '';
     }
 
-    // Lock / unlock Trazo & Color tabs visually
+    if (pngBadge) {
+      pngBadge.textContent = isPro
+        ? (es ? 'Alta Resolución' : 'High Resolution')
+        : (es ? 'Con Marca' : 'Watermarked');
+    }
+    if (badge) {
+      badge.textContent = isPro ? 'Master Pro' : '🔒 Pro';
+    }
+    if (motionBadge) {
+      motionBadge.textContent = isPro ? 'Motion' : (es ? '🔒 Vídeo' : '🔒 Video');
+    }
+
+    const btnSvg = document.getElementById('btnSvg');
+    if (btnSvg) {
+      btnSvg.textContent = isPro ? dict.exportSvg : `🔒 ${dict.exportSvg}`;
+      btnSvg.classList.toggle('loly-btn-locked', !isPro);
+    }
+
+    const btnAnimate = document.getElementById('btnAnimate');
+    if (btnAnimate && !btnAnimate.textContent.includes('⏹')) {
+      btnAnimate.textContent = es ? '🎬 Animar' : '🎬 Animate';
+      btnAnimate.classList.remove('loly-btn-locked');
+    }
+
+    const btnRec = document.getElementById('btnRecord');
+    if (btnRec && !btnRec.classList.contains('recording')) {
+      const recLabel = es ? '⏺ Grabar' : '⏺ Record';
+      btnRec.textContent = isPro ? recLabel : `🔒 ${recLabel}`;
+      btnRec.classList.toggle('loly-btn-locked', !isPro);
+    }
+
+    const btnAnimateFloat = document.getElementById('btnAnimateFloat');
+    if (btnAnimateFloat) {
+      btnAnimateFloat.classList.remove('loly-float-locked');
+      btnAnimateFloat.title = es ? 'Animar Trazado' : 'Animate Drawing';
+    }
+
+    // Ensure Trazo & Color remain unlocked (mode-specific N/A stays managed by is-mode-na)
     ['paneTrazo', 'paneColor'].forEach(tabId => {
       const tabBtn = document.querySelector(`#dockTabs .tab-btn[data-tab="${tabId}"]`);
-      if (tabBtn) tabBtn.classList.toggle('loly-tab-pro-locked', !isPro);
+      if (tabBtn) tabBtn.classList.remove('loly-tab-pro-locked');
     });
 
     // Lock / unlock Pro-only style cards
@@ -1244,8 +1337,8 @@
       const btnBanner = document.getElementById('btnProBannerAction');
       if (isPro) {
         banner.classList.add('pro-unlocked');
-        if (titleBanner) titleBanner.textContent = (currentLang === 'es') ? 'LolyLine Pro (Activo)' : 'LolyLine Pro (Active)';
-        if (descBanner) descBanner.textContent = (currentLang === 'es') ? 'Exportación vectorial SVG y Ultra HD sin marcas de agua.' : 'Vector SVG and Ultra HD export watermark-free.';
+        if (titleBanner) titleBanner.textContent = es ? 'LolyLine Pro (Activo)' : 'LolyLine Pro (Active)';
+        if (descBanner) descBanner.textContent = es ? 'Exportación vectorial SVG y Ultra HD sin marcas de agua.' : 'Vector SVG and Ultra HD export watermark-free.';
         if (btnBanner) btnBanner.textContent = dict.proBannerActive || 'Activo';
       } else {
         banner.classList.remove('pro-unlocked');
@@ -1816,6 +1909,43 @@
         background: rgba(245, 158, 11, 0.16);
         color: #fbbf24;
         border: 1px solid rgba(245, 158, 11, 0.35);
+      }
+      .loly-stage-watermark {
+        display: none;
+        position: absolute;
+        inset: 0;
+        border-radius: 8px;
+        pointer-events: none;
+        user-select: none;
+        -webkit-user-select: none;
+        overflow: hidden;
+        z-index: 6;
+        background-repeat: repeat;
+        background-size: 250px 210px;
+        background-position: 8px 22px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='210' viewBox='0 0 250 210'%3E%3Cg transform='rotate(-24 125 105)' font-family='sans-serif' font-weight='800' text-anchor='middle'%3E%3Ctext x='125' y='110' font-size='18' fill='none' stroke='rgba(255,255,255,0.74)' stroke-width='3.4' stroke-linejoin='round'%3ELolyLine%3C/text%3E%3Ctext x='125' y='110' font-size='18' fill='rgba(15,23,42,0.30)'%3ELolyLine%3C/text%3E%3C/g%3E%3C/svg%3E");
+      }
+      .loly-stage-watermark.is-visible {
+        display: block;
+      }
+      .export-action-btn.loly-btn-locked {
+        border-color: rgba(245, 158, 11, 0.38) !important;
+      }
+      .stage-btn.gold.loly-float-locked {
+        position: relative;
+        opacity: 0.94;
+      }
+      .stage-btn.gold.loly-float-locked::after {
+        content: '🔒';
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        font-size: 10px;
+        line-height: 1;
+        background: #0b0d13;
+        border: 1px solid rgba(251, 191, 36, 0.65);
+        border-radius: 999px;
+        padding: 2px;
       }
     `;
     document.head.appendChild(style);

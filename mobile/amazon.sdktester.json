@@ -5,7 +5,7 @@
     "currencyCode": "EUR",
     "title": "LolyLine Pro",
     "description": "Desbloquea exportación SVG/PNG HD sin marcas, estilos avanzados y uso profesional completo.",
-    "smallIconUrl": "http://localhost/icon.png",
+    "smallIconUrl": "https://localhost/icon-192.png",
     "languageTitleMap": {
       "es": "LolyLine Pro",
       "en": "LolyLine Pro"

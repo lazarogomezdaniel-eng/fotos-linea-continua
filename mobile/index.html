@@ -1710,14 +1710,15 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
       gap: 10px;
     }
     .export-card-left {
       display: flex;
       align-items: center;
       gap: 10px;
-      min-width: 0;
-      flex: 1;
+      min-width: 155px;
+      flex: 1 1 165px;
     }
     .export-card-icon {
       width: 36px;
@@ -1750,7 +1751,8 @@
     .export-card-header {
       display: flex;
       align-items: center;
-      gap: 6px;
+      flex-wrap: wrap;
+      gap: 5px;
       margin-bottom: 2px;
     }
     .export-card-title {
@@ -1758,8 +1760,6 @@
       font-weight: 700;
       color: #ffffff;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
     .export-card-badge {
       font-size: 10px;
@@ -1793,7 +1793,7 @@
     }
     .export-action-btn {
       height: 36px;
-      min-width: 112px;
+      min-width: 96px;
       padding: 0 12px;
       border-radius: 9px;
       font-size: 11.5px;
@@ -1887,7 +1887,7 @@
       #dockTabs { height: 58px; }
       .dock-scroll-fade { bottom: 58px; }
       .dock-scroll-track { bottom: 62px; top: 10px; }
-      canvas { max-height: 82vh !important; margin-top: 44px; }
+      canvas { max-width: calc(100vw - 420px) !important; max-height: 82vh !important; margin-top: 44px; }
     }
   </style>
 </head>
@@ -1958,6 +1958,7 @@
   <main id="stage">
     <div id="canvasWrapper">
       <canvas id="canvas" width="720" height="880"></canvas>
+      <div id="lolyStageWatermark" class="loly-stage-watermark" aria-hidden="true"></div>
       <div id="focalMarker" class="focal-marker" style="display:none;" title="Centro de la Espiral Áurea"></div>
     </div>
 
@@ -14075,7 +14076,7 @@ function startAnimation() {
     animAccumCanvas.height = H;
     drawGeoPopComposition(animAccumCanvas.getContext('2d'), 0);
 
-    document.getElementById('btnAnimate').textContent = '⏹ Mostrar Completo';
+    document.getElementById('btnAnimate').textContent = (window.LolyLine && window.LolyLine.getLanguage() === 'en') ? '⏹ Show Full' : '⏹ Mostrar Completo';
     const floatBtn = document.getElementById('btnAnimateFloat');
     if (floatBtn) {
       floatBtn.textContent = '⏹';
@@ -14131,7 +14132,7 @@ function startAnimation() {
   const aCtx = animAccumCanvas.getContext('2d');
   aCtx.clearRect(0, 0, W, H);
 
-  document.getElementById('btnAnimate').textContent = '⏹ Mostrar Completo';
+  document.getElementById('btnAnimate').textContent = (window.LolyLine && window.LolyLine.getLanguage() === 'en') ? '⏹ Show Full' : '⏹ Mostrar Completo';
   const floatBtn = document.getElementById('btnAnimateFloat');
   if (floatBtn) {
     floatBtn.textContent = '⏹';
@@ -14252,7 +14253,8 @@ function stopAnimation() {
     cancelAnimationFrame(animRafId);
     animRafId = null;
   }
-  document.getElementById('btnAnimate').textContent = '🎬 Animar Dibujo';
+  const _isEnAnim = window.LolyLine && window.LolyLine.getLanguage() === 'en';
+  document.getElementById('btnAnimate').textContent = _isEnAnim ? '🎬 Animate' : '🎬 Animar';
   const floatBtn = document.getElementById('btnAnimateFloat');
   if (floatBtn) {
     floatBtn.textContent = '🎬';
@@ -16630,29 +16632,46 @@ btnRec.onclick = () => {
     window.LolyLine.showProModal('video');
     return;
   }
-  if (typeof MediaRecorder === 'undefined' || !canvas.captureStream) {
+  const hasRecorder = typeof MediaRecorder !== 'undefined' && canvas && typeof canvas.captureStream === 'function';
+  const supportedMimes = hasRecorder && typeof MediaRecorder.isTypeSupported === 'function'
+    ? ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'].filter(m => MediaRecorder.isTypeSupported(m))
+    : [];
+  const chosenMime = supportedMimes[0] || '';
+  if (!hasRecorder || (!chosenMime && typeof MediaRecorder.isTypeSupported === 'function')) {
     const msg = (window.LolyLine && window.LolyLine.getLanguage() === 'en')
       ? 'Video recording is not available on this device. You can still export in PNG or SVG vector.'
-      : 'La grabación de vídeo WebM no está soportada en este dispositivo. Puedes usar Exportar .SVG o Guardar .PNG.';
+      : 'La grabación de vídeo no está soportada en este dispositivo. Puedes usar Exportar .SVG o Guardar .PNG.';
     alert(msg);
     return;
   }
   if (!recorder || recorder.state === 'inactive') {
     chunks = [];
-    const stream = canvas.captureStream(30);
-    const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
-    recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8000000 });
-    recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+    try {
+      const stream = canvas.captureStream(30);
+      const recOpts = chosenMime ? { mimeType: chosenMime, videoBitsPerSecond: 8000000 } : { videoBitsPerSecond: 8000000 };
+      recorder = new MediaRecorder(stream, recOpts);
+    } catch (recErr) {
+      console.warn('MediaRecorder init failed:', recErr);
+      alert((window.LolyLine && window.LolyLine.getLanguage() === 'en')
+        ? 'Could not start video recording on this device.'
+        : 'No se pudo iniciar la grabación de vídeo en este dispositivo.');
+      recorder = null;
+      return;
+    }
+    const baseMime = (chosenMime || 'video/webm').split(';')[0];
+    const ext = baseMime.includes('mp4') ? 'mp4' : 'webm';
+    recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
     recorder.onstop = () => {
-      const fileName = `lolyline_${getExportModeSlug(ENGINE_MODE)}.webm`;
-      const blob = new Blob(chunks, { type: 'video/webm' });
+      if (!chunks || chunks.length === 0) return;
+      const fileName = `lolyline_${getExportModeSlug(ENGINE_MODE)}.${ext}`;
+      const blob = new Blob(chunks, { type: baseMime });
       if (window.LolyLine && typeof window.LolyLine.exportFile === 'function') {
         const reader = new FileReader();
         reader.onloadend = () => {
           window.LolyLine.exportFile({
             fileName: fileName,
             dataUrl: reader.result,
-            mimeType: 'video/webm',
+            mimeType: baseMime,
             shareTitle: 'LolyLine Video'
           });
         };
@@ -16664,14 +16683,27 @@ btnRec.onclick = () => {
         a.click();
       }
     };
-    recorder.start();
+    try {
+      recorder.start();
+    } catch (startErr) {
+      console.warn('MediaRecorder start failed:', startErr);
+      alert((window.LolyLine && window.LolyLine.getLanguage() === 'en')
+        ? 'Video recording failed to start.'
+        : 'No se pudo arrancar la grabación de vídeo.');
+      recorder = null;
+      return;
+    }
     startAnimation();
-    btnRec.textContent = (window.LolyLine && window.LolyLine.getLanguage() === 'en') ? '⏹ Save Recorded Video' : '⏹ Guardar Vídeo';
+    btnRec.textContent = (window.LolyLine && window.LolyLine.getLanguage() === 'en') ? '⏹ Save Video' : '⏹ Guardar Vídeo';
     btnRec.classList.add('recording');
   } else {
     recorder.stop();
-    btnRec.textContent = (window.LolyLine && window.LolyLine.getLanguage() === 'en') ? '⏺ Record Line Video' : '⏺ Grabar Vídeo .WEBM';
+    const _recEs = !(window.LolyLine && window.LolyLine.getLanguage() === 'en');
+    const _recPro = !window.LolyLine || window.LolyLine.isPro();
+    const _recBase = _recEs ? '⏺ Grabar' : '⏺ Record';
+    btnRec.textContent = _recPro ? _recBase : `🔒 ${_recBase}`;
     btnRec.classList.remove('recording');
+    btnRec.classList.toggle('loly-btn-locked', !_recPro);
   }
 };
 
@@ -17038,11 +17070,6 @@ if (dockGrabber) {
 document.querySelectorAll('#dockTabs .tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const tabId = btn.dataset.tab;
-    if ((tabId === 'paneTrazo' || tabId === 'paneColor') && window.LolyLine && !window.LolyLine.isPro()) {
-      window.LolyLine.showProModal(tabId);
-      haptic(10);
-      return;
-    }
     document.querySelectorAll('#dockTabs .tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('#dockContent .tab-pane').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
