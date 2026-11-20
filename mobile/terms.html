@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LolyLine - Términos de Uso / Terms of Service</title>
+  <style>
+    :root {
+      --bg: #07090e;
+      --card: #0f172a;
+      --accent: #38bdf8;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+    body {
+      margin: 0;
+      padding: 24px 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 760px;
+      margin: 0 auto 18px;
+      padding: 10px 14px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      position: sticky;
+      top: 10px;
+      z-index: 20;
+      backdrop-filter: blur(10px);
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.38);
+      color: #e0f2fe;
+      padding: 7px 14px;
+      border-radius: 9px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .back-btn:active {
+      transform: scale(0.97);
+    }
+    .top-nav-brand {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .header {
+      text-align: center;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+    .logo-badge {
+      display: inline-block;
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: #0284c7;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+    }
+    h1 {
+      font-size: 26px;
+      margin: 0 0 8px 0;
+      color: #fff;
+    }
+    .meta {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .lang-switcher {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .lang-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .lang-btn.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      font-size: 18px;
+      color: var(--accent);
+      margin-top: 0;
+    }
+    p, li {
+      font-size: 14.5px;
+      color: #cbd5e1;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 20px;
+      font-size: 12.5px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <nav class="top-nav" aria-label="Navegación">
+    <button type="button" class="back-btn" id="btnTermsBack" onclick="goBackToApp()">
+      <span aria-hidden="true">←</span>
+      <span id="txtBackLabel">Volver</span>
+    </button>
+    <span class="top-nav-brand">LolyLine</span>
+  </nav>
+
+  <div class="container">
+    <div class="header">
+      <div class="logo-badge">
+        <svg viewBox="0 0 64 64" fill="none" stroke="#fff" style="width: 100%; height: 100%;">
+          <path d="M10 32 C 18 16, 26 48, 34 32 C 42 16, 50 48, 58 32" stroke-width="4.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1>LolyLine</h1>
+      <div class="meta">Términos de Uso / Terms of Service • Versión 1.0</div>
+      <div class="lang-switcher">
+        <button class="lang-btn active" onclick="showLang('es')">Español</button>
+        <button class="lang-btn" onclick="showLang('en')">English</button>
+      </div>
+    </div>
+
+    <!-- SECCIÓN ESPAÑOL -->
+    <div id="section-es">
+      <div class="card">
+        <h2>1. Identificación del Titular (DSA / LSSI-CE)</h2>
+        <p>En cumplimiento del Reglamento (UE) 2022/2065 (Ley de Servicios Digitales — DSA) y la Ley 34/2002 (LSSI-CE):</p>
+        <ul>
+          <li><strong>Titular / Desarrollador:</strong> Daniel Lázaro Gómez (Alined Research)</li>
+          <li><strong>Domicilio:</strong> Av. Castellbisbal, 22, 08191 Rubí, Barcelona, España</li>
+          <li><strong>Contacto:</strong> <strong>lazarogomez.daniel@gmail.com</strong></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>2. Modelo de la Aplicación y Licencia de Uso</h2>
+        <p><strong>LolyLine</strong> es una aplicación creativa de transformación de fotografías en arte de una sola línea continua distribuida bajo modelo <em>freemium</em> (descarga gratuita con 5 estilos incluidos y desbloqueo opcional mediante compra única integrada <strong>LolyLine Pro</strong> de los 22 estilos, exportación vectorial SVG y eliminación de marca de agua, sin suscripciones).</p>
+        <p>Se concede al usuario una licencia personal, limitada, no exclusiva e intransferible para instalar y utilizar la aplicación en dispositivos Android o Fire OS compatibles conforme a las normas de Google Play Store o Amazon Appstore.</p>
+      </div>
+
+      <div class="card">
+        <h2>3. Pagos, Compras Integradas y Reembolsos</h2>
+        <p>Todas las transacciones de <strong>LolyLine Pro</strong> se procesan exclusivamente mediante el sistema oficial de facturación de la tienda desde la que se descargó la app (<strong>Google Play Billing</strong> o <strong>Amazon In-App Purchasing</strong>).</p>
+        <ul>
+          <li><strong>Sin datos bancarios:</strong> El Desarrollador no recopila, procesa ni almacena datos de tarjetas o cuentas bancarias.</li>
+          <li><strong>Impuestos y reembolsos:</strong> Los precios incluyen los impuestos aplicables según tu región. Las devoluciones o reembolsos se rigen por las políticas oficiales de Google Play o Amazon Appstore y la normativa europea de consumidores.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>4. Propiedad Intelectual y Tus Obras</h2>
+        <ul>
+          <li><strong>Propiedad de tus creaciones:</strong> Conservas el 100 % de los derechos y la propiedad sobre las fotografías que proceses y los archivos (PNG, SVG o vídeo) que generes localmente con LolyLine.</li>
+          <li><strong>Propiedad del software:</strong> El código fuente, algoritmos de trazado continuo, interfaz y marca LolyLine son propiedad intelectual exclusiva de su titular.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>5. Limitación de Responsabilidad y Ley Aplicable</h2>
+        <p>La aplicación funciona 100 % en local en tu dispositivo y se proporciona «tal cual» (<em>as is</em>). Estas Condiciones se rigen por la legislación española y de la Unión Europea, respetando en todo caso los derechos irrenunciables de los consumidores.</p>
+      </div>
+    </div>
+
+    <!-- SECTION ENGLISH -->
+    <div id="section-en" style="display: none;">
+      <div class="card">
+        <h2>1. Developer Identification (EU DSA)</h2>
+        <p>In compliance with EU Regulation 2022/2065 (Digital Services Act — DSA):</p>
+        <ul>
+          <li><strong>Owner / Developer:</strong> Daniel Lázaro Gómez (Alined Research)</li>
+          <li><strong>Address:</strong> Av. Castellbisbal, 22, 08191 Rubí, Barcelona, Spain</li>
+          <li><strong>Contact Email:</strong> <strong>lazarogomez.daniel@gmail.com</strong></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>2. Application Model & License</h2>
+        <p><strong>LolyLine</strong> is a generative single-continuous-line art application distributed under a <em>freemium</em> model (free download with 5 included styles, plus an optional one-time in-app purchase <strong>LolyLine Pro</strong> that unlocks all 22 styles, lossless SVG vector export, and watermark-free HD output with no subscriptions).</p>
+        <p>You are granted a personal, limited, non-exclusive, non-transferable license to install and use the app on compatible Android or Fire OS devices in accordance with Google Play Store or Amazon Appstore terms.</p>
+      </div>
+
+      <div class="card">
+        <h2>3. Payments, In-App Purchases & Refunds</h2>
+        <p>All <strong>LolyLine Pro</strong> purchases are processed exclusively through the official billing system of the store where the app was downloaded (<strong>Google Play Billing</strong> or <strong>Amazon In-App Purchasing</strong>).</p>
+        <ul>
+          <li><strong>No payment data stored:</strong> The Developer never collects, accesses, or stores credit card or banking details.</li>
+          <li><strong>Taxes & Refunds:</strong> Displayed prices include applicable local taxes. Refunds are handled according to the official refund policies of Google Play or Amazon Appstore and applicable consumer protection laws.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>4. Intellectual Property & Your Artwork</h2>
+        <ul>
+          <li><strong>Your Generated Artwork:</strong> You retain 100% ownership and all rights over the photos you process and the PNG, SVG, or video artworks you create locally with LolyLine.</li>
+          <li><strong>Software Ownership:</strong> The source code, continuous-line algorithms, UI design, and LolyLine brand are the exclusive intellectual property of the Developer.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>5. Liability & Governing Law</h2>
+        <p>LolyLine processes all images 100% locally on your device and is provided "as is". These Terms are governed by Spanish and European Union law, without prejudice to mandatory consumer protection rights.</p>
+      </div>
+    </div>
+
+    <footer>
+      © 2026 LolyLine • Alined Research (Daniel Lázaro Gómez)
+    </footer>
+  </div>
+
+  <script>
+    function goBackToApp() {
+      if (window.history && window.history.length > 1) {
+        window.history.back();
+        setTimeout(function() {
+          window.location.href = 'index.html';
+        }, 250);
+      } else {
+        window.location.href = 'index.html';
+      }
+    }
+    function showLang(lang) {
+      document.getElementById('section-es').style.display = (lang === 'es') ? 'block' : 'none';
+      document.getElementById('section-en').style.display = (lang === 'en') ? 'block' : 'none';
+      const btns = document.querySelectorAll('.lang-btn');
+      btns[0].classList.toggle('active', lang === 'es');
+      btns[1].classList.toggle('active', lang === 'en');
+      const backLabel = document.getElementById('txtBackLabel');
+      if (backLabel) backLabel.textContent = (lang === 'es') ? 'Volver' : 'Back';
+    }
+    try {
+      const savedLang = localStorage.getItem('lolyline_lang');
+      if (savedLang === 'en' || (!savedLang && navigator.language && !navigator.language.toLowerCase().startsWith('es'))) {
+        showLang('en');
+      }
+    } catch (_) {}
+  </script>
+</body>
+</html>

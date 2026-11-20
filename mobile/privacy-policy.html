@@ -107,9 +107,53 @@
       color: var(--muted);
       border-top: 1px solid var(--border);
     }
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 760px;
+      margin: 0 auto 18px;
+      padding: 10px 14px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      position: sticky;
+      top: 10px;
+      z-index: 20;
+      backdrop-filter: blur(10px);
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.38);
+      color: #e0f2fe;
+      padding: 7px 14px;
+      border-radius: 9px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .back-btn:active {
+      transform: scale(0.97);
+    }
+    .top-nav-brand {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+    }
   </style>
 </head>
 <body>
+  <nav class="top-nav" aria-label="Navegación">
+    <button type="button" class="back-btn" id="btnPrivacyBack" onclick="goBackToApp()">
+      <span aria-hidden="true">←</span>
+      <span id="txtBackLabel">Volver</span>
+    </button>
+    <span class="top-nav-brand">LolyLine</span>
+  </nav>
   <div class="container">
     <div class="header">
       <div class="logo-badge">
@@ -203,13 +247,31 @@
   </div>
 
   <script>
+    function goBackToApp() {
+      if (window.history && window.history.length > 1) {
+        window.history.back();
+        setTimeout(function() {
+          window.location.href = 'index.html';
+        }, 250);
+      } else {
+        window.location.href = 'index.html';
+      }
+    }
     function showLang(lang) {
       document.getElementById('section-es').style.display = (lang === 'es') ? 'block' : 'none';
       document.getElementById('section-en').style.display = (lang === 'en') ? 'block' : 'none';
       const btns = document.querySelectorAll('.lang-btn');
       btns[0].classList.toggle('active', lang === 'es');
       btns[1].classList.toggle('active', lang === 'en');
+      const backLabel = document.getElementById('txtBackLabel');
+      if (backLabel) backLabel.textContent = (lang === 'es') ? 'Volver' : 'Back';
     }
+    try {
+      const savedLang = localStorage.getItem('lolyline_lang');
+      if (savedLang === 'en' || (!savedLang && navigator.language && !navigator.language.toLowerCase().startsWith('es'))) {
+        showLang('en');
+      }
+    } catch (_) {}
   </script>
 </body>
 </html>

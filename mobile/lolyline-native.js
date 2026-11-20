@@ -540,7 +540,57 @@
       }
     }
 
-    // Style carousel cards
+    // Style carousel cards (crisp short titles so cards stay clean and readable)
+    const shortCardTitles = {
+      es: {
+        harmonic_waves: 'Ondas Armónicas',
+        coral: 'Coral Cerebral',
+        coral_tsp: 'Coral TSP',
+        stencil_clean: 'Calco Limpio',
+        stencil_cross: 'Calco Cruces',
+        live_growth: 'Crecimiento',
+        golden: 'Áurea Penrose',
+        fractal: 'Fractal Hilbert',
+        hex_spiral: 'Hexagonal',
+        iso_diamond: 'Isométrico',
+        pursuit_vortex: 'Vórtice',
+        panot_bcn: 'Panot BCN',
+        flor_bcn: 'Flor BCN',
+        flor_fractal: 'Flor Fractal',
+        golden_spiral: 'Espiral Áurea',
+        keith_haring: 'Pop Urbano',
+        haring_croc: 'Cocodrilos',
+        haring_puzzle: 'Puzle Humano',
+        halftone_dots: 'Trama Puntos',
+        honeycomb: 'Modo Colmena',
+        escher_cube: 'Celosía en Y',
+        geo_pop: 'Pop Geométrico'
+      },
+      en: {
+        harmonic_waves: 'Harmonic Waves',
+        coral: 'Brain Coral',
+        coral_tsp: 'Organic TSP',
+        stencil_clean: 'Clean Stencil',
+        stencil_cross: 'Pencil Sketch',
+        live_growth: 'Live Growth',
+        golden: 'Golden Penrose',
+        fractal: 'Hilbert Fractal',
+        hex_spiral: 'Hex-Spiral',
+        iso_diamond: '3D Isometric',
+        pursuit_vortex: 'Spiral Vortex',
+        panot_bcn: 'BCN Panot',
+        flor_bcn: 'BCN Flower',
+        flor_fractal: 'Fractal Flower',
+        golden_spiral: 'Golden Spiral',
+        keith_haring: 'Urban Pop',
+        haring_croc: 'Pop Bestiary',
+        haring_puzzle: 'Human Puzzle',
+        halftone_dots: 'Halftone Dots',
+        honeycomb: 'Honeycomb',
+        escher_cube: 'Y-Lattice',
+        geo_pop: 'Geometric Pop'
+      }
+    };
     const styleCards = document.querySelectorAll('.style-card');
     styleCards.forEach(card => {
       const mode = card.dataset.mode;
@@ -548,7 +598,8 @@
         const nameEl = card.querySelector('.card-title, .style-card-name');
         const badgeEl = card.querySelector('.card-badge, .style-card-badge');
         if (nameEl) {
-          const cleanTitle = dict.styles[mode].title.replace(/^[^a-zA-ZáéíóúÁÉÍÓÚñÑ]+[\d]+\.\s*/, '');
+          const shortMap = shortCardTitles[currentLang] || shortCardTitles.en;
+          const cleanTitle = shortMap[mode] || dict.styles[mode].title.replace(/^[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+[\d]+\.\s*/, '');
           nameEl.textContent = cleanTitle;
         }
         if (badgeEl) badgeEl.textContent = dict.styles[mode].badge;
@@ -568,13 +619,15 @@
       descEl.textContent = dict.styles[curMode].desc;
     }
 
-    // Update status pill if function exists
-    if (typeof window.updateActiveFunctionPill === 'function') {
+    // Complete UI localization for Estilo, Trazo, Color, Exportar & Modals
+    localizeStudioPanels(currentLang);
+
+    // Sync dynamic state labels & status pill in index.html
+    if (typeof window.syncDynamicLocalizedLabels === 'function') {
+      window.syncDynamicLocalizedLabels();
+    } else if (typeof window.updateActiveFunctionPill === 'function') {
       window.updateActiveFunctionPill();
     }
-
-    // Complete UI localization for Trazo, Color, Exportar & Modals
-    localizeStudioPanels(currentLang);
 
     // Update landing texts if open
     updateLandingTexts();
@@ -600,17 +653,50 @@
     setText('.studio-subnav-btn[data-subtab="subColorLienzo"]', es ? '🖼️ Lienzo & Fusión' : '🖼️ Canvas & Blend');
     setText('.studio-subnav-btn[data-subtab="subColorDinamica"]', es ? '✨ Dinámica' : '✨ Dynamics');
 
-    // Geo-Pop notices
+    // Geo-Pop notices (headers, badges, body descriptions, and jump buttons)
     setText('#geoPopTrazoNotice .geo-pop-lock-head span:first-child', es ? '🔒 Trazo y Silueta deshabilitados' : '🔒 Stroke & Silhouette disabled');
     setText('#geoPopTrazoNotice .geo-pop-lock-badge', es ? 'Estilo 22' : 'Style 22');
+    const trazoLockDesc = document.querySelector('#geoPopTrazoNotice .geo-pop-lock-desc');
+    if (trazoLockDesc) {
+      trazoLockDesc.innerHTML = es
+        ? '<strong>Pop Geométrico</strong> compone formas directamente sobre la foto sin trazo continuo. Tus valores se conservan intactos al volver a cualquier otro estilo.'
+        : '<strong>Geometric Pop</strong> composes shapes directly over the photo without a continuous line. Your settings remain intact when switching back to any other style.';
+    }
     setText('#geoPopColorNotice .geo-pop-lock-head span:first-child', es ? '🔒 Tinta, Lienzo y Dinámica deshabilitados' : '🔒 Ink, Canvas & Dynamics disabled');
     setText('#geoPopColorNotice .geo-pop-lock-badge', es ? 'Estilo 22' : 'Style 22');
+    const colorLockDesc = document.querySelector('#geoPopColorNotice .geo-pop-lock-desc');
+    if (colorLockDesc) {
+      colorLockDesc.innerHTML = es
+        ? '<strong>Pop Geométrico</strong> usa su propia paleta editorial y el control <em>Quitar color a la foto</em>. Tu paleta, tintas y fusión anteriores siguen guardados.'
+        : '<strong>Geometric Pop</strong> uses its own editorial palette and the <em>Desaturate Photo</em> control. Your previous palette, ink, and blend settings remain saved.';
+    }
     document.querySelectorAll('.geo-pop-jump-btn span:last-child').forEach(el => {
       el.textContent = es ? 'Ir a ajustes Pop Geométrico' : 'Go to Geometric Pop settings';
     });
 
-    // paneTrazo sliders (matched by input ID -> parent .studio-slider-card)
+    // All sliders across paneEstilo, paneTrazo, and paneColor (matched by input ID -> parent .studio-slider-card)
     const sliderTitles = {
+      // paneEstilo style-specific sliders
+      haringIconCount: es ? 'Cantidad de Figuras' : 'Figure Count',
+      haringIconSize: es ? 'Escala de Figuras' : 'Figure Scale',
+      halftoneSpacing: es ? 'Paso de Trama' : 'Dot Spacing',
+      halftoneScale: es ? 'Ganancia de Punto' : 'Dot Gain',
+      halftoneAngle: es ? 'Ángulo de Retícula' : 'Screen Angle',
+      honeycombSize: es ? 'Tamaño de Hexágono' : 'Hexagon Size',
+      honeycombWalls: es ? 'Cámaras del Panal' : 'Honeycomb Chambers',
+      hexSpiralSize: es ? 'Tamaño de Espiral Hexagonal' : 'Hex-Spiral Size',
+      isoDiamondSize: es ? 'Tamaño de Rombo Isométrico' : 'Isometric Diamond Size',
+      panotSize: es ? 'Tamaño de Panot (Baldosa)' : 'Panot Tile Size',
+      florBcnSize: es ? 'Tamaño de Flor de Barcelona' : 'Barcelona Flower Size',
+      florFractalSize: es ? 'Aumento de Flor Fractal' : 'Fractal Flower Zoom',
+      goldenSize: es ? 'Tamaño de Áurea Penrose' : 'Golden Penrose Size',
+      fractalSize: es ? 'Tamaño de Patrón Fractal' : 'Fractal Pattern Size',
+      vortexSize: es ? 'Tamaño de Vórtice' : 'Vortex Size',
+      escherSize: es ? 'Tamaño de Celosía en Y' : 'Y-Lattice Size',
+      geoPopDesat: es ? 'Quitar color a la foto' : 'Desaturate Photo',
+      geoPopSize: es ? 'Tamaño' : 'Shape Size',
+      geoPopCount: es ? 'Cantidad' : 'Shape Count',
+      // paneTrazo sliders
       maxN: es ? 'Nodos Vectoriales Activos' : 'Active Vector Nodes',
       lineW: es ? 'Grosor de Pluma' : 'Pen Thickness',
       chaikinPasses: es ? 'Suavizado de Curva (Chaikin)' : 'Curve Smoothing (Chaikin)',
@@ -620,6 +706,7 @@
       bgClean: es ? 'Limpieza de Fondo' : 'Background Cleanup',
       minR: es ? 'Separación en Sombras' : 'Shadow Spacing',
       maxR: es ? 'Separación en Luces' : 'Highlight Spacing',
+      // paneColor sliders
       colorHue: es ? 'Rueda de Matiz (360°)' : 'Hue Wheel (360°)',
       fusionOpacity: es ? 'Fusión con Retrato' : 'Portrait Blend',
       colorScale: es ? 'Frecuencia Cromática' : 'Color Frequency',
@@ -630,6 +717,42 @@
       const titleEl = card?.querySelector('.studio-slider-title');
       if (titleEl) titleEl.textContent = title;
     });
+
+    // Style-specific non-slider cards, pills & hints in paneEstilo
+    setText(document.getElementById('vCoralMode')?.closest('.studio-slider-card')?.querySelector('.studio-slider-title'), es ? 'Motor Coral Cerebral' : 'Brain Coral Engine');
+    setText('#btnCoralClassic', es ? '🧠 Clásico Original' : '🧠 Classic Original');
+    setText('#btnCoralLaminar', es ? '〰️ Laminar Armónico' : '〰️ Harmonic Laminar');
+
+    setText(document.getElementById('vCoralTspMode')?.closest('.studio-slider-card')?.querySelector('.studio-slider-title'), es ? 'Motor Coral Orgánico TSP' : 'Organic TSP Coral Engine');
+    setText('#btnCoralTspPro', es ? '✨ Alta Definición' : '✨ High Definition');
+    setText('#btnCoralTspClassic', es ? '🌊 Clásico Original' : '🌊 Classic Original');
+
+    setText('#boxSpiralControls .studio-slider-title', es ? '🌻 Centro Focal Espiral Áurea' : '🌻 Golden Spiral Focal Center');
+    setText('#btnAutoFocal', es ? '🎯 Auto Mirada' : '🎯 Auto Gaze');
+    const spiralTapSpan = document.querySelector('#boxSpiralControls .studio-slider-card div span:last-child');
+    if (spiralTapSpan) spiralTapSpan.textContent = es ? '👉 Toca la foto para moverlo' : '👉 Tap the photo to move it';
+    const focalMarker = document.getElementById('focalMarker');
+    if (focalMarker) focalMarker.title = es ? 'Centro de la Espiral Áurea' : 'Golden Spiral Center';
+
+    setText(document.getElementById('vHalftoneMode')?.closest('.studio-slider-card')?.querySelector('.studio-slider-title'), es ? 'Geometría Halftone' : 'Halftone Geometry');
+    setText('#btnHalftoneTypeDots', es ? '⚫ Puntos' : '⚫ Dots');
+    setText('#btnHalftoneTypeLine', es ? '🌀 1-Trazo' : '🌀 1-Line');
+
+    setText(document.getElementById('vHoneycombSubdiv')?.closest('.studio-slider-card')?.querySelector('.studio-slider-title'), es ? 'Detalle Anatómico' : 'Anatomical Detail');
+    setText('#btnHoneycombSubdivOn', es ? '🐝 Sub-Panal en Ojos y Rasgos' : '🐝 Sub-Comb on Eyes & Features');
+    setText('#btnHoneycombSubdivOff', es ? '⚪ Panal Uniforme' : '⚪ Uniform Comb');
+
+    setText(document.getElementById('vFlorFractalMode')?.closest('.studio-slider-card')?.querySelector('.studio-slider-title'), es ? 'Estilo de Flor Fractal' : 'Fractal Flower Style');
+    setText('#btnFlorFractalClassic', es ? '⬛ Fractal Clásico' : '⬛ Classic Fractal');
+    setText('#btnFlorFractalRect', es ? '🖼️ Toda la Foto' : '🖼️ Full Photo');
+
+    setText('#btnGeoPopShuffle', es ? '🎲 Nueva composición' : '🎲 New Composition');
+    const geoPopHint = document.querySelector('#boxGeoPopControls .geo-pop-mode-hint');
+    if (geoPopHint) {
+      geoPopHint.innerHTML = es
+        ? '🎨 Estilo autónomo: utiliza estos 4 controles. Las pestañas <strong>Trazo</strong> y <strong>Color</strong> se pausan conservando tus valores.'
+        : '🎨 Standalone style: use these 4 controls. The <strong>Stroke</strong> and <strong>Color</strong> tabs are paused while preserving your values.';
+    }
 
     setText('.studio-pill[data-set-target="maxN"][data-set-value="38000"]', es ? '38k Óptimo' : '38k Optimal');
     setText('.studio-pill[data-set-target="fusionOpacity"][data-set-value="0"]', es ? '0% Off' : '0% Off');
@@ -724,7 +847,13 @@
     setText('.bg-theme-chip[data-theme="custom"] .swatch-label', es ? 'Color Libre' : 'Custom Color');
     setText('#btnFusionStencil', es ? '✏️ Calco a Lápiz' : '✏️ Pencil Trace');
     setText('#btnFusionPhoto', es ? '📷 Foto Original' : '📷 Original Photo');
-    setText('#btnColorFlow', es ? '🌈 Flujo Cromático Animado' : '🌈 Animated Color Flow');
+    const btnFlow = document.getElementById('btnColorFlow');
+    if (btnFlow) {
+      const isFlowing = btnFlow.classList.contains('flowing');
+      btnFlow.innerHTML = isFlowing
+        ? (es ? '<span>⏸</span> Pausar Flujo Vivo' : '<span>⏸</span> Pause Live Flow')
+        : (es ? '<span>🌈</span> Flujo Cromático Animado' : '<span>🌈</span> Animated Color Flow');
+    }
 
     const simpleNote = document.querySelector('#colorSimpleNotice span');
     if (simpleNote) {
@@ -755,6 +884,10 @@
     // Studio Color Modal
     setText('#scpTitle', es ? '🎨 Color Libre' : '🎨 Custom Color');
     setText('.studio-color-sub', es ? 'Toca o arrastra para elegir cualquier tono libremente' : 'Tap or drag to pick any shade freely');
+    setText('#scpBtnCancel', es ? 'Cancelar' : 'Cancel');
+    setText('#scpBtnApply', es ? 'Aplicar Color' : 'Apply Color');
+    const scpClose = document.getElementById('scpBtnClose');
+    if (scpClose) scpClose.setAttribute('aria-label', es ? 'Cerrar' : 'Close');
   }
 
   // =========================================================================
@@ -1078,6 +1211,13 @@
             alert(I18N[currentLang].proUnlockedToast);
             return true;
           }
+          if (res && res.pending) {
+            closeProModal();
+            alert((currentLang === 'es')
+              ? 'Tu compra está pendiente de confirmación en la tienda. LolyLine Pro se activará automáticamente en cuanto se complete el pago.'
+              : 'Your purchase is pending confirmation in the store. LolyLine Pro will unlock automatically once payment completes.');
+            return false;
+          }
           return false;
         } catch (err) {
           const msg = (err && err.message) ? err.message : '';
@@ -1204,9 +1344,9 @@
         </div>
 
         <div class="loly-pro-legal-row" style="display:flex; justify-content:center; gap:14px; flex-wrap:wrap;">
-          <a href="privacy-policy.html" target="_blank" id="lnkProPrivacy" class="loly-link-muted"></a>
+          <a href="privacy-policy.html" id="lnkProPrivacy" class="loly-link-muted"></a>
           <span style="color:#475569; font-size:0.8rem;">•</span>
-          <a href="https://mycoverso.com/terminos.html" target="_blank" id="lnkProTerms" class="loly-link-muted"></a>
+          <a href="terms.html" id="lnkProTerms" class="loly-link-muted"></a>
         </div>
 
         <button type="button" id="proBtnClose" class="loly-close-btn" title="Cerrar / Close">✕</button>

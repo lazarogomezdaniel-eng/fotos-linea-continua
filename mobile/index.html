@@ -2461,7 +2461,7 @@
         <div id="geoPopTrazoNotice" class="geo-pop-lock-banner is-hidden" role="note">
           <div class="geo-pop-lock-head">
             <span>🔒 Trazo y Silueta deshabilitados</span>
-            <span class="geo-pop-lock-badge">Estilo 21</span>
+            <span class="geo-pop-lock-badge">Estilo 22</span>
           </div>
           <p class="geo-pop-lock-desc">
             <strong>Pop Geométrico</strong> compone formas directamente sobre la foto sin trazo continuo. Tus valores se conservan intactos al volver a cualquier otro estilo.
@@ -2621,7 +2621,7 @@
         <div id="geoPopColorNotice" class="geo-pop-lock-banner is-hidden" role="note">
           <div class="geo-pop-lock-head">
             <span>🔒 Tinta, Lienzo y Dinámica deshabilitados</span>
-            <span class="geo-pop-lock-badge">Estilo 21</span>
+            <span class="geo-pop-lock-badge">Estilo 22</span>
           </div>
           <p class="geo-pop-lock-desc">
             <strong>Pop Geométrico</strong> usa su propia paleta editorial y el control <em>Quitar color a la foto</em>. Tu paleta, tintas y fusión anteriores siguen guardados.
@@ -3486,12 +3486,17 @@ function updateStencilSoloButtonUI() {
   btn.setAttribute('aria-pressed', isSoloActive ? 'true' : 'false');
 }
 
+function isEnLang() {
+  return !!(window.LolyLine && typeof window.LolyLine.getLanguage === 'function' && window.LolyLine.getLanguage() === 'en');
+}
+
 function syncViewLayerCards(val = VIEW_MODE) {
   const activeVal = (val === 'both') ? 'line' : val;
+  const en = isEnLang();
   const badgeMap = {
-    'line': 'Línea Continua',
-    'stencil': 'Calco a Lápiz',
-    'photo': 'Foto Original'
+    'line': en ? 'Continuous Line' : 'Línea Continua',
+    'stencil': en ? 'Pencil Trace' : 'Calco a Lápiz',
+    'photo': en ? 'Original Photo' : 'Foto Original'
   };
   const badge = document.getElementById('currentViewModeBadge');
   if (badge && badgeMap[activeVal]) {
@@ -3502,16 +3507,18 @@ function syncViewLayerCards(val = VIEW_MODE) {
 
 function syncFlorFractalModePills(mode = FLOR_FRACTAL_MODE) {
   const isRect = (mode === 'rect');
+  const en = isEnLang();
   const btnClassic = document.getElementById('btnFlorFractalClassic');
   const btnRect = document.getElementById('btnFlorFractalRect');
   const vMode = document.getElementById('vFlorFractalMode');
   if (btnClassic) btnClassic.classList.toggle('active', !isRect);
   if (btnRect) btnRect.classList.toggle('active', isRect);
-  if (vMode) vMode.textContent = isRect ? 'Toda la Foto' : 'Fractal Clásico';
+  if (vMode) vMode.textContent = isRect ? (en ? 'Full Photo' : 'Toda la Foto') : (en ? 'Classic Fractal' : 'Fractal Clásico');
 }
 
 function syncCoralModePills(mode = CORAL_MODE) {
   const isLaminar = (mode === 'laminar');
+  const en = isEnLang();
   const btnClassic = document.getElementById('btnCoralClassic');
   const btnLaminar = document.getElementById('btnCoralLaminar');
   const vMode = document.getElementById('vCoralMode');
@@ -3524,16 +3531,23 @@ function syncCoralModePills(mode = CORAL_MODE) {
     btnLaminar.classList.toggle('active', isLaminar);
     btnLaminar.setAttribute('aria-pressed', isLaminar ? 'true' : 'false');
   }
-  if (vMode) vMode.textContent = isLaminar ? 'Laminar Armónico' : 'Clásico Original';
+  if (vMode) vMode.textContent = isLaminar ? (en ? 'Harmonic Laminar' : 'Laminar Armónico') : (en ? 'Classic Original' : 'Clásico Original');
   if (hint) {
-    hint.textContent = isLaminar
-      ? '〰️ Bandas paralelas largas, meandros sinuosos profundos y horquillas anidadas fieles a los rasgos, con 0 cruces.'
-      : '🧠 Versión original de coral cerebral dendrítico (100% relleno de silueta).';
+    if (en) {
+      hint.textContent = isLaminar
+        ? '〰️ Long parallel bands, deep sinuous meanders, and nested loops faithful to facial features with 0 crossings.'
+        : '🧠 Original dendritic brain coral version (100% silhouette fill).';
+    } else {
+      hint.textContent = isLaminar
+        ? '〰️ Bandas paralelas largas, meandros sinuosos profundos y horquillas anidadas fieles a los rasgos, con 0 cruces.'
+        : '🧠 Versión original de coral cerebral dendrítico (100% relleno de silueta).';
+    }
   }
 }
 
 function syncCoralTspModePills(mode = CORAL_TSP_MODE) {
   const isClassic = (mode === 'classic');
+  const en = isEnLang();
   const btnPro = document.getElementById('btnCoralTspPro');
   const btnClassic = document.getElementById('btnCoralTspClassic');
   const vMode = document.getElementById('vCoralTspMode');
@@ -3546,16 +3560,22 @@ function syncCoralTspModePills(mode = CORAL_TSP_MODE) {
     btnClassic.classList.toggle('active', isClassic);
     btnClassic.setAttribute('aria-pressed', isClassic ? 'true' : 'false');
   }
-  if (vMode) vMode.textContent = isClassic ? 'Clásico' : 'Alta Definición';
+  if (vMode) vMode.textContent = isClassic ? (en ? 'Classic' : 'Clásico') : (en ? 'High Definition' : 'Alta Definición');
   if (hint) {
-    hint.textContent = isClassic
-      ? '🌊 Versión original (Stippling + 2-Opt clásico + Chaikin) conservada intacta para comparar.'
-      : '✨ Mismo concepto orgánico con nitidez HD en ojos/rasgos, flujo tonal equilibrado y 0 cruces.';
+    if (en) {
+      hint.textContent = isClassic
+        ? '🌊 Original version (Stippling + classic 2-Opt + Chaikin) preserved intact for comparison.'
+        : '✨ Same organic concept with HD sharpness on eyes/features, balanced tonal flow, and 0 crossings.';
+    } else {
+      hint.textContent = isClassic
+        ? '🌊 Versión original (Stippling + 2-Opt clásico + Chaikin) conservada intacta para comparar.'
+        : '✨ Mismo concepto orgánico con nitidez HD en ojos/rasgos, flujo tonal equilibrado y 0 cruces.';
+    }
   }
 }
 
 function formatGeoPopDesat(v) {
-  if (v >= 100) return '100% (B/N)';
+  if (v >= 100) return isEnLang() ? '100% (B&W)' : '100% (B/N)';
   if (v <= 0) return '0% (Color)';
   return `${v}%`;
 }
@@ -3588,7 +3608,7 @@ function syncSlidersFromState() {
   setSlider('halftoneScale', 'vHalftoneScale', HALFTONE_SCALE, null, '%');
   setSlider('halftoneAngle', 'vHalftoneAngle', HALFTONE_ANGLE, null, '°');
   setSlider('honeycombSize', 'vHoneycombSize', HONEYCOMB_SIZE, 1, 'px');
-  setSlider('honeycombWalls', 'vHoneycombWalls', HONEYCOMB_WALLS, null, ' Anillos');
+  setSlider('honeycombWalls', 'vHoneycombWalls', HONEYCOMB_WALLS, null, isEnLang() ? ' Rings' : ' Anillos');
   setSlider('hexSpiralSize', 'vHexSpiralSize', HEX_SPIRAL_SIZE, 1, 'px');
   setSlider('isoDiamondSize', 'vIsoDiamondSize', ISO_DIAMOND_SIZE, 1, 'px');
   setSlider('panotSize', 'vPanotSize', PANOT_SIZE, 1, 'px');
@@ -13032,15 +13052,15 @@ function attachWorkerHandler(worker) {
     lineCacheDirty = true;
 
     if (ENGINE_MODE === 'stencil_cross') {
-      statusPhase = '✓ Boceto con Cruces (0% CPU en reposo)';
+      statusPhase = isEnLang() ? '✓ Cross-Hatch Sketch (0% CPU idle)' : '✓ Boceto con Cruces (0% CPU en reposo)';
     } else if (ENGINE_MODE === 'halftone_dots') {
       statusPhase = (HALFTONE_TYPE === 'dots')
-        ? `✓ Trama de Puntos (${htCircles ? htCircles.length : 0} puntos) · 0% CPU`
-        : `✓ Trama Espiral 1-Trazo (${ptsX.length} nodos) · 0% CPU`;
+        ? (isEnLang() ? `✓ Halftone Dots (${htCircles ? htCircles.length : 0} dots) · 0% CPU` : `✓ Trama de Puntos (${htCircles ? htCircles.length : 0} puntos) · 0% CPU`)
+        : (isEnLang() ? `✓ 1-Line Spiral Halftone (${ptsX.length} nodes) · 0% CPU` : `✓ Trama Espiral 1-Trazo (${ptsX.length} nodos) · 0% CPU`);
     } else {
       statusPhase = done
-        ? '✓ Completado (0% CPU en reposo)'
-        : `Optimizando trazo (${pass}/${totalPasses})...`;
+        ? (isEnLang() ? '✓ Completed (0% CPU idle)' : '✓ Completado (0% CPU en reposo)')
+        : (isEnLang() ? `Optimizing path (${pass}/${totalPasses})...` : `Optimizando trazo (${pass}/${totalPasses})...`);
     }
 
     updateStatsText();
@@ -13088,7 +13108,9 @@ function rebuildPortrait(needsStencilRebuild = true) {
     }
     ensureGeoPopShapes();
     lineCacheDirty = true;
-    statusPhase = `✓ Pop Geométrico (${GEO_POP_COUNT} formas · 0% CPU en reposo)`;
+    statusPhase = isEnLang()
+      ? `✓ Geometric Pop (${GEO_POP_COUNT} shapes · 0% CPU idle)`
+      : `✓ Pop Geométrico (${GEO_POP_COUNT} formas · 0% CPU en reposo)`;
     updateStatsText();
     render();
     return;
@@ -13110,7 +13132,7 @@ function rebuildPortrait(needsStencilRebuild = true) {
   halftoneCirclesData = null;
   lineCacheDirty = true;
 
-  statusPhase = 'Calculando en 2º plano...';
+  statusPhase = isEnLang() ? 'Computing in background...' : 'Calculando en 2º plano...';
   updateStatsText();
   render();
 
@@ -14005,7 +14027,7 @@ function startColorFlow() {
   isColorFlowing = true;
   const btn = document.getElementById('btnColorFlow');
   if (btn) {
-    btn.innerHTML = '<span>⏸</span> Pausar Flujo Vivo';
+    btn.innerHTML = isEnLang() ? '<span>⏸</span> Pause Live Flow' : '<span>⏸</span> Pausar Flujo Vivo';
     btn.classList.add('flowing');
   }
 
@@ -14035,28 +14057,63 @@ function stopColorFlow() {
   }
   const btn = document.getElementById('btnColorFlow');
   if (btn) {
-    btn.innerHTML = '<span>🌈</span> Flujo Cromático Animado';
+    btn.innerHTML = isEnLang() ? '<span>🌈</span> Animated Color Flow' : '<span>🌈</span> Flujo Cromático Animado';
     btn.classList.remove('flowing');
   }
   lineCacheDirty = true;
 }
 
+function localizeStatusPhaseString(str) {
+  if (!str) return str;
+  const en = isEnLang();
+  if (en) {
+    return str
+      .replace('Listo | Motor cargado', 'Ready | Engine loaded')
+      .replace('Calculando en 2º plano...', 'Computing in background...')
+      .replace('✓ Completado (0% CPU en reposo)', '✓ Completed (0% CPU idle)')
+      .replace('✓ Boceto con Cruces (0% CPU en reposo)', '✓ Cross-Hatch Sketch (0% CPU idle)')
+      .replace('Ajustes restablecidos de fábrica (100% Limpio)', 'Factory defaults restored (100% Clean)')
+      .replace('Parámetros Pop Geométrico restaurados', 'Geometric Pop defaults restored')
+      .replace('Parámetros óptimos restaurados', 'Optimal defaults restored')
+      .replace(/^✓ Pop Geométrico \((\d+) formas · 0% CPU en reposo\)$/, '✓ Geometric Pop ($1 shapes · 0% CPU idle)')
+      .replace(/^✓ Trama de Puntos \((\d+) puntos\) · 0% CPU$/, '✓ Halftone Dots ($1 dots) · 0% CPU')
+      .replace(/^✓ Trama Espiral 1-Trazo \((\d+) nodos\) · 0% CPU$/, '✓ 1-Line Spiral Halftone ($1 nodes) · 0% CPU');
+  } else {
+    return str
+      .replace('Ready | Engine loaded', 'Listo | Motor cargado')
+      .replace('Computing in background...', 'Calculando en 2º plano...')
+      .replace('✓ Completed (0% CPU idle)', '✓ Completado (0% CPU en reposo)')
+      .replace('✓ Cross-Hatch Sketch (0% CPU idle)', '✓ Boceto con Cruces (0% CPU en reposo)')
+      .replace('Factory defaults restored (100% Clean)', 'Ajustes restablecidos de fábrica (100% Limpio)')
+      .replace('Geometric Pop defaults restored', 'Parámetros Pop Geométrico restaurados')
+      .replace('Optimal defaults restored', 'Parámetros óptimos restaurados')
+      .replace(/^✓ Geometric Pop \((\d+) shapes · 0% CPU idle\)$/, '✓ Pop Geométrico ($1 formas · 0% CPU en reposo)')
+      .replace(/^✓ Halftone Dots \((\d+) dots\) · 0% CPU$/, '✓ Trama de Puntos ($1 puntos) · 0% CPU')
+      .replace(/^✓ 1-Line Spiral Halftone \((\d+) nodes\) · 0% CPU$/, '✓ Trama Espiral 1-Trazo ($1 nodos) · 0% CPU');
+  }
+}
+
 function updateStatsText() {
+  const en = isEnLang();
+  statusPhase = localizeStatusPhaseString(statusPhase);
   if (ENGINE_MODE === 'geo_pop') {
     const count = Math.min(GEO_POP_COUNT, geoPopShapes ? geoPopShapes.length : 0);
     const text = isAnimatingDraw
-      ? `Componiendo formas (${Math.round((drawProgressCount / Math.max(1, count)) * 100)}%)`
+      ? (en ? `Composing shapes (${Math.round((drawProgressCount / Math.max(1, count)) * 100)}%)` : `Componiendo formas (${Math.round((drawProgressCount / Math.max(1, count)) * 100)}%)`)
       : statusPhase;
-    document.getElementById('stats').textContent = `Formas: ${count} | ${text}`;
+    document.getElementById('stats').textContent = `${en ? 'Shapes' : 'Formas'}: ${count} | ${text}`;
     return;
   }
   const isHtDots = (ENGINE_MODE === 'halftone_dots' && HALFTONE_TYPE === 'dots' && halftoneCirclesData);
   const totalCount = isHtDots ? halftoneCirclesData.length : ptsX.length;
   const text = isAnimatingDraw
-    ? `Dibujando ${isHtDots ? 'trama' : 'trazo'} (${Math.round((drawProgressCount / Math.max(1, totalCount)) * 100)}%)`
+    ? (en
+        ? `Drawing ${isHtDots ? 'dots' : 'path'} (${Math.round((drawProgressCount / Math.max(1, totalCount)) * 100)}%)`
+        : `Dibujando ${isHtDots ? 'trama' : 'trazo'} (${Math.round((drawProgressCount / Math.max(1, totalCount)) * 100)}%)`)
     : statusPhase;
+  const unitLabel = isHtDots ? (en ? 'Dots' : 'Puntos') : (en ? 'Nodes' : 'Nodos');
   document.getElementById('stats').textContent =
-    `${isHtDots ? 'Puntos' : 'Nodos'}: ${totalCount.toLocaleString()} | ${text}`;
+    `${unitLabel}: ${totalCount.toLocaleString()} | ${text}`;
 }
 
 function startAnimation() {
@@ -14889,11 +14946,16 @@ function updateColorPanelVisibility() {
   if (colorSimpleNotice) {
     colorSimpleNotice.classList.toggle('is-hidden', !(isPhotoExact || isPhotoFusion));
     const span = colorSimpleNotice.querySelector('span');
+    const en = isEnLang();
     if (span) {
       if (isPhotoExact) {
-        span.innerHTML = '📸 <strong>Color Foto Original:</strong> Extrae el pigmento real directo de la fotografía. Ajusta saturación en <strong>Dinámica</strong>.';
+        span.innerHTML = en
+          ? '📸 <strong>Original Photo Color:</strong> Samples the real pigment directly from the photograph. Adjust saturation in <strong>Dynamics</strong>.'
+          : '📸 <strong>Color Foto Original:</strong> Extrae el pigmento real directo de la fotografía. Ajusta saturación en <strong>Dinámica</strong>.';
       } else if (isPhotoFusion) {
-        span.innerHTML = '🖼️ <strong>Foto + Mezcla:</strong> Fusión híbrida entre el pigmento de la fotografía y la paleta de tinta seleccionada.';
+        span.innerHTML = en
+          ? '🖼️ <strong>Photo + Mix:</strong> Hybrid blend between the photograph pigment and the selected ink palette.'
+          : '🖼️ <strong>Foto + Mezcla:</strong> Fusión híbrida entre el pigmento de la fotografía y la paleta de tinta seleccionada.';
       }
     }
   }
@@ -14905,7 +14967,7 @@ function updateColorPanelVisibility() {
 
 function syncColorModeCards(mode) {
   const cards = document.querySelectorAll('.color-mode-card');
-  let selectedTitle = 'Monocromo';
+  let selectedTitle = isEnLang() ? 'Monochrome' : 'Monocromo';
   cards.forEach(card => {
     const isSelected = (card.getAttribute('data-mode') === mode);
     card.classList.toggle('active', isSelected);
@@ -14920,7 +14982,8 @@ function syncColorModeCards(mode) {
 
 function syncPaletteCards(palette) {
   const cards = document.querySelectorAll('.palette-card');
-  let selectedTitle = (palette === 'custom') ? 'Personalizada' : 'Iris Neón';
+  const en = isEnLang();
+  let selectedTitle = (palette === 'custom') ? (en ? 'Custom' : 'Personalizada') : (en ? 'Neon Iris' : 'Iris Neón');
   cards.forEach(card => {
     const isSelected = (card.getAttribute('data-palette') === palette);
     card.classList.toggle('active', isSelected);
@@ -14935,19 +14998,20 @@ function syncPaletteCards(palette) {
 
 function syncMonoInkChips(theme) {
   const chips = document.querySelectorAll('.mono-ink-chip');
+  const en = isEnLang();
   chips.forEach(chip => {
     chip.classList.toggle('active', chip.getAttribute('data-ink') === theme);
   });
   const label = document.getElementById('currentMonoInkLabel');
   if (label) {
-    if (theme === 'black') label.textContent = 'Negro Carbón';
-    else if (theme === 'white') label.textContent = 'Blanco Puro';
-    else if (theme === 'sepia') label.textContent = 'Sepia Grabado';
-    else if (theme === 'indigo') label.textContent = 'Azul Índigo';
-    else if (theme === 'sanguine') label.textContent = 'Sanguina';
+    if (theme === 'black') label.textContent = en ? 'Carbon Black' : 'Negro Carbón';
+    else if (theme === 'white') label.textContent = en ? 'Pure White' : 'Blanco Puro';
+    else if (theme === 'sepia') label.textContent = en ? 'Engraved Sepia' : 'Sepia Grabado';
+    else if (theme === 'indigo') label.textContent = en ? 'Indigo Blue' : 'Azul Índigo';
+    else if (theme === 'sanguine') label.textContent = en ? 'Sanguine' : 'Sanguina';
     else if (theme === 'custom') {
       const hex = (MONO_CUSTOM_INK || '#0F2B48').toUpperCase();
-      label.textContent = `Libre (${hex})`;
+      label.textContent = `${en ? 'Custom' : 'Libre'} (${hex})`;
     }
   }
   const dot = document.getElementById('monoInkCustomDot');
@@ -14958,30 +15022,34 @@ function syncMonoInkChips(theme) {
 
 function syncRainbowStyleChips(style) {
   const chips = document.querySelectorAll('.rainbow-style-chip');
+  const en = isEnLang();
   chips.forEach(chip => {
     chip.classList.toggle('active', chip.getAttribute('data-style') === style);
   });
   const label = document.getElementById('currentRainbowStyleLabel');
   if (label) {
-    label.textContent = (style === 'bands') ? 'Franjas Verticales' : 'Hilo Continuo';
+    label.textContent = (style === 'bands')
+      ? (en ? 'Vertical Bands' : 'Franjas Verticales')
+      : (en ? 'Continuous Strand' : 'Hilo Continuo');
   }
 }
 
 function syncBgThemeChips(theme) {
   const chips = document.querySelectorAll('.bg-theme-chip');
+  const en = isEnLang();
   chips.forEach(chip => {
     chip.classList.toggle('active', chip.getAttribute('data-theme') === theme);
   });
   const bgLabel = document.getElementById('currentBgLabel');
   if (bgLabel) {
-    if (theme === 'white') bgLabel.textContent = 'Blanco Puro';
-    else if (theme === 'dark') bgLabel.textContent = 'Noche Oscura';
-    else if (theme === 'cream') bgLabel.textContent = 'Pergamino';
-    else if (theme === 'slate') bgLabel.textContent = 'Pizarra Grafito';
-    else if (theme === 'kraft') bgLabel.textContent = 'Papel Arena';
+    if (theme === 'white') bgLabel.textContent = en ? 'Pure White' : 'Blanco Puro';
+    else if (theme === 'dark') bgLabel.textContent = en ? 'Dark Night' : 'Noche Oscura';
+    else if (theme === 'cream') bgLabel.textContent = en ? 'Parchment' : 'Pergamino';
+    else if (theme === 'slate') bgLabel.textContent = en ? 'Graphite Slate' : 'Pizarra Grafito';
+    else if (theme === 'kraft') bgLabel.textContent = en ? 'Sand Paper' : 'Papel Arena';
     else if (theme === 'custom') {
       const hex = (BG_COLORS.custom || '#2a2e3d').toUpperCase();
-      bgLabel.textContent = `Libre (${hex})`;
+      bgLabel.textContent = `${en ? 'Custom' : 'Libre'} (${hex})`;
     }
   }
   const dot = document.getElementById('bgCustomDot');
@@ -15149,7 +15217,7 @@ document.querySelectorAll('.scp-tone-dot').forEach(dot => {
   });
 });
 
-function openStudioColorPicker({ title = '🎨 Color Libre', initialHex = '#2A2E3D', onPreview, onApply, onCancel }) {
+function openStudioColorPicker({ title = (isEnLang() ? '🎨 Custom Color' : '🎨 Color Libre'), initialHex = '#2A2E3D', onPreview, onApply, onCancel }) {
   scpInitialHex = (initialHex || '#2A2E3D').toUpperCase();
   scpOnPreviewCb = onPreview || null;
   scpOnApplyCb = onApply || null;
@@ -15255,7 +15323,7 @@ document.querySelectorAll('.mono-ink-chip').forEach(chip => {
     if (!ink) return;
     if (ink === 'custom') {
       openStudioColorPicker({
-        title: '🎨 Color Libre de Tinta',
+        title: isEnLang() ? '🎨 Custom Ink Color' : '🎨 Color Libre de Tinta',
         initialHex: MONO_CUSTOM_INK || '#0f2b48',
         onPreview: (hex) => {
           MONO_CUSTOM_INK = hex;
@@ -15318,7 +15386,7 @@ document.querySelectorAll('.bg-theme-chip').forEach(chip => {
     if (!theme) return;
     if (theme === 'custom') {
       openStudioColorPicker({
-        title: '🎨 Color Libre de Lienzo',
+        title: isEnLang() ? '🎨 Custom Canvas Color' : '🎨 Color Libre de Lienzo',
         initialHex: BG_COLORS.custom || '#2a2e3d',
         onPreview: (hex) => {
           BG_COLORS.custom = hex;
@@ -15598,7 +15666,11 @@ bindParam('halftoneSpacing', 'vHalftoneSpacing', v => { HALFTONE_SPACING = v; },
 bindParam('halftoneScale', 'vHalftoneScale', v => { HALFTONE_SCALE = v; }, false, null, '%');
 bindParam('halftoneAngle', 'vHalftoneAngle', v => { HALFTONE_ANGLE = v; }, false, null, '°');
 bindParam('honeycombSize', 'vHoneycombSize', v => { HONEYCOMB_SIZE = v; }, false, 1, 'px');
-bindParam('honeycombWalls', 'vHoneycombWalls', v => { HONEYCOMB_WALLS = v; }, false, null, ' Anillos');
+bindParam('honeycombWalls', 'vHoneycombWalls', v => {
+  HONEYCOMB_WALLS = v;
+  const lbl = document.getElementById('vHoneycombWalls');
+  if (lbl) lbl.textContent = `${v}${isEnLang() ? ' Rings' : ' Anillos'}`;
+}, false, null, ' Anillos');
 bindParam('hexSpiralSize', 'vHexSpiralSize', v => { HEX_SPIRAL_SIZE = v; }, false, 1, 'px');
 bindParam('isoDiamondSize', 'vIsoDiamondSize', v => { ISO_DIAMOND_SIZE = v; }, false, 1, 'px');
 bindParam('panotSize', 'vPanotSize', v => { PANOT_SIZE = v; }, false, 1, 'px');
@@ -15628,7 +15700,9 @@ function scheduleGeoPopLiveRefresh(needsPhotoRebuild = false) {
       buildGeoPopPhotoCanvas();
     }
     ensureGeoPopShapes();
-    statusPhase = `✓ Pop Geométrico (${GEO_POP_COUNT} formas · 0% CPU en reposo)`;
+    statusPhase = isEnLang()
+      ? `✓ Geometric Pop (${GEO_POP_COUNT} shapes · 0% CPU idle)`
+      : `✓ Pop Geométrico (${GEO_POP_COUNT} formas · 0% CPU en reposo)`;
     lineCacheDirty = true;
     render();
     updateStatsText();
@@ -15688,7 +15762,7 @@ if (btnHcSubdivOn && btnHcSubdivOff) {
     HONEYCOMB_SUBDIV = true;
     btnHcSubdivOn.classList.add('active');
     btnHcSubdivOff.classList.remove('active');
-    if (vHcSubdiv) vHcSubdiv.textContent = 'Sub-Panal Activo';
+    if (vHcSubdiv) vHcSubdiv.textContent = isEnLang() ? 'Sub-Comb Active' : 'Sub-Panal Activo';
     lineCacheDirty = true;
     rebuildPortrait(false);
     if (typeof haptic === 'function') haptic(10);
@@ -15698,7 +15772,7 @@ if (btnHcSubdivOn && btnHcSubdivOff) {
     HONEYCOMB_SUBDIV = false;
     btnHcSubdivOff.classList.add('active');
     btnHcSubdivOn.classList.remove('active');
-    if (vHcSubdiv) vHcSubdiv.textContent = 'Panal Uniforme';
+    if (vHcSubdiv) vHcSubdiv.textContent = isEnLang() ? 'Uniform Comb' : 'Panal Uniforme';
     lineCacheDirty = true;
     rebuildPortrait(false);
     if (typeof haptic === 'function') haptic(10);
@@ -15715,7 +15789,7 @@ if (btnHtDots && btnHtLine) {
     HALFTONE_TYPE = 'dots';
     btnHtDots.classList.add('active');
     btnHtLine.classList.remove('active');
-    if (vHtMode) vHtMode.textContent = 'Círculos';
+    if (vHtMode) vHtMode.textContent = isEnLang() ? 'Circles' : 'Círculos';
     lineCacheDirty = true;
     rebuildPortrait(false);
     if (typeof haptic === 'function') haptic(10);
@@ -15725,7 +15799,7 @@ if (btnHtDots && btnHtLine) {
     HALFTONE_TYPE = 'spiral';
     btnHtLine.classList.add('active');
     btnHtDots.classList.remove('active');
-    if (vHtMode) vHtMode.textContent = '1-Trazo';
+    if (vHtMode) vHtMode.textContent = isEnLang() ? '1-Line' : '1-Trazo';
     lineCacheDirty = true;
     rebuildPortrait(false);
     if (typeof haptic === 'function') haptic(10);
@@ -16781,11 +16855,11 @@ function updateFocalMarker() {
         marker.style.left = ((customFocalX / W) * 100) + '%';
         marker.style.top = ((customFocalY / H) * 100) + '%';
       }
-      if (txt) txt.textContent = 'Foco en (' + Math.round(customFocalX) + ', ' + Math.round(customFocalY) + ')';
-      if (statusPill) statusPill.textContent = '🌻 Foco (' + Math.round(customFocalX) + ',' + Math.round(customFocalY) + ')';
+      if (txt) txt.textContent = (isEnLang() ? 'Focus at (' : 'Foco en (') + Math.round(customFocalX) + ', ' + Math.round(customFocalY) + ')';
+      if (statusPill) statusPill.textContent = (isEnLang() ? '🌻 Focus (' : '🌻 Foco (') + Math.round(customFocalX) + ',' + Math.round(customFocalY) + ')';
     } else {
       if (marker) marker.style.display = 'none';
-      if (txt) txt.textContent = 'Centro automático en la mirada';
+      if (txt) txt.textContent = isEnLang() ? 'Auto-centered on gaze' : 'Centro automático en la mirada';
       updateActiveFunctionPill();
     }
   } else {
@@ -16873,20 +16947,21 @@ function syncUiForEngineMode(mode = ENGINE_MODE) {
 
   const tabTrazo = document.querySelector('#dockTabs .tab-btn[data-tab="paneTrazo"]');
   const tabColor = document.querySelector('#dockTabs .tab-btn[data-tab="paneColor"]');
+  const en = isEnLang();
   if (tabTrazo) {
     tabTrazo.classList.toggle('is-mode-na', isGeoPop);
-    tabTrazo.title = isGeoPop ? 'Pausado en Pop Geométrico (conserva tus valores)' : '';
+    tabTrazo.title = isGeoPop ? (en ? 'Paused in Geometric Pop (values preserved)' : 'Pausado en Pop Geométrico (conserva tus valores)') : '';
   }
   if (tabColor) {
     tabColor.classList.toggle('is-mode-na', isGeoPop);
-    tabColor.title = isGeoPop ? 'Pausado en Pop Geométrico (conserva tus valores)' : '';
+    tabColor.title = isGeoPop ? (en ? 'Paused in Geometric Pop (values preserved)' : 'Pausado en Pop Geométrico (conserva tus valores)') : '';
   }
 
   const btnResetStyle = document.getElementById('btnResetStyleParams');
   if (btnResetStyle) {
     btnResetStyle.title = isGeoPop
-      ? 'Restaura los ajustes de Pop Geométrico (Desaturar 100%, Tamaño 100%, Formas 40)'
-      : 'Restaura los deslizadores a los valores óptimos por defecto del estilo actual';
+      ? (en ? 'Restore Geometric Pop defaults (Desaturate 100%, Size 100%, Count 40)' : 'Restaura los ajustes de Pop Geométrico (Desaturar 100%, Tamaño 100%, Formas 40)')
+      : (en ? 'Restore sliders to optimal defaults for the current style' : 'Restaura los deslizadores a los valores óptimos por defecto del estilo actual');
   }
 
   if (isGeoPop) {
@@ -16977,6 +17052,41 @@ function updateActiveFunctionPill() {
   }
 }
 window.updateActiveFunctionPill = updateActiveFunctionPill;
+
+function syncDynamicLocalizedLabels() {
+  const en = isEnLang();
+  if (typeof syncCoralModePills === 'function') syncCoralModePills(CORAL_MODE);
+  if (typeof syncCoralTspModePills === 'function') syncCoralTspModePills(CORAL_TSP_MODE);
+  if (typeof syncFlorFractalModePills === 'function') syncFlorFractalModePills(FLOR_FRACTAL_MODE);
+  if (typeof syncViewLayerCards === 'function') syncViewLayerCards(VIEW_MODE);
+  if (typeof syncColorModeCards === 'function') syncColorModeCards(COLOR_MODE);
+  if (typeof syncPaletteCards === 'function') syncPaletteCards(COLOR_PALETTE);
+  if (typeof syncMonoInkChips === 'function') syncMonoInkChips(MONO_INK_THEME);
+  if (typeof syncRainbowStyleChips === 'function') syncRainbowStyleChips(RAINBOW_STYLE);
+  if (typeof syncBgThemeChips === 'function') syncBgThemeChips(BG_THEME);
+  if (typeof updateColorPanelVisibility === 'function') updateColorPanelVisibility();
+  const lblHcWalls = document.getElementById('vHoneycombWalls');
+  if (lblHcWalls) lblHcWalls.textContent = `${HONEYCOMB_WALLS}${en ? ' Rings' : ' Anillos'}`;
+  const lblHcSub = document.getElementById('vHoneycombSubdiv');
+  if (lblHcSub) lblHcSub.textContent = HONEYCOMB_SUBDIV ? (en ? 'Sub-Comb Active' : 'Sub-Panal Activo') : (en ? 'Uniform Comb' : 'Panal Uniforme');
+  const lblHtMode = document.getElementById('vHalftoneMode');
+  if (lblHtMode) lblHtMode.textContent = (HALFTONE_TYPE === 'dots') ? (en ? 'Circles' : 'Círculos') : (en ? '1-Line' : '1-Trazo');
+  const lblGeoD = document.getElementById('vGeoPopDesat');
+  if (lblGeoD && typeof formatGeoPopDesat === 'function') lblGeoD.textContent = formatGeoPopDesat(GEO_POP_DESAT);
+  const txtFocal = document.getElementById('focalCoordsText');
+  if (txtFocal) {
+    if (customFocalX !== null && customFocalY !== null) {
+      txtFocal.textContent = (en ? 'Focus at (' : 'Foco en (') + Math.round(customFocalX) + ', ' + Math.round(customFocalY) + ')';
+    } else {
+      txtFocal.textContent = en ? 'Auto-centered on gaze' : 'Centro automático en la mirada';
+    }
+  }
+  if (typeof syncUiForEngineMode === 'function') syncUiForEngineMode(ENGINE_MODE);
+  if (typeof updateZoomButtonUI === 'function') updateZoomButtonUI();
+  if (typeof updateStatsText === 'function') updateStatsText();
+  if (typeof updateActiveFunctionPill === 'function') updateActiveFunctionPill();
+}
+window.syncDynamicLocalizedLabels = syncDynamicLocalizedLabels;
 
 function syncStyleCards(selectedMode) {
   styleCards.forEach(card => {
@@ -17313,13 +17423,14 @@ let initialPinchDist = 0, initialScale = 1;
 
 function updateZoomButtonUI() {
   if (!btnResetZoom) return;
+  const en = isEnLang();
   if (scale > 1.15) {
     btnResetZoom.textContent = '1x';
-    btnResetZoom.title = 'Alejar / Vista Completa (1x)';
+    btnResetZoom.title = en ? 'Zoom Out / Full View (1x)' : 'Alejar / Vista Completa (1x)';
     btnResetZoom.classList.add('active');
   } else {
     btnResetZoom.textContent = '🔍';
-    btnResetZoom.title = 'Zoom Detalle (2.2x)';
+    btnResetZoom.title = en ? 'Detail Zoom (2.2x)' : 'Zoom Detalle (2.2x)';
     btnResetZoom.classList.remove('active');
   }
 }
